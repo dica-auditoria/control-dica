@@ -1,0 +1,349 @@
+"use server";
+
+import { createClient } from "@/lib/supabase/server";
+import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
+import type { RegistrarAsistenciaInput, RegistroAsistencia } from "@/types/asistencia";
+
+interface PerfilRow { rol: string }
+type SupabaseServer = ReturnType<typeof createClient>;
+type DbQuery = PromiseLike<unknown> & {
+  select: (...args: unknown[]) => DbQuery;
+  insert: (...args: unknown[]) => DbQuery;
+  eq: (...args: unknown[]) => DbQuery;
+  gte: (...args: unknown[]) => DbQuery;
+  lte: (...args: unknown[]) => DbQuery;
+  in: (...args: unknown[]) => DbQuery;
+  not: (...args: unknown[]) => DbQuery;
+  order: (...args: unknown[]) => DbQuery;
+  single: () => DbQuery;
+};
+
+function db(supabase: SupabaseServer, table: string) {
+  return supabase.from(table as never) as unknown as DbQuery;
+}
+
+async function verificarAdmin() {
+  const supabase = createClient();
+  const { data: { user }, error } = await supabase.auth.getUser();
+  if (error || !user) return { supabase: null, error: "No autenticado" };
+  const { data: perfil } = await supabase
+    .from("usuarios").select("rol").eq("id", user.id).single() as { data: PerfilRow | null; error: unknown };
+  if (!perfil || !["admin", "superadmin"].includes(perfil.rol))
+    return { supabase: null, error: "Acción no autorizada" };
+  return { supabase, error: null };
+}
+
+function haversineMetros(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371000;
+  const p1 = lat1 * Math.PI / 180, p2 = lat2 * Math.PI / 180;
+  const dp = (lat2 - lat1) * Math.PI / 180, dl = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dp / 2) ** 2 + Math.cos(p1) * Math.cos(p2) * Math.sin(dl / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+async function calcularGeofencing(supabase: SupabaseServer, lat: number, lng: number, ubicacionId?: string | null) {
+  let oficinas: Array<{ id: string; lat: number; lng: number; radio_metros: number; nombre: string }> = [];
+
+  if (ubicacionId) {
+    const { data } = await db(supabase, "ubicaciones")
+      .select("id, lat, lng, radio_metros, nombre").eq("id", ubicacionId).eq("tipo", "oficina").eq("activo", true).single() as {
+        data: { id: string; lat: number | null; lng: number | null; radio_metros: number; nombre: string } | null;
+      };
+    if (data?.lat !== null && data?.lat !== undefined && data.lng !== null && data.lng !== undefined) {
+      oficinas = [{ ...data, lat: data.lat, lng: data.lng }];
+    }
+  } else {
+    const { data } = await db(supabase, "ubicaciones")
+      .select("id, lat, lng, radio_metros, nombre").eq("tipo", "oficina").eq("activo", true).not("lat", "is", null) as {
+        data: Array<{ id: string; lat: number; lng: number; radio_metros: number; nombre: string }> | null;
+      };
+    oficinas = data ?? [];
+  }
+
+  if (!oficinas.length) return { ubicacionId: ubicacionId ?? null, distancia: null, dentroRadio: null };
+
+  let minDist = Infinity, nearest = oficinas[0];
+  for (const o of oficinas) {
+    const d = haversineMetros(lat, lng, o.lat, o.lng);
+    if (d < minDist) { minDist = d; nearest = o; }
+  }
+  return {
+    ubicacionId: nearest.id,
+    distancia: Math.round(minDist * 100) / 100,
+    dentroRadio: minDist <= nearest.radio_metros,
+  };
+}
+
+// ─── ADMIN: Registrar asistencia ─────────────────────────────────────────────
+
+export async function registrarAsistenciaAction(input: RegistrarAsistenciaInput) {
+  const { supabase, error: authErr } = await verificarAdmin();
+  if (authErr || !supabase) return { error: authErr };
+
+  const headersList = await headers();
+  const ip = headersList.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;
+
+  let geo = { ubicacionId: input.ubicacion_id ?? null, distancia: null as number | null, dentroRadio: null as boolean | null };
+  if (input.lat && input.lng) geo = await calcularGeofencing(supabase, input.lat, input.lng, input.ubicacion_id);
+
+  const { data, error } = await db(supabase, "empleado_asistencia")
+    .insert({ empleado_id: input.empleado_id, ubicacion_id: geo.ubicacionId, tipo: input.tipo, lat: input.lat ?? null, lng: input.lng ?? null, distancia_metros: geo.distancia, dentro_radio: geo.dentroRadio, notas: input.notas?.trim() || null, ip })
+    .select("id").single() as { data: { id: string } | null; error: unknown };
+
+  if (error) return { error: "Error al registrar la asistencia" };
+  revalidatePath("/dashboard/asistencia");
+  return { id: (data as { id: string })?.id, distancia: geo.distancia, dentroRadio: geo.dentroRadio };
+}
+
+// ─── PÚBLICO: Buscar empleado por código o email ──────────────────────────────
+
+export async function buscarEmpleadoCheckinAction(query: string) {
+  const supabase = createClient();
+  const q = query.trim();
+
+  const { data: byCode } = await supabase
+    .from("empleados").select("id, nombres, apellido_paterno, apellido_materno, codigo_empleado, departamento")
+    .eq("codigo_empleado", q.toUpperCase()).eq("estado", "activo").maybeSingle();
+
+  const { data: byEmail } = byCode ? { data: null } : await supabase
+    .from("empleados").select("id, nombres, apellido_paterno, apellido_materno, codigo_empleado, departamento")
+    .eq("email_institucional", q.toLowerCase()).eq("estado", "activo").maybeSingle();
+
+  const emp = byCode ?? byEmail;
+  if (!emp) return { error: "Empleado no encontrado o inactivo" };
+
+  const e = emp as { id: string; nombres: string; apellido_paterno: string; apellido_materno: string; codigo_empleado: string | null; departamento: string };
+  return {
+    empleado: {
+      id: e.id,
+      nombre: `${e.nombres} ${e.apellido_paterno} ${e.apellido_materno}`.trim(),
+      codigo: e.codigo_empleado,
+      departamento: e.departamento,
+    }
+  };
+}
+
+// ─── PÚBLICO: Resumen de hoy para un empleado ────────────────────────────────
+
+export async function obtenerResumenHoyAction(empleadoId: string) {
+  const supabase = createClient();
+  const hoy = new Date().toISOString().split("T")[0];
+
+  const { data } = await db(supabase, "empleado_asistencia")
+    .select("tipo, created_at, dentro_radio, distancia_metros")
+    .eq("empleado_id", empleadoId)
+    .gte("created_at", `${hoy}T00:00:00`)
+    .lte("created_at", `${hoy}T23:59:59`)
+    .order("created_at", { ascending: true }) as { data: Array<{ tipo: string; created_at: string; dentro_radio: boolean | null; distancia_metros: number | null }> | null };
+
+  const registros = data ?? [];
+  const entradas  = registros.filter(r => r.tipo === "entrada");
+  const salidas   = registros.filter(r => r.tipo === "salida");
+  const primera   = entradas[0]?.created_at ?? null;
+  const ultima    = salidas[salidas.length - 1]?.created_at ?? null;
+  const ultimoTipo = registros[registros.length - 1]?.tipo as "entrada" | "salida" | null ?? null;
+
+  let horas = "--:--";
+  if (primera && ultima) {
+    const diff = (new Date(ultima).getTime() - new Date(primera).getTime()) / 1000;
+    const h = Math.floor(diff / 3600), m = Math.floor((diff % 3600) / 60);
+    horas = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+  }
+
+  return { primera, ultima, horas, ultimoTipo, totalRegistros: registros.length };
+}
+
+// ─── PÚBLICO: Registrar check-in/out ─────────────────────────────────────────
+
+export async function registrarCheckinPublicoAction(input: {
+  empleado_id: string;
+  tipo: "entrada" | "salida";
+  lat?: number | null;
+  lng?: number | null;
+}) {
+  const supabase = createClient();
+
+  const { data: emp } = await supabase.from("empleados").select("id").eq("id", input.empleado_id).eq("estado", "activo").maybeSingle();
+  if (!emp) return { error: "Empleado no encontrado" };
+
+  const headersList = await headers();
+  const ip = headersList.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;
+
+  let geo = { ubicacionId: null as string | null, distancia: null as number | null, dentroRadio: null as boolean | null };
+  if (input.lat && input.lng) geo = await calcularGeofencing(supabase, input.lat, input.lng, null);
+
+  const { error } = await db(supabase, "empleado_asistencia").insert({
+    empleado_id: input.empleado_id, ubicacion_id: geo.ubicacionId,
+    tipo: input.tipo, lat: input.lat ?? null, lng: input.lng ?? null,
+    distancia_metros: geo.distancia, dentro_radio: geo.dentroRadio, ip,
+  }) as { error: unknown };
+
+  if (error) return { error: "Error al registrar" };
+  return { success: true, distancia: geo.distancia, dentroRadio: geo.dentroRadio };
+}
+
+// ─── ADMIN: Listar registros del día ─────────────────────────────────────────
+
+export async function fetchAsistenciaAction(opts?: { fecha?: string; empleadoId?: string; tipo?: "entrada" | "salida" }) {
+  const { supabase, error: authErr } = await verificarAdmin();
+  if (authErr || !supabase) return { error: authErr, data: null };
+
+  const fecha = opts?.fecha ?? new Date().toISOString().split("T")[0];
+  let query = db(supabase, "empleado_asistencia")
+    .select("id, empleado_id, ubicacion_id, tipo, lat, lng, distancia_metros, dentro_radio, notas, created_at")
+    .gte("created_at", `${fecha}T00:00:00`).lte("created_at", `${fecha}T23:59:59`)
+    .order("created_at", { ascending: false });
+
+  if (opts?.empleadoId) query = query.eq("empleado_id", opts.empleadoId);
+  if (opts?.tipo) query = query.eq("tipo", opts.tipo);
+
+  const { data: rows, error } = await query as { data: Array<Record<string, unknown>> | null; error: unknown };
+  if (error) return { error: "Error al cargar", data: null };
+
+  const empIds = Array.from(new Set((rows ?? []).map(r => r.empleado_id as string)));
+  const ubIds  = Array.from(new Set((rows ?? []).map(r => r.ubicacion_id as string).filter(Boolean)));
+
+  const [rE, rU] = await Promise.all([
+    empIds.length
+      ? db(supabase, "empleados").select("id, nombres, apellido_paterno, codigo_empleado").in("id", empIds) as unknown as PromiseLike<{ data: Array<{ id: string; nombres: string; apellido_paterno: string; codigo_empleado: string | null }> | null }>
+      : Promise.resolve({ data: [] }),
+    ubIds.length
+      ? db(supabase, "ubicaciones").select("id, nombre").in("id", ubIds) as unknown as PromiseLike<{ data: Array<{ id: string; nombre: string }> | null }>
+      : Promise.resolve({ data: [] }),
+  ]);
+
+  const empMap = new Map<string, { nombre: string; codigo: string | null }>();
+  for (const e of (rE.data ?? []) as Array<{ id: string; nombres: string; apellido_paterno: string; codigo_empleado: string | null }>) {
+    empMap.set(e.id, { nombre: `${e.nombres} ${e.apellido_paterno}`, codigo: e.codigo_empleado });
+  }
+  const ubMap = new Map<string, string>();
+  for (const u of (rU.data ?? []) as Array<{ id: string; nombre: string }>) ubMap.set(u.id, u.nombre);
+
+  const data: RegistroAsistencia[] = (rows ?? []).map(r => ({
+    id: r.id as string, empleado_id: r.empleado_id as string,
+    empleado_nombre: empMap.get(r.empleado_id as string)?.nombre ?? "—",
+    empleado_codigo: empMap.get(r.empleado_id as string)?.codigo ?? null,
+    ubicacion_id: (r.ubicacion_id as string) ?? null,
+    ubicacion_nombre: r.ubicacion_id ? (ubMap.get(r.ubicacion_id as string) ?? "—") : null,
+    tipo: r.tipo as "entrada" | "salida",
+    lat: (r.lat as number) ?? null, lng: (r.lng as number) ?? null,
+    distancia_metros: (r.distancia_metros as number) ?? null,
+    dentro_radio: (r.dentro_radio as boolean) ?? null,
+    notas: (r.notas as string) ?? null,
+    created_at: r.created_at as string,
+  }));
+
+  return { data, error: null };
+}
+
+// ─── ADMIN: Reporte por rango de fechas ──────────────────────────────────────
+
+export interface ReporteEmpleadoDia {
+  fecha: string;
+  status: "a_tiempo" | "tardanza" | "no_registrado";
+  entrada: string | null;
+  salida: string | null;
+  distancia: number | null;
+  dentroRadio: boolean | null;
+}
+
+export interface ReporteEmpleado {
+  id: string;
+  nombre: string;
+  codigo: string | null;
+  departamento: string;
+  dias: Record<string, ReporteEmpleadoDia>;
+  presentes: number;
+  tardanzas: number;
+  ausentes: number;
+  porcentaje: number;
+}
+
+export async function fetchReporteRangoAction(opts: {
+  fechaInicio: string;
+  fechaFin: string;
+  horaEntrada?: string;
+  departamento?: string;
+}) {
+  const { supabase, error: authErr } = await verificarAdmin();
+  if (authErr || !supabase) return { error: authErr, data: null, fechas: [] as string[] };
+
+  const horaEntrada = opts.horaEntrada ?? "09:00";
+  const [hh, mm] = horaEntrada.split(":").map(Number);
+
+  // All active employees
+  let empQuery = db(supabase, "empleados")
+    .select("id, nombres, apellido_paterno, apellido_materno, codigo_empleado, departamento")
+    .in("estado", ["activo", "pendiente"])
+    .order("apellido_paterno");
+  if (opts.departamento && opts.departamento !== "todos") empQuery = empQuery.eq("departamento", opts.departamento);
+
+  const { data: empleados } = await empQuery as { data: Array<{ id: string; nombres: string; apellido_paterno: string; apellido_materno: string; codigo_empleado: string | null; departamento: string }> | null };
+
+  // All attendance records in range
+  const { data: registros } = await db(supabase, "empleado_asistencia")
+    .select("empleado_id, tipo, created_at, distancia_metros, dentro_radio")
+    .gte("created_at", `${opts.fechaInicio}T00:00:00`)
+    .lte("created_at", `${opts.fechaFin}T23:59:59`)
+    .order("created_at") as { data: Array<{ empleado_id: string; tipo: string; created_at: string; distancia_metros: number | null; dentro_radio: boolean | null }> | null };
+
+  // Build date range
+  const fechas: string[] = [];
+  const d = new Date(opts.fechaInicio);
+  const fin = new Date(opts.fechaFin);
+  while (d <= fin) {
+    fechas.push(d.toISOString().split("T")[0]);
+    d.setDate(d.getDate() + 1);
+  }
+
+  // Index records by empleado+fecha
+  const idx = new Map<string, { entradas: string[]; salidas: string[]; distancia: number | null; dentroRadio: boolean | null }>();
+  for (const r of registros ?? []) {
+    const fecha = r.created_at.split("T")[0];
+    const key = `${r.empleado_id}__${fecha}`;
+    if (!idx.has(key)) idx.set(key, { entradas: [], salidas: [], distancia: r.distancia_metros, dentroRadio: r.dentro_radio });
+    const entry = idx.get(key)!;
+    if (r.tipo === "entrada") entry.entradas.push(r.created_at);
+    else entry.salidas.push(r.created_at);
+    if (r.distancia_metros !== null) entry.distancia = r.distancia_metros;
+    if (r.dentro_radio !== null) entry.dentroRadio = r.dentro_radio;
+  }
+
+  const data: ReporteEmpleado[] = (empleados ?? []).map(e => {
+    const dias: Record<string, ReporteEmpleadoDia> = {};
+    let presentes = 0, tardanzas = 0;
+
+    for (const fecha of fechas) {
+      const key = `${e.id}__${fecha}`;
+      const rec = idx.get(key);
+      if (!rec || !rec.entradas.length) {
+        dias[fecha] = { fecha, status: "no_registrado", entrada: null, salida: null, distancia: null, dentroRadio: null };
+      } else {
+        const entradaTs = rec.entradas[0];
+        const salidaTs  = rec.salidas[rec.salidas.length - 1] ?? null;
+        const entradaDt = new Date(entradaTs);
+        const esTardanza = entradaDt.getHours() > hh || (entradaDt.getHours() === hh && entradaDt.getMinutes() > mm);
+        dias[fecha] = {
+          fecha, status: esTardanza ? "tardanza" : "a_tiempo",
+          entrada: entradaTs, salida: salidaTs,
+          distancia: rec.distancia, dentroRadio: rec.dentroRadio,
+        };
+        presentes++;
+        if (esTardanza) tardanzas++;
+      }
+    }
+
+    const ausentes = fechas.length - presentes;
+    return {
+      id: e.id,
+      nombre: `${e.nombres} ${e.apellido_paterno} ${e.apellido_materno}`.trim(),
+      codigo: e.codigo_empleado,
+      departamento: e.departamento,
+      dias, presentes, tardanzas, ausentes,
+      porcentaje: fechas.length > 0 ? Math.round((presentes / fechas.length) * 100) : 0,
+    };
+  });
+
+  return { data, fechas, error: null };
+}
