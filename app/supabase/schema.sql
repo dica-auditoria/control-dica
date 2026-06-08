@@ -19,7 +19,7 @@ create table if not exists public.entidades (
 create table if not exists public.usuarios (
   id          uuid primary key references auth.users(id) on delete cascade,
   entidad_id  uuid references public.entidades(id) on delete set null,
-  rol         text not null check (rol in ('cliente', 'admin', 'superadmin', 'empleado')),
+  rol         text not null check (rol in ('cliente', 'admin', 'superadmin', 'empleado', 'rrhh')),
   email       text not null unique,
   nombre      text not null,
   created_at  timestamptz not null default now()

@@ -49,6 +49,15 @@ const NAV_EMPLEADO = [
   { href: "/dashboard/empleados", label: "Mi Equipo", icon: "users" },
 ];
 
+const NAV_RRHH = [
+  { href: "/dashboard", label: "Dashboard", icon: "shield" },
+  { href: "/dashboard/empleados", label: "Empleados", icon: "users" },
+  { href: "/dashboard/asistencia", label: "Asistencia", icon: "clock" },
+  { href: "/dashboard/mi-asistencia", label: "Mi Check-in", icon: "checkin" },
+  { href: "/dashboard/mi-expediente", label: "Mi Expediente", icon: "user" },
+  { href: "/dashboard/directorio", label: "Directorio", icon: "map" },
+];
+
 const NAV_CLIENTE = [
   { href: "/dashboard", label: "Mi Portal", icon: "files" },
 ];
@@ -61,6 +70,7 @@ export default function Sidebar({ usuario, solicitudesPendientes = 0, requerimie
 
   const navItems = usuario.rol === "cliente" ? NAV_CLIENTE
     : usuario.rol === "empleado" ? NAV_EMPLEADO
+    : usuario.rol === "rrhh" ? NAV_RRHH
     : NAV_ADMIN;
 
   const handleLogout = async () => {

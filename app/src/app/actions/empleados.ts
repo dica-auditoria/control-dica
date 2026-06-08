@@ -40,7 +40,7 @@ async function verificarAdmin() {
     .eq("id", user.id)
     .single() as { data: PerfilRow | null; error: unknown };
 
-  if (!perfil || !["admin", "superadmin"].includes(perfil.rol)) {
+  if (!perfil || !["admin", "superadmin", "rrhh"].includes(perfil.rol)) {
     return { supabase: null, userId: null, error: "Acción no autorizada" };
   }
   return { supabase, userId: perfil.id, error: null };
@@ -526,7 +526,7 @@ export async function fetchMiExpedienteAction() {
 
   if (!perfil) return { error: "Perfil no encontrado", data: null, esAdmin: false };
 
-  const esAdmin = ["admin", "superadmin"].includes(perfil.rol);
+  const esAdmin = ["admin", "superadmin", "rrhh"].includes(perfil.rol);
 
   const { data: emp, error } = await supabase
     .from("empleados")

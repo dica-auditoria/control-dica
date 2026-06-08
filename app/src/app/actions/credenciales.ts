@@ -12,7 +12,7 @@ async function verificarAdmin() {
   if (error || !user) return { supabase: null, admin: null, error: "No autenticado" };
   const { data: perfil } = await supabase
     .from("usuarios").select("rol").eq("id", user.id).single() as { data: PerfilRow | null; error: unknown };
-  if (!perfil || !["admin", "superadmin"].includes(perfil.rol))
+  if (!perfil || !["admin", "superadmin", "rrhh"].includes(perfil.rol))
     return { supabase: null, admin: null, error: "No autorizado" };
   return { supabase, admin: createAdminClient(), error: null };
 }

@@ -26,7 +26,7 @@ export default async function NuevoEmpleadoPage() {
     .eq("id", user.id)
     .single() as { data: PerfilRow | null; error: unknown };
 
-  if (!perfil || !["admin", "superadmin"].includes(perfil.rol)) redirect("/dashboard");
+  if (!perfil || !["admin", "superadmin", "rrhh"].includes(perfil.rol)) redirect("/dashboard");
 
   const [{ data: supervisoresRaw }, { data: ubicacionesRaw }] = await Promise.all([
     supabase
