@@ -142,3 +142,90 @@ export async function resetPasswordEmpleadoAction(email: string) {
   if (error) return { error: error.message ?? "Error al generar enlace", resetUrl: null };
   return { resetUrl: (data as { properties?: { action_link?: string } })?.properties?.action_link ?? null, error: null };
 }
+
+export async function cambiarPasswordEmpleadoAction(usuarioId: string, newPassword: string) {
+  const { admin, error: authErr } = await verificarAdmin();
+  if (authErr || !admin) return { error: authErr };
+  if (!newPassword || newPassword.length < 6) return { error: "La contraseña debe tener al menos 6 caracteres" };
+
+  const { error } = await admin.auth.admin.updateUserById(usuarioId, { password: newPassword });
+  if (error) return { error: error.message ?? "Error al cambiar la contraseña" };
+  return { error: null };
+}
+
+// ─── Accesos a sistemas internos ─────────────────────────────────────────────
+
+export interface EmpleadoAcceso {
+  id: string;
+  sistema: string;
+  usuario: string;
+  contrasena: string | null;
+  url: string | null;
+  notas: string | null;
+  created_at: string;
+}
+
+export async function fetchAccesosEmpleadoAction(empleadoId: string): Promise<{ data: EmpleadoAcceso[]; error: string | null }> {
+  const { supabase, error: authErr } = await verificarAdmin();
+  if (authErr || !supabase) return { data: [], error: authErr };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (supabase.from("empleado_accesos") as any)
+    .select("id, sistema, usuario, contrasena, url, notas, created_at")
+    .eq("empleado_id", empleadoId)
+    .order("created_at") as { data: EmpleadoAcceso[] | null; error: unknown };
+
+  if (error) return { data: [], error: "Error al obtener accesos" };
+  return { data: data ?? [], error: null };
+}
+
+export async function crearAccesoEmpleadoAction(empleadoId: string, input: { sistema: string; usuario: string; contrasena?: string; url?: string; notas?: string }) {
+  const { supabase, error: authErr } = await verificarAdmin();
+  if (authErr || !supabase) return { error: authErr };
+  if (!input.sistema.trim() || !input.usuario.trim()) return { error: "Sistema y usuario son requeridos" };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (supabase.from("empleado_accesos") as any).insert({
+    empleado_id: empleadoId,
+    sistema: input.sistema.trim(),
+    usuario: input.usuario.trim(),
+    contrasena: input.contrasena?.trim() || null,
+    url: input.url?.trim() || null,
+    notas: input.notas?.trim() || null,
+  }) as { error: unknown };
+
+  if (error) return { error: "Error al guardar acceso" };
+  revalidatePath(`/dashboard/empleados`);
+  return { error: null };
+}
+
+export async function actualizarAccesoEmpleadoAction(id: string, input: { sistema: string; usuario: string; contrasena?: string; url?: string; notas?: string }) {
+  const { supabase, error: authErr } = await verificarAdmin();
+  if (authErr || !supabase) return { error: authErr };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (supabase.from("empleado_accesos") as any)
+    .update({
+      sistema: input.sistema.trim(),
+      usuario: input.usuario.trim(),
+      contrasena: input.contrasena?.trim() || null,
+      url: input.url?.trim() || null,
+      notas: input.notas?.trim() || null,
+    })
+    .eq("id", id) as { error: unknown };
+
+  if (error) return { error: "Error al actualizar acceso" };
+  return { error: null };
+}
+
+export async function eliminarAccesoEmpleadoAction(id: string) {
+  const { supabase, error: authErr } = await verificarAdmin();
+  if (authErr || !supabase) return { error: authErr };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (supabase.from("empleado_accesos") as any)
+    .delete().eq("id", id) as { error: unknown };
+
+  if (error) return { error: "Error al eliminar acceso" };
+  return { error: null };
+}
