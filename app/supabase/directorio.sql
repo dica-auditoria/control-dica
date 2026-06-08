@@ -49,7 +49,7 @@ ALTER TABLE public.ubicaciones ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "ver_ubicaciones" ON public.ubicaciones;
 CREATE POLICY "ver_ubicaciones" ON public.ubicaciones
   FOR SELECT TO authenticated
-  USING (get_user_role() IN ('admin', 'superadmin', 'cliente'));
+  USING (get_user_role() IN ('admin', 'superadmin', 'cliente', 'empleado', 'rrhh'));
 
 DROP POLICY IF EXISTS "admin_gestionar_ubicaciones" ON public.ubicaciones;
 CREATE POLICY "admin_gestionar_ubicaciones" ON public.ubicaciones

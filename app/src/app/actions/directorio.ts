@@ -26,7 +26,7 @@ async function verificarAdmin() {
     .eq("id", user.id)
     .single() as { data: PerfilRow | null; error: unknown };
 
-  if (!perfil || !["admin", "superadmin"].includes(perfil.rol)) {
+  if (!perfil || !["admin", "superadmin", "rrhh", "empleado"].includes(perfil.rol)) {
     return { supabase: null, error: "Acción no autorizada" };
   }
   return { supabase, error: null };
