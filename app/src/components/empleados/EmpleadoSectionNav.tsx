@@ -32,9 +32,11 @@ interface Props {
   onChange: (id: SeccionId) => void;
   completitud: Partial<Record<SeccionId, SeccionEstado>>;
   alerta?: string | null;
+  visibles?: SeccionId[];
 }
 
-export default function EmpleadoSectionNav({ active, onChange, completitud, alerta }: Props) {
+export default function EmpleadoSectionNav({ active, onChange, completitud, alerta, visibles }: Props) {
+  const secciones = visibles ? SECCIONES.filter(s => visibles.includes(s.id)) : SECCIONES;
   return (
     <aside style={{ width: 220, flexShrink: 0 }}>
       <nav style={{
@@ -43,7 +45,7 @@ export default function EmpleadoSectionNav({ active, onChange, completitud, aler
         borderRadius: 8,
         overflow: "hidden",
       }}>
-        {SECCIONES.map(s => {
+        {secciones.map(s => {
           const isActive = active === s.id;
           const estado = completitud[s.id];
 

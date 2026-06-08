@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useRef } from "react";
+import { useState, useTransition, useRef, useEffect } from "react";
 import EmpleadoProfileHeader from "./EmpleadoProfileHeader";
 import EmpleadoSectionNav, { type SeccionId, type SeccionEstado } from "./EmpleadoSectionNav";
 import { createClient } from "@/lib/supabase/client";
@@ -69,7 +69,8 @@ export default function EmpleadoDetalleView({ empleado: inicial, supervisores = 
   const [fotoUrl, setFotoUrl]   = useState<string | null>(inicial.foto_url ?? null);
   const [fotoUploading, setFotoUploading] = useState(false);
   const fotoInputRef = useRef<HTMLInputElement>(null);
-  const [seccion, setSeccion]   = useState<SeccionId>("datos_personales");
+  const SECCIONES_EMPLEADO: SeccionId[] = ["relacion_laboral", "activos"];
+  const [seccion, setSeccion]   = useState<SeccionId>(soloLectura ? "relacion_laboral" : "datos_personales");
   const [editOpen, setEditOpen] = useState(false);
   const { guardarPerfil, actualizar, generarInvitacion, loading, error, clearError } = useEmpleadoMutations();
   const [invitacionUrl, setInvitacionUrl] = useState<string | null>(null);
@@ -211,7 +212,7 @@ export default function EmpleadoDetalleView({ empleado: inicial, supervisores = 
       )}
 
       <div style={{ display: "flex", gap: 24 }}>
-        <EmpleadoSectionNav active={seccion} onChange={setSeccion} completitud={completitud} alerta={alertaDoc ? `${alertaDoc.nombre} por vencer` : null} />
+        <EmpleadoSectionNav active={seccion} onChange={setSeccion} completitud={completitud} alerta={alertaDoc ? `${alertaDoc.nombre} por vencer` : null} visibles={soloLectura ? SECCIONES_EMPLEADO : undefined} />
 
         <div style={{ flex: 1 }}>
           {error && <div style={{ padding: 12, marginBottom: 12, background: "var(--red-light)", color: "var(--accent)", fontSize: 13, borderRadius: 4 }}>{error}</div>}
@@ -335,7 +336,7 @@ export default function EmpleadoDetalleView({ empleado: inicial, supervisores = 
           )}
 
           {seccion === "activos" && (
-            <ActivosEmpleadoSection empleadoId={empleado.id} />
+            <ActivosEmpleadoSection empleadoId={empleado.id} soloLectura={soloLectura} />
           )}
 
           {seccion === "emergencia" && (
@@ -759,7 +760,7 @@ function DocumentosSection({
 
 // ─── ActivosEmpleadoSection ───────────────────────────────────────────────────
 
-function ActivosEmpleadoSection({ empleadoId }: { empleadoId: string }) {
+function ActivosEmpleadoSection({ empleadoId, soloLectura }: { empleadoId: string; soloLectura?: boolean }) {
   const [activos, setActivos] = useState<AsignacionActivo[] | null>(null);
   const [cargado, setCargado] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -772,12 +773,15 @@ function ActivosEmpleadoSection({ empleadoId }: { empleadoId: string }) {
     });
   };
 
+  // Auto-load when employee is viewing their own expediente
+  useEffect(() => { if (soloLectura) cargar(); }, []);  // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden", boxShadow: "0 1px 3px rgba(15,17,23,0.05)" }}>
       <div style={{ padding: "14px 20px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <span style={{ fontWeight: 600, fontSize: 14 }}>Activos asignados</span>
-        {!cargado && <button onClick={cargar} disabled={isPending} style={btnAddDoc}>{isPending ? "Cargando…" : "Cargar activos"}</button>}
-        {cargado && <a href="/dashboard/inventario" style={{ fontSize: 12, color: "#1677ff", textDecoration: "none" }}>Ver inventario completo →</a>}
+        {!soloLectura && !cargado && <button onClick={cargar} disabled={isPending} style={btnAddDoc}>{isPending ? "Cargando…" : "Cargar activos"}</button>}
+        {!soloLectura && cargado && <a href="/dashboard/inventario" style={{ fontSize: 12, color: "#1677ff", textDecoration: "none" }}>Ver inventario completo →</a>}
       </div>
       <div style={{ padding: 20 }}>
         {!cargado ? (
