@@ -172,7 +172,7 @@ export async function getEmpleadoParaCheckinAuthAction() {
     .from("empleados")
     .select("id, nombres, apellido_paterno, apellido_materno, codigo_empleado, departamento")
     .eq("email_institucional", email)
-    .eq("estado", "activo")
+    .in("estado", ["activo", "pendiente"])
     .maybeSingle() as {
       data: { id: string; nombres: string; apellido_paterno: string; apellido_materno: string; codigo_empleado: string | null; departamento: string } | null;
       error: unknown;
