@@ -561,6 +561,15 @@ export async function fetchMiExpedienteAction() {
 
 // ---------- SUBORDINADOS (supervisor ve su equipo) ----------
 
+export async function eliminarEmpleadoAction(empleadoId: string) {
+  await verificarAdmin();
+  const supabase = createClient();
+  const { error } = await supabase.from("empleados").delete().eq("id", empleadoId);
+  if (error) return { error: "No se puede eliminar: el empleado tiene registros asociados." };
+  revalidatePath("/dashboard/empleados");
+  return { success: true };
+}
+
 export async function fetchSubordinadosAction() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

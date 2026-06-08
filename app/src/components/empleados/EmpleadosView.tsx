@@ -7,6 +7,8 @@ import EmpleadoStatsCards from "./EmpleadoStatsCards";
 import EmpleadosFiltersBar from "./EmpleadosFilters";
 import EmpleadosTable from "./EmpleadosTable";
 import { exportarEmpleadosCSVAction } from "@/app/actions/exportar";
+import { eliminarEmpleadoAction } from "@/app/actions/empleados";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import type { EmpleadoListItem, EmpleadosStats } from "@/types/empleados";
 
 const PAGE_SIZE = 20;
@@ -26,6 +28,9 @@ export default function EmpleadosView({ initialEmpleados, initialStats, titulo, 
   );
   const [page, setPage] = useState(1);
   const [exporting, setExporting] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmTarget, setConfirmTarget] = useState<{ id: string; nombre: string } | null>(null);
+  const [elimError, setElimError] = useState<string | null>(null);
 
   const displayStats = stats ?? initialStats;
 
@@ -37,6 +42,20 @@ export default function EmpleadosView({ initialEmpleados, initialStats, titulo, 
 
   const totalPages = Math.max(1, Math.ceil(data.length / PAGE_SIZE));
   const paginated = data.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  const pedirEliminar = (id: string, nombre: string) => {
+    setElimError(null);
+    setConfirmTarget({ id, nombre });
+    setConfirmOpen(true);
+  };
+
+  const confirmarEliminar = async () => {
+    if (!confirmTarget) return;
+    const res = await eliminarEmpleadoAction(confirmTarget.id);
+    if (res.error) { setElimError(res.error); return; }
+    setConfirmOpen(false);
+    setConfirmTarget(null);
+  };
 
   const handleExport = async () => {
     setExporting(true);
@@ -111,7 +130,7 @@ export default function EmpleadosView({ initialEmpleados, initialStats, titulo, 
           overflow: "hidden", boxShadow: "0 1px 3px rgba(15,17,23,0.08)",
           opacity: loading ? 0.6 : 1, transition: "opacity 0.15s",
         }}>
-          <EmpleadosTable empleados={paginated} />
+          <EmpleadosTable empleados={paginated} onEliminar={!ocultarNuevo ? pedirEliminar : undefined} />
 
           {/* Paginación */}
           {totalPages > 1 && (
@@ -136,6 +155,21 @@ export default function EmpleadosView({ initialEmpleados, initialStats, titulo, 
           )}
         </div>
       </div>
+      {elimError && (
+        <div style={{ margin: "0 32px 16px", padding: 12, background: "var(--red-light)", color: "var(--accent)", borderRadius: 4, fontSize: 13 }}>
+          {elimError}
+        </div>
+      )}
+
+      <ConfirmDialog
+        open={confirmOpen}
+        title="Eliminar empleado"
+        message={`¿Eliminar a ${confirmTarget?.nombre}? Esta acción no se puede deshacer.`}
+        confirmLabel="Eliminar"
+        danger
+        onConfirm={confirmarEliminar}
+        onCancel={() => { setConfirmOpen(false); setElimError(null); }}
+      />
     </>
   );
 }

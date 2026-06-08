@@ -5,7 +5,7 @@ import StatusBadge from "@/components/ui/StatusBadge";
 import { iniciales, nombreCompleto } from "@/lib/empleados/utils";
 import type { EmpleadoListItem } from "@/types/empleados";
 
-export default function EmpleadosTable({ empleados }: { empleados: EmpleadoListItem[] }) {
+export default function EmpleadosTable({ empleados, onEliminar }: { empleados: EmpleadoListItem[]; onEliminar?: (id: string, nombre: string) => void }) {
   if (empleados.length === 0) {
     return (
       <div style={{
@@ -24,8 +24,8 @@ export default function EmpleadosTable({ empleados }: { empleados: EmpleadoListI
     <table style={{ width: "100%", borderCollapse: "collapse" }}>
       <thead>
         <tr style={{ background: "var(--surface)" }}>
-          {["Empleado", "Puesto", "Departamento", "Perfil", "Estado"].map(h => (
-            <th key={h} style={thStyle}>{h}</th>
+          {["Empleado", "Puesto", "Departamento", "Perfil", "Estado", ...(onEliminar ? [""] : [])].map((h, i) => (
+            <th key={i} style={thStyle}>{h}</th>
           ))}
         </tr>
       </thead>
@@ -73,6 +73,21 @@ export default function EmpleadosTable({ empleados }: { empleados: EmpleadoListI
             <td style={tdStyle}>
               <StatusBadge estado={e.estado} />
             </td>
+            {onEliminar && (
+              <td style={{ ...tdStyle, textAlign: "right" }}>
+                <button
+                  onClick={() => onEliminar(e.id, `${e.nombres} ${e.apellido_paterno}`)}
+                  style={{
+                    padding: "5px 12px", background: "var(--card)",
+                    border: "1px solid rgba(200,71,42,0.3)", borderRadius: 4,
+                    fontSize: 12, cursor: "pointer", color: "var(--accent)",
+                    fontFamily: "'DM Sans', sans-serif",
+                  }}
+                >
+                  Eliminar
+                </button>
+              </td>
+            )}
           </tr>
         ))}
       </tbody>
