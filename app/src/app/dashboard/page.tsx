@@ -55,10 +55,14 @@ export default async function DashboardPage() {
 
         {/* Stats */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 28 }}>
-          <StatCard label="Total archivos" value={totalArchivos ?? 0} meta="En custodia activa" accent="var(--accent)" />
-          <StatCard label="Entidades" value={totalEntidades ?? 0} meta="Clientes activos" accent="var(--gold)" />
-          <StatCard label="Solicitudes" value={totalSolicitudes ?? 0} meta="Pendientes de revisión" accent="var(--amber)" />
-          <StatCard label="Integridad" value={`${integridadPct}%`} meta="SHA-256 verificado" accent="var(--green)" />
+          <StatCard label="Total archivos" value={totalArchivos ?? 0} meta="En custodia activa"
+            accent="#c8472a" tint="#fdecea" icon={<IconFiles />} />
+          <StatCard label="Entidades" value={totalEntidades ?? 0} meta="Clientes activos"
+            accent="#1B4F8A" tint="#dce8f5" icon={<IconBuilding />} />
+          <StatCard label="Solicitudes" value={totalSolicitudes ?? 0} meta="Pendientes de revisión"
+            accent="#b5560e" tint="#fff3e0" icon={<IconAlert />} />
+          <StatCard label="Integridad" value={`${integridadPct}%`} meta="SHA-256 verificado"
+            accent="#2d7a3a" tint="#d8f3dc" icon={<IconShieldCheck />} />
         </div>
 
         {/* Tabla archivos recientes */}
@@ -124,19 +128,19 @@ export default async function DashboardPage() {
                 label="Progreso de perfil"
                 value={`${(emp as Record<string, unknown>).progreso_perfil as number}%`}
                 meta="Completitud de tu expediente"
-                accent="var(--green)"
+                accent="#1B4F8A" tint="#dce8f5" icon={<IconChart />}
               />
               <StatCard
                 label="Departamento"
                 value={(emp as Record<string, unknown>).departamento as string}
                 meta={(emp as Record<string, unknown>).puesto as string}
-                accent="var(--gold)"
+                accent="#b89a5c" tint="#fff8ec" icon={<IconBriefcase />}
               />
               <StatCard
                 label="Estado"
                 value={(emp as Record<string, unknown>).estado === "activo" ? "Activo" : "Pendiente"}
                 meta={`Código: ${(emp as Record<string, unknown>).codigo_empleado ?? "—"}`}
-                accent="var(--accent)"
+                accent="#2d7a3a" tint="#d8f3dc" icon={<IconUser />}
               />
             </>
           )}
@@ -207,10 +211,20 @@ export default async function DashboardPage() {
   );
 }
 
-function StatCard({ label, value, meta, accent }: { label: string; value: string | number; meta: string; accent: string }) {
+function StatCard({ label, value, meta, accent, tint, icon }: {
+  label: string; value: string | number; meta: string;
+  accent: string; tint: string; icon: React.ReactNode;
+}) {
   return (
-    <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, padding: 20, boxShadow: "0 1px 3px rgba(15,17,23,0.08)", borderTop: `3px solid ${accent}` }}>
-      <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(15,17,23,0.4)", marginBottom: 8 }}>{label}</div>
+    <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, padding: 20, boxShadow: "0 1px 3px rgba(15,17,23,0.06)" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14 }}>
+        <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(15,17,23,0.4)" }}>{label}</div>
+        <div style={{
+          width: 36, height: 36, background: tint, borderRadius: 8,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          color: accent, flexShrink: 0,
+        }}>{icon}</div>
+      </div>
       <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, color: "var(--ink)", lineHeight: 1, marginBottom: 6 }}>{value}</div>
       <div style={{ fontSize: 12, color: "rgba(15,17,23,0.4)" }}>{meta}</div>
     </div>
@@ -261,5 +275,27 @@ function EstadoBadge({ estado }: { estado: string }) {
       {isActivo ? "Activo" : "Pend. eliminación"}
     </span>
   );
+}
+
+function IconFiles() {
+  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>;
+}
+function IconBuilding() {
+  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>;
+}
+function IconAlert() {
+  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>;
+}
+function IconShieldCheck() {
+  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>;
+}
+function IconChart() {
+  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>;
+}
+function IconBriefcase() {
+  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>;
+}
+function IconUser() {
+  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>;
 }
 
