@@ -199,7 +199,7 @@ export default function DirectorioView({ oficinas, entidades, empresas: initialE
       <div style={{ padding: "28px 32px" }}>
         {/* Tabs */}
         <div style={{ display: "flex", gap: 4, marginBottom: 24, borderBottom: "1px solid var(--border)" }}>
-          {(soloEmpresas ? ["empresas"] : ["oficina", "empresas"] as TabActual[]).map(t => {
+          {((soloEmpresas ? ["empresas"] : ["oficina", "empresas"]) as TabActual[]).map(t => {
             const labels: Record<string, string> = { oficina: "🏢 Oficinas DICA", empresas: "🏛 Empresas" };
             const counts: Record<string, number> = { oficina: oficinas.length, empresas: empresas.length };
             return (
