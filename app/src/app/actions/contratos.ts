@@ -40,7 +40,11 @@ async function logContrato(userId: string, accion: string, contratoId: string, e
 
 function revalidateClientes(entidadId?: string) {
   revalidatePath("/dashboard/clientes");
-  if (entidadId) revalidatePath(`/dashboard/clientes/${entidadId}`);
+  revalidatePath("/dashboard/directorio");
+  if (entidadId) {
+    revalidatePath(`/dashboard/clientes/${entidadId}`);
+    revalidatePath(`/dashboard/directorio/empresa/${entidadId}`);
+  }
 }
 
 // ---------- LISTAR CONTRATOS DE UNA ENTIDAD ----------
