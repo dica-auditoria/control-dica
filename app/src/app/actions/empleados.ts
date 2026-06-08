@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import {
@@ -107,6 +108,18 @@ export async function crearEmpleadoAction(input: CrearEmpleadoInput) {
     accion: "ALTA_EMPLEADO",
     detalle_json: { codigo_empleado: codigo },
   });
+
+  // Si se proporcionó contraseña, crear el usuario en Auth directamente
+  if (input.password && input.password.length >= 6) {
+    const admin = createAdminClient();
+    const fullName = `${input.nombres.trim()} ${input.apellido_paterno.trim()} ${input.apellido_materno.trim()}`;
+    await admin.auth.admin.createUser({
+      email,
+      password: input.password,
+      email_confirm: true,
+      user_metadata: { nombre: fullName, rol: "empleado", empleado_id: empleado.id },
+    });
+  }
 
   const invitacion = await generarInvitacionEmpleadoAction(empleado.id);
   if (invitacion.error) {

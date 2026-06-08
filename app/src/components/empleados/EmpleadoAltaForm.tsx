@@ -47,6 +47,8 @@ export default function EmpleadoAltaForm({ supervisores, ubicaciones }: Props) {
     zona_ubicacion: "",
     hora_entrada: "",
     hora_salida: "",
+    password: "",
+    confirmPassword: "",
   });
   const [emailManual, setEmailManual] = useState(false);
   const [successUrl, setSuccessUrl] = useState<string | null>(null);
@@ -60,6 +62,8 @@ export default function EmpleadoAltaForm({ supervisores, ubicaciones }: Props) {
     }
   }, [form.nombres, form.apellido_paterno, emailManual]);
 
+  const pwdOk = !form.password || (form.password.length >= 6 && form.password === form.confirmPassword);
+
   const isValid =
     form.nombres.trim() &&
     form.apellido_paterno.trim() &&
@@ -67,7 +71,8 @@ export default function EmpleadoAltaForm({ supervisores, ubicaciones }: Props) {
     form.email_local.trim() &&
     form.puesto.trim() &&
     form.fecha_ingreso &&
-    (form.tipo_contrato !== "practicas" || form.hora_entrada.trim());
+    (form.tipo_contrato !== "practicas" || form.hora_entrada.trim()) &&
+    pwdOk;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,6 +80,7 @@ export default function EmpleadoAltaForm({ supervisores, ubicaciones }: Props) {
     const result = await crear({
       ...form,
       supervisor_id: form.supervisor_id || null,
+      password: form.password || undefined,
     });
     if (result.error && !result.empleadoId) return;
     if (result.invitacionUrl) setSuccessUrl(result.invitacionUrl);
@@ -164,6 +170,30 @@ export default function EmpleadoAltaForm({ supervisores, ubicaciones }: Props) {
           <select style={selectStyle} defaultValue="empleado" disabled>
             <option value="empleado">Empleado</option>
           </select>
+        </FormField>
+        <FormField label="Contraseña inicial" hint="Opcional — si no estableces una, el empleado recibirá un enlace para crearla">
+          <input
+            type="password"
+            style={{ ...inputStyle, borderColor: form.password && form.password.length < 6 ? "var(--accent)" : undefined }}
+            value={form.password}
+            onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
+            placeholder="Mínimo 6 caracteres"
+            autoComplete="new-password"
+          />
+        </FormField>
+        <FormField
+          label="Confirmar contraseña"
+          hint={form.password && form.confirmPassword && form.password !== form.confirmPassword ? "Las contraseñas no coinciden" : undefined}
+        >
+          <input
+            type="password"
+            style={{ ...inputStyle, borderColor: form.password && form.confirmPassword && form.password !== form.confirmPassword ? "var(--accent)" : undefined }}
+            value={form.confirmPassword}
+            onChange={e => setForm(f => ({ ...f, confirmPassword: e.target.value }))}
+            placeholder="Repetir contraseña"
+            autoComplete="new-password"
+            disabled={!form.password}
+          />
         </FormField>
       </div>
 

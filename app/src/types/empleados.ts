@@ -82,6 +82,7 @@ export interface CrearEmpleadoInput {
   zona_ubicacion: string;
   hora_entrada?: string | null;
   hora_salida?: string | null;
+  password?: string;
 }
 
 export interface InvitacionEmpleadoInfo {
