@@ -18,7 +18,7 @@ async function verificarAdmin() {
     .eq("id", user.id)
     .single() as { data: PerfilRow | null; error: unknown };
 
-  if (!perfil || !["admin", "superadmin"].includes(perfil.rol))
+  if (!perfil || !["admin", "superadmin", "rrhh", "empleado"].includes(perfil.rol))
     return { supabase: null, userId: null, error: "Acción no autorizada" };
 
   return { supabase, userId: user.id, error: null };
@@ -179,13 +179,15 @@ export async function fetchUsuariosEntidadAction(entidadId: string) {
 // ---------- FETCH CLIENTE CON CONTRATOS ----------
 
 export async function fetchClienteConContratosAction(entidadId: string) {
-  const { supabase, error: authErr } = await verificarAdmin();
-  if (authErr || !supabase) return { error: authErr, data: null };
+  const { error: authErr } = await verificarAdmin();
+  if (authErr) return { error: authErr, data: null };
+
+  const admin = createAdminClient();
 
   interface EntidadRow { id: string; nombre: string; activo: boolean; created_at: string }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: entidad, error: eErr } = await (supabase.from("entidades") as any)
+  const { data: entidad, error: eErr } = await (admin.from("entidades") as any)
     .select("id, nombre, activo, created_at")
     .eq("id", entidadId)
     .single() as { data: EntidadRow | null; error: unknown };
@@ -194,16 +196,16 @@ export async function fetchClienteConContratosAction(entidadId: string) {
 
   const [rContratos, { count: totalArchivos }, { count: totalUsuarios }] = await Promise.all([
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (supabase.from("contratos") as any)
+    (admin.from("contratos") as any)
       .select("*")
       .eq("entidad_id", entidadId)
       .order("created_at", { ascending: false }) as Promise<{ data: Contrato[] | null; error: unknown }>,
-    supabase
+    admin
       .from("archivos")
       .select("*", { count: "exact", head: true })
       .eq("entidad_id", entidadId)
       .neq("estado", "eliminado"),
-    supabase
+    admin
       .from("usuarios")
       .select("*", { count: "exact", head: true })
       .eq("entidad_id", entidadId),

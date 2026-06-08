@@ -30,6 +30,10 @@ export default function ContratoArchivosView({
   const [uploadOpen, setUploadOpen] = useState(false);
 
   const isAdmin = rol === "admin" || rol === "superadmin";
+  const isEmpleado = rol === "empleado" || rol === "rrhh";
+  // Employees can upload/manage only in the "empleado" tab
+  const canUpload = isAdmin || (isEmpleado && tab === "empleado");
+  const explorerIsAdmin = isAdmin || (isEmpleado && tab === "empleado");
   const archivos = tab === "cliente" ? archivosCliente : archivosEmpleado;
   const requerimientosActivos = requerimientos.filter(r => r.estado !== "completado").length;
 
@@ -43,6 +47,12 @@ export default function ContratoArchivosView({
   const handleUploadDone = () => {
     setUploadOpen(false);
     router.refresh();
+  };
+
+  // Close upload panel when switching to a tab where upload is not allowed
+  const handleTabChange = (t: TabDestino) => {
+    setTab(t);
+    if (isEmpleado && t === "cliente") setUploadOpen(false);
   };
 
   const tabConfig: Record<"cliente" | "empleado", { label: string; emptyMsg: string; uploadLabel: string }> = {
@@ -91,7 +101,7 @@ export default function ContratoArchivosView({
           {/* Badge estado + botón subir */}
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
             <EstadoBadge estado={contrato.estado} />
-            {isAdmin && (
+            {canUpload && (
               <button
                 onClick={() => setUploadOpen(o => !o)}
                 style={{
@@ -113,7 +123,7 @@ export default function ContratoArchivosView({
             const count = t === "cliente" ? archivosCliente.length : archivosEmpleado.length;
             const isActive = tab === t;
             return (
-              <button key={t} onClick={() => { setTab(t); setUploadOpen(false); }}
+              <button key={t} onClick={() => handleTabChange(t)}
                 style={{ padding: "8px 18px", border: "none", borderBottom: isActive ? "2px solid var(--accent)" : "2px solid transparent", background: "none", color: isActive ? "var(--accent)" : "var(--muted-2)", fontSize: 13, fontWeight: isActive ? 600 : 400, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", marginBottom: -1, display: "flex", alignItems: "center", gap: 8 }}>
                 {tabConfig[t].label}
                 <span style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", padding: "1px 6px", borderRadius: 100, background: isActive ? "rgba(200,71,42,0.1)" : "var(--surface-2)", color: isActive ? "var(--accent)" : "var(--muted)" }}>{count}</span>
@@ -186,12 +196,12 @@ export default function ContratoArchivosView({
           </div>
           <ArchivoExplorer
             archivos={archivos}
-            isAdmin={isAdmin}
+            isAdmin={explorerIsAdmin}
             entidadId={entidadId}
             contratoId={contrato.id}
             destino={tab}
             nombreZip={`${contrato.nombre}-${tab}`}
-            emptyMsg={isAdmin
+            emptyMsg={canUpload
               ? `${tabConfig[tab].emptyMsg} — usa el botón "Subir" para agregar`
               : tabConfig[tab].emptyMsg}
           />

@@ -109,11 +109,13 @@ export async function fetchArchivosContratoAction(contratoId: string, destino?: 
   interface PerfilRow { rol: string }
   const { data: perfil } = await supabase
     .from("usuarios").select("rol").eq("id", user.id).single() as { data: PerfilRow | null; error: unknown };
-  if (!perfil || !["admin", "superadmin"].includes(perfil.rol))
+  if (!perfil || !["admin", "superadmin", "rrhh", "empleado"].includes(perfil.rol))
     return { error: "No autorizado", data: null };
 
+  // Use admin client so RLS doesn't block reads for non-admin roles
+  const adminClient = createAdminClient();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let q = (supabase.from("archivos") as any)
+  let q = (adminClient.from("archivos") as any)
     .select("id, nombre, ruta_storage, tipo, estado, size_bytes, hash_sha256, created_at, destino, usuarios(nombre)")
     .eq("contrato_id", contratoId)
     .neq("estado", "eliminado");

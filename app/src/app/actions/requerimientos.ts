@@ -41,7 +41,7 @@ async function marcarVencidos(admin: ReturnType<typeof createAdminClient>, ids: 
 export async function crearRequerimientoAction(input: CrearRequerimientoInput) {
   const { user, perfil, error: authErr } = await getUser();
   if (authErr || !user || !perfil) return { error: authErr };
-  if (!["admin", "superadmin"].includes(perfil.rol)) return { error: "No autorizado" };
+  if (!["admin", "superadmin", "rrhh", "empleado"].includes(perfil.rol)) return { error: "No autorizado" };
 
   const admin = createAdminClient();
 
@@ -114,7 +114,7 @@ interface RawReq {
 export async function fetchRequerimientosContratoAction(contratoId: string): Promise<{ data: Requerimiento[] | null; error: string | null }> {
   const { perfil, error: authErr } = await getUser();
   if (authErr || !perfil) return { error: authErr, data: null };
-  if (!["admin", "superadmin"].includes(perfil.rol)) return { error: "No autorizado", data: null };
+  if (!["admin", "superadmin", "rrhh", "empleado"].includes(perfil.rol)) return { error: "No autorizado", data: null };
 
   const admin = createAdminClient();
   const { data, error } = await (admin.from("requerimientos") as any)

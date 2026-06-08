@@ -1,5 +1,6 @@
 import { redirect, notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { fetchArchivosContratoAction } from "@/app/actions/archivos";
 import { fetchRequerimientosContratoAction } from "@/app/actions/requerimientos";
 import ContratoArchivosView from "@/components/contratos/ContratoArchivosView";
@@ -25,14 +26,16 @@ export default async function ContratoArchivosPage({
 
   if (!perfil || perfil.rol === "cliente") redirect("/dashboard");
 
+  const admin = createAdminClient();
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [rContrato, rEntidad, rCliente, rEmpleado, rReqs] = await Promise.all([
-    (supabase.from("contratos") as any)
+    (admin.from("contratos") as any)
       .select("*")
       .eq("id", params.contratoId)
       .eq("entidad_id", params.id)
       .single() as Promise<{ data: Contrato | null; error: unknown }>,
-    (supabase.from("entidades") as any)
+    (admin.from("entidades") as any)
       .select("id, nombre")
       .eq("id", params.id)
       .single() as Promise<{ data: EntidadRow | null; error: unknown }>,
