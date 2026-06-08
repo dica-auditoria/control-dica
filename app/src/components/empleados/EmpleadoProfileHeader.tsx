@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import Image from "next/image";
@@ -28,7 +28,7 @@ export default function EmpleadoProfileHeader({ empleado, fotoUrl, onEditar, sol
       </Link>
 
       <div style={{
-        background: "white", border: "1px solid var(--border)", borderRadius: 8,
+        background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8,
         padding: 24, display: "flex", alignItems: "flex-start",
         justifyContent: "space-between", gap: 20, marginBottom: 24,
         boxShadow: "0 1px 3px rgba(15,17,23,0.06)",
@@ -71,7 +71,7 @@ export default function EmpleadoProfileHeader({ empleado, fotoUrl, onEditar, sol
 }
 
 const btnOutline: React.CSSProperties = {
-  padding: "8px 14px", background: "white",
+  padding: "8px 14px", background: "var(--card)",
   border: "1.5px solid var(--border-strong)", borderRadius: 4,
   fontSize: 12, cursor: "pointer", fontFamily: "'DM Sans', sans-serif",
 };

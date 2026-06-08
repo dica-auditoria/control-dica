@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React from "react";
 
@@ -28,7 +28,7 @@ export default function ConfirmDialog({
       style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(15,17,23,0.45)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
       onClick={e => { if (e.target === e.currentTarget && !loading) onCancel(); }}
     >
-      <div style={{ background: "white", borderRadius: 8, width: "100%", maxWidth: 420, boxShadow: "0 8px 32px rgba(15,17,23,0.2)", overflow: "hidden" }}>
+      <div style={{ background: "var(--card)", borderRadius: 8, width: "100%", maxWidth: 420, boxShadow: "0 8px 32px rgba(15,17,23,0.2)", overflow: "hidden" }}>
         <div style={{ padding: "18px 24px", borderBottom: "1px solid var(--border)" }}>
           <div style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)" }}>{title}</div>
         </div>
@@ -39,7 +39,7 @@ export default function ConfirmDialog({
           <button
             onClick={onCancel}
             disabled={loading}
-            style={{ padding: "8px 16px", background: "white", border: "1.5px solid var(--border-strong)", borderRadius: 4, fontSize: 13, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", color: "var(--ink)" }}
+            style={{ padding: "8px 16px", background: "var(--card)", border: "1.5px solid var(--border-strong)", borderRadius: 4, fontSize: 13, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", color: "var(--ink)" }}
           >
             Cancelar
           </button>

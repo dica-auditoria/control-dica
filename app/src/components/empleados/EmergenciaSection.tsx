@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect, useRef } from "react";
 import {
@@ -41,13 +41,13 @@ const iSt: React.CSSProperties = {
   borderRadius: 4,
   fontFamily: "'DM Sans', sans-serif",
   color: "var(--ink)",
-  background: "white",
+  background: "var(--card)",
   outline: "none",
   boxSizing: "border-box",
 };
 
 const cardStyle: React.CSSProperties = {
-  background: "white",
+  background: "var(--card)",
   border: "1px solid var(--border)",
   borderRadius: 8,
   overflow: "hidden",
@@ -89,7 +89,7 @@ const btnPrimary: React.CSSProperties = {
 
 const btnOutline: React.CSSProperties = {
   padding: "8px 14px",
-  background: "white",
+  background: "var(--card)",
   color: "var(--ink)",
   border: "1.5px solid var(--border-strong)",
   borderRadius: 4,
@@ -100,7 +100,7 @@ const btnOutline: React.CSSProperties = {
 
 const btnDanger: React.CSSProperties = {
   padding: "6px 12px",
-  background: "white",
+  background: "var(--card)",
   color: "var(--accent)",
   border: "1.5px solid rgba(200,71,42,0.3)",
   borderRadius: 4,

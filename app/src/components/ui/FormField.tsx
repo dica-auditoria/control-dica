@@ -1,4 +1,4 @@
-interface FormFieldProps {
+﻿interface FormFieldProps {
   label: string;
   required?: boolean;
   hint?: string;
@@ -31,7 +31,7 @@ export default function FormField({ label, required, hint, children }: FormField
 export const inputStyle: React.CSSProperties = {
   width: "100%",
   padding: "10px 12px",
-  background: "white",
+  background: "var(--card)",
   border: "1.5px solid var(--border-strong)",
   borderRadius: 4,
   fontFamily: "'DM Sans', sans-serif",

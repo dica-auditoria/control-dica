@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { DEPARTAMENTOS, ESTADOS_EMPLEADO } from "@/lib/empleados/constants";
 import type { EmpleadosFilters } from "@/hooks/useEmpleados";
@@ -16,7 +16,7 @@ export default function EmpleadosFiltersBar({ filters, onChange }: Props) {
       alignItems: "center",
       flexWrap: "wrap",
       padding: "16px 20px",
-      background: "white",
+      background: "var(--card)",
       border: "1px solid var(--border)",
       borderRadius: 8,
       marginBottom: 16,
@@ -88,7 +88,7 @@ function FilterSelect({
           borderRadius: 4,
           fontSize: 13,
           fontFamily: "'DM Sans', sans-serif",
-          background: "white",
+          background: "var(--card)",
           cursor: "pointer",
         }}
       >

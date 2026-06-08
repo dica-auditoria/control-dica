@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
@@ -69,7 +69,7 @@ export default function ClientePrivacidadStep({ nombre, email }: Props) {
     return (
       <div style={{
         maxWidth: 640, margin: "80px auto", padding: 40,
-        background: "white", borderRadius: 8, textAlign: "center",
+        background: "var(--card)", borderRadius: 8, textAlign: "center",
         boxShadow: "0 2px 12px rgba(15,17,23,0.08)",
       }}>
         <div style={{ fontSize: 40, marginBottom: 16 }}>✓</div>
@@ -86,7 +86,7 @@ export default function ClientePrivacidadStep({ nombre, email }: Props) {
   return (
     <div style={{
       maxWidth: 760, margin: "40px auto", padding: "40px 48px",
-      background: "white", borderRadius: 8,
+      background: "var(--card)", borderRadius: 8,
       boxShadow: "0 2px 16px rgba(15,17,23,0.08)",
     }}>
       {/* Header */}

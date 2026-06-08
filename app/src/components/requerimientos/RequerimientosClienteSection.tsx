@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -109,7 +109,7 @@ function RequerimientoCard({ req, entidadId, isOpen, onToggle, onRefresh }: {
   };
 
   return (
-    <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden", boxShadow: "0 1px 3px rgba(15,17,23,0.06)" }}>
+    <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden", boxShadow: "0 1px 3px rgba(15,17,23,0.06)" }}>
       {/* Header */}
       <div
         onClick={onToggle}

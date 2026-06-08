@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect } from "react";
 import {
@@ -58,7 +58,7 @@ export default function CredencialesSection({ empleadoId }: { empleadoId: string
   };
 
   const cardStyle: React.CSSProperties = {
-    background: "white",
+    background: "var(--card)",
     border: "1px solid var(--border)",
     borderRadius: 8,
     overflow: "hidden",
@@ -156,7 +156,7 @@ export default function CredencialesSection({ empleadoId }: { empleadoId: string
               <button
                 onClick={handleReset}
                 disabled={accion !== null}
-                style={{ padding: "8px 16px", background: "white", color: "var(--amber)", border: "1.5px solid rgba(181,86,14,0.3)", borderRadius: 4, fontSize: 13, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", opacity: accion === "reset" ? 0.7 : 1 }}
+                style={{ padding: "8px 16px", background: "var(--card)", color: "var(--amber)", border: "1.5px solid rgba(181,86,14,0.3)", borderRadius: 4, fontSize: 13, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", opacity: accion === "reset" ? 0.7 : 1 }}
               >
                 {accion === "reset" ? "Generando…" : "Generar enlace de restablecimiento"}
               </button>

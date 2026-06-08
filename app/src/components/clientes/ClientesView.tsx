@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 
@@ -79,7 +79,7 @@ export default function ClientesView({ clientes }: ClientesViewProps) {
 function ClienteCard({ cliente: c }: { cliente: ClienteListItem }) {
   return (
     <div style={{
-      background: "white", border: "1px solid var(--border)", borderRadius: 8,
+      background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8,
       overflow: "hidden", boxShadow: "0 1px 3px rgba(15,17,23,0.06)",
       opacity: c.activo ? 1 : 0.6,
     }}>
@@ -162,7 +162,7 @@ function Metric({ label, value, color }: { label: string; value: number; color?:
 function StatCard({ label, value, accent }: { label: string; value: number; accent: string }) {
   return (
     <div style={{
-      background: "white", border: "1px solid var(--border)", borderRadius: 8,
+      background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8,
       padding: 20, boxShadow: "0 1px 3px rgba(15,17,23,0.08)",
       borderTop: `3px solid ${accent}`,
     }}>

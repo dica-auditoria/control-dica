@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import type { ArchivoEstado, UserRole } from "@/types/database";
 import ClienteArchivosTable, { type ClienteArchivo } from "@/components/archivos/ClienteArchivosTable";
@@ -62,7 +62,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* Tabla archivos recientes */}
-        <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden", boxShadow: "0 1px 3px rgba(15,17,23,0.08)" }}>
+        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden", boxShadow: "0 1px 3px rgba(15,17,23,0.08)" }}>
           <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)" }}>
             <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>Archivos recientes</div>
             <div style={{ fontSize: 11, color: "rgba(15,17,23,0.4)", fontFamily: "'DM Mono', monospace", marginTop: 1 }}>Últimas cargas al sistema</div>
@@ -209,7 +209,7 @@ export default async function DashboardPage() {
 
 function StatCard({ label, value, meta, accent }: { label: string; value: string | number; meta: string; accent: string }) {
   return (
-    <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 8, padding: 20, boxShadow: "0 1px 3px rgba(15,17,23,0.08)", borderTop: `3px solid ${accent}` }}>
+    <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, padding: 20, boxShadow: "0 1px 3px rgba(15,17,23,0.08)", borderTop: `3px solid ${accent}` }}>
       <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(15,17,23,0.4)", marginBottom: 8 }}>{label}</div>
       <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, color: "var(--ink)", lineHeight: 1, marginBottom: 6 }}>{value}</div>
       <div style={{ fontSize: 12, color: "rgba(15,17,23,0.4)" }}>{meta}</div>
@@ -221,7 +221,7 @@ function AccesoRapido({ href, titulo, desc, color }: { href: string; titulo: str
   return (
     <Link href={href} style={{
       display: "block", textDecoration: "none",
-      background: "white", border: "1px solid var(--border)", borderRadius: 8,
+      background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8,
       padding: 20, boxShadow: "0 1px 3px rgba(15,17,23,0.06)",
       borderLeft: `3px solid ${color}`,
       transition: "box-shadow 0.15s",

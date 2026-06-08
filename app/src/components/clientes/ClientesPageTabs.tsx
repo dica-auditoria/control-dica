@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import ClientesView from "./ClientesView";
@@ -24,7 +24,7 @@ export default function ClientesPageTabs({ clientes, usuarios, entidades, rol }:
       <div style={{
         padding: "20px 32px 0",
         borderBottom: "1px solid var(--border)",
-        background: "white",
+        background: "var(--card)",
         display: "flex", alignItems: "flex-end", justifyContent: "space-between",
       }}>
         <div>

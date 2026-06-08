@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useTransition } from "react";
 import ActivoDetalleModal from "./ActivoDetalleModal";
@@ -155,7 +155,7 @@ export default function InventarioView({ activos: inicial, categorias, empleados
   return (
     <>
       {/* Header */}
-      <div style={{ padding: "20px 32px", borderBottom: "1px solid var(--border)", background: "white", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div style={{ padding: "20px 32px", borderBottom: "1px solid var(--border)", background: "var(--card)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div>
           <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: "var(--ink)", margin: 0 }}>Inventario</h1>
           <p style={{ fontSize: 13, color: "rgba(15,17,23,0.45)", marginTop: 4 }}>Activos de cómputo y periféricos · Asignación a empleados</p>
@@ -171,7 +171,7 @@ export default function InventarioView({ activos: inicial, categorias, empleados
           <SC label="Mantenimiento"  value={stats.mantenimiento} color="var(--amber)" />
         </div>
 
-        <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 8, padding: "12px 16px", marginBottom: 16, display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, padding: "12px 16px", marginBottom: 16, display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
           <input style={fSt} placeholder="Buscar nombre, serie, número…" value={busqueda} onChange={e => setBusqueda(e.target.value)} />
           <select style={fSt} value={filtroCat} onChange={e => setFiltroCat(e.target.value)}>
             <option value="todos">Todas las categorías</option>
@@ -184,7 +184,7 @@ export default function InventarioView({ activos: inicial, categorias, empleados
           <span style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "rgba(15,17,23,0.4)" }}>{lista.length} activo{lista.length !== 1 ? "s" : ""}</span>
         </div>
 
-        <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 8, overflow: "auto", boxShadow: "0 1px 3px rgba(15,17,23,0.06)" }}>
+        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, overflow: "auto", boxShadow: "0 1px 3px rgba(15,17,23,0.06)" }}>
           {lista.length === 0 ? (
             <div style={{ padding: 56, textAlign: "center", color: "rgba(15,17,23,0.35)", fontFamily: "'DM Mono', monospace", fontSize: 13 }}>Sin activos</div>
           ) : (
@@ -242,8 +242,8 @@ export default function InventarioView({ activos: inicial, categorias, empleados
       {modalForm && (
         <div style={{ position: "fixed", inset: 0, zIndex: 50, background: "rgba(15,17,23,0.45)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
           onClick={e => { if (e.target === e.currentTarget) setModalForm(false); }}>
-          <div style={{ background: "white", borderRadius: 8, width: "100%", maxWidth: 620, maxHeight: "92vh", overflowY: "auto", boxShadow: "0 8px 32px rgba(15,17,23,0.18)" }}>
-            <div style={{ padding: "16px 22px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center", position: "sticky", top: 0, background: "white", zIndex: 1 }}>
+          <div style={{ background: "var(--card)", borderRadius: 8, width: "100%", maxWidth: 620, maxHeight: "92vh", overflowY: "auto", boxShadow: "0 8px 32px rgba(15,17,23,0.18)" }}>
+            <div style={{ padding: "16px 22px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center", position: "sticky", top: 0, background: "var(--card)", zIndex: 1 }}>
               <h2 style={{ margin: 0, fontSize: 15, fontWeight: 600 }}>{editando ? "Editar activo" : "Nuevo activo"}</h2>
               <button onClick={() => setModalForm(false)} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "rgba(15,17,23,0.4)" }}>×</button>
             </div>
@@ -359,7 +359,7 @@ export default function InventarioView({ activos: inicial, categorias, empleados
       {asignandoId && (
         <div style={{ position: "fixed", inset: 0, zIndex: 50, background: "rgba(15,17,23,0.45)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
           onClick={e => { if (e.target === e.currentTarget) setAsignandoId(null); }}>
-          <div style={{ background: "white", borderRadius: 8, width: "100%", maxWidth: 420, boxShadow: "0 8px 32px rgba(15,17,23,0.18)", overflow: "hidden" }}>
+          <div style={{ background: "var(--card)", borderRadius: 8, width: "100%", maxWidth: 420, boxShadow: "0 8px 32px rgba(15,17,23,0.18)", overflow: "hidden" }}>
             <div style={{ padding: "16px 22px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between" }}>
               <h2 style={{ margin: 0, fontSize: 15, fontWeight: 600 }}>Asignar activo</h2>
               <button onClick={() => setAsignandoId(null)} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "rgba(15,17,23,0.4)" }}>×</button>
@@ -404,7 +404,7 @@ export default function InventarioView({ activos: inicial, categorias, empleados
 
 function SC({ label, value, color }: { label: string; value: number; color: string }) {
   return (
-    <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 8, padding: "14px 18px", boxShadow: "0 1px 3px rgba(15,17,23,0.04)" }}>
+    <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, padding: "14px 18px", boxShadow: "0 1px 3px rgba(15,17,23,0.04)" }}>
       <div style={{ fontSize: 11, fontWeight: 600, color: "rgba(15,17,23,0.45)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>{label}</div>
       <div style={{ fontSize: 30, fontWeight: 700, color, fontFamily: "'DM Mono', monospace" }}>{value}</div>
     </div>
@@ -432,10 +432,10 @@ function Err({ msg }: { msg: string }) {
   return <div style={{ padding: 10, background: "var(--red-light)", color: "var(--accent)", borderRadius: 4, fontSize: 13 }}>{msg}</div>;
 }
 
-const iSt: React.CSSProperties = { width: "100%", padding: "9px 12px", fontSize: 13, border: "1.5px solid var(--border-strong)", borderRadius: 4, fontFamily: "'DM Sans', sans-serif", color: "var(--ink)", background: "white", outline: "none", boxSizing: "border-box" };
-const fSt: React.CSSProperties = { padding: "8px 12px", fontSize: 13, border: "1.5px solid var(--border-strong)", borderRadius: 4, fontFamily: "'DM Sans', sans-serif", color: "var(--ink)", background: "white", outline: "none" };
+const iSt: React.CSSProperties = { width: "100%", padding: "9px 12px", fontSize: 13, border: "1.5px solid var(--border-strong)", borderRadius: 4, fontFamily: "'DM Sans', sans-serif", color: "var(--ink)", background: "var(--card)", outline: "none", boxSizing: "border-box" };
+const fSt: React.CSSProperties = { padding: "8px 12px", fontSize: 13, border: "1.5px solid var(--border-strong)", borderRadius: 4, fontFamily: "'DM Sans', sans-serif", color: "var(--ink)", background: "var(--card)", outline: "none" };
 const thSt: React.CSSProperties = { padding: "10px 14px", textAlign: "left", fontSize: 10, fontFamily: "'DM Mono', monospace", letterSpacing: "0.07em", textTransform: "uppercase", color: "rgba(15,17,23,0.4)", borderBottom: "1px solid var(--border)", whiteSpace: "nowrap" };
 const tdSt: React.CSSProperties = { padding: "12px 14px" };
 const btnP: React.CSSProperties = { padding: "10px 18px", background: "var(--accent)", color: "white", border: "none", borderRadius: 4, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" };
-const btnO: React.CSSProperties = { padding: "10px 18px", background: "white", color: "var(--ink)", border: "1.5px solid var(--border-strong)", borderRadius: 4, fontSize: 13, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" };
-const btnSm: React.CSSProperties = { padding: "5px 9px", background: "white", color: "rgba(15,17,23,0.65)", border: "1px solid var(--border-strong)", borderRadius: 4, fontSize: 11, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" };
+const btnO: React.CSSProperties = { padding: "10px 18px", background: "var(--card)", color: "var(--ink)", border: "1.5px solid var(--border-strong)", borderRadius: 4, fontSize: 13, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" };
+const btnSm: React.CSSProperties = { padding: "5px 9px", background: "var(--card)", color: "rgba(15,17,23,0.65)", border: "1px solid var(--border-strong)", borderRadius: 4, fontSize: 11, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" };

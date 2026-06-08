@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useRef, useState } from "react";
 import type { PlaceData } from "@/types/directorio";
@@ -46,7 +46,7 @@ const inputStyle: React.CSSProperties = {
   borderRadius: 4,
   fontFamily: "'DM Sans', sans-serif",
   color: "var(--ink)",
-  background: "white",
+  background: "var(--card)",
   outline: "none",
   boxSizing: "border-box",
 };

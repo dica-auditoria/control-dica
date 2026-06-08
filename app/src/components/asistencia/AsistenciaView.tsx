@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useTransition } from "react";
 import { registrarAsistenciaAction, fetchAsistenciaAction, fetchReporteRangoAction, type ReporteEmpleado } from "@/app/actions/asistencia";
@@ -54,7 +54,7 @@ export default function AsistenciaView({ registros: inicial, empleados, oficinas
   return (
     <>
       {/* Header with tabs */}
-      <div style={{ padding: "20px 32px 0", borderBottom: "1px solid var(--border)", background: "white" }}>
+      <div style={{ padding: "20px 32px 0", borderBottom: "1px solid var(--border)", background: "var(--card)" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
           <div>
             <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: "var(--ink)", margin: 0 }}>Asistencia</h1>
@@ -155,7 +155,7 @@ function TabHoy({ registros: inicial, empleados, oficinas, fechaInicial }: Props
       </div>
 
       {/* Filters + action */}
-      <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 8, padding: "12px 16px", marginBottom: 16, display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+      <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, padding: "12px 16px", marginBottom: 16, display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
         <input type="date" value={fecha} onChange={e => setFecha(e.target.value)} style={fSt} />
         <select style={fSt} value={filtroEmpleado} onChange={e => setFiltroEmpleado(e.target.value)}>
           <option value="">Todos los empleados</option>
@@ -171,7 +171,7 @@ function TabHoy({ registros: inicial, empleados, oficinas, fechaInicial }: Props
       </div>
 
       {/* Table */}
-      <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden", boxShadow: "0 1px 3px rgba(15,17,23,0.06)" }}>
+      <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden", boxShadow: "0 1px 3px rgba(15,17,23,0.06)" }}>
         {lista.length === 0 ? (
           <div style={{ padding: 48, textAlign: "center", color: "rgba(15,17,23,0.35)", fontFamily: "'DM Mono', monospace", fontSize: 13 }}>Sin registros</div>
         ) : (
@@ -214,7 +214,7 @@ function TabHoy({ registros: inicial, empleados, oficinas, fechaInicial }: Props
       {modalOpen && (
         <div style={{ position: "fixed", inset: 0, zIndex: 50, background: "rgba(15,17,23,0.45)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
           onClick={e => { if (e.target === e.currentTarget) setModalOpen(false); }}>
-          <div style={{ background: "white", borderRadius: 8, width: "100%", maxWidth: 460, boxShadow: "0 8px 32px rgba(15,17,23,0.18)", overflow: "hidden" }}>
+          <div style={{ background: "var(--card)", borderRadius: 8, width: "100%", maxWidth: 460, boxShadow: "0 8px 32px rgba(15,17,23,0.18)", overflow: "hidden" }}>
             <div style={{ padding: "16px 22px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <h2 style={{ margin: 0, fontSize: 15, fontWeight: 600 }}>Registrar asistencia</h2>
               <button onClick={() => setModalOpen(false)} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "rgba(15,17,23,0.4)" }}>×</button>
@@ -319,7 +319,7 @@ function TabReportes() {
   return (
     <div style={{ padding: "24px 32px" }}>
       {/* Filters */}
-      <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 8, padding: "16px 20px", marginBottom: 20, display: "flex", gap: 12, flexWrap: "wrap", alignItems: "flex-end" }}>
+      <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, padding: "16px 20px", marginBottom: 20, display: "flex", gap: 12, flexWrap: "wrap", alignItems: "flex-end" }}>
         <div><Lbl>Desde</Lbl><input type="date" style={fSt} value={fechaInicio} onChange={e => setFechaInicio(e.target.value)} /></div>
         <div><Lbl>Hasta</Lbl><input type="date" style={fSt} value={fechaFin} onChange={e => setFechaFin(e.target.value)} /></div>
         <div><Lbl>Hora entrada</Lbl><input type="time" style={{ ...fSt, fontFamily: "'DM Mono', monospace" }} value={horaEntrada} onChange={e => setHoraEntrada(e.target.value)} /></div>
@@ -362,7 +362,7 @@ function TabReportes() {
           </div>
 
           {/* Table */}
-          <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 8, overflow: "auto", boxShadow: "0 1px 3px rgba(15,17,23,0.06)" }}>
+          <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, overflow: "auto", boxShadow: "0 1px 3px rgba(15,17,23,0.06)" }}>
             <table style={{ borderCollapse: "collapse", minWidth: "100%" }}>
               <thead>
                 <tr style={{ background: "var(--surface)" }}>
@@ -424,7 +424,7 @@ function TabReportes() {
 // ─── Shared micro-components ─────────────────────────────────────────────────
 function SC({ label, value, color, sub }: { label: string; value: number; color: string; sub?: string }) {
   return (
-    <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 8, padding: "14px 18px", boxShadow: "0 1px 3px rgba(15,17,23,0.04)" }}>
+    <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, padding: "14px 18px", boxShadow: "0 1px 3px rgba(15,17,23,0.04)" }}>
       <div style={{ fontSize: 11, fontWeight: 600, color: "rgba(15,17,23,0.45)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>{label}</div>
       <div style={{ fontSize: 30, fontWeight: 700, color, fontFamily: "'DM Mono', monospace" }}>{value}</div>
       {sub && <div style={{ fontSize: 11, color: "rgba(15,17,23,0.4)", marginTop: 4 }}>{sub}</div>}
@@ -436,9 +436,9 @@ function Lbl({ children }: { children: React.ReactNode }) {
 }
 
 // ─── Shared styles ────────────────────────────────────────────────────────────
-const fSt: React.CSSProperties = { padding: "8px 12px", fontSize: 13, border: "1.5px solid var(--border-strong)", borderRadius: 4, fontFamily: "'DM Sans', sans-serif", color: "var(--ink)", background: "white", outline: "none" };
+const fSt: React.CSSProperties = { padding: "8px 12px", fontSize: 13, border: "1.5px solid var(--border-strong)", borderRadius: 4, fontFamily: "'DM Sans', sans-serif", color: "var(--ink)", background: "var(--card)", outline: "none" };
 const iSt: React.CSSProperties = { ...fSt, width: "100%", boxSizing: "border-box" };
 const btnP: React.CSSProperties = { padding: "10px 16px", background: "var(--accent)", color: "white", border: "none", borderRadius: 4, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" };
-const btnO: React.CSSProperties = { padding: "10px 16px", background: "white", color: "var(--ink)", border: "1.5px solid var(--border-strong)", borderRadius: 4, fontSize: 13, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" };
+const btnO: React.CSSProperties = { padding: "10px 16px", background: "var(--card)", color: "var(--ink)", border: "1.5px solid var(--border-strong)", borderRadius: 4, fontSize: 13, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" };
 const thSt: React.CSSProperties = { padding: "10px 12px", textAlign: "left", fontSize: 10, fontFamily: "'DM Mono', monospace", letterSpacing: "0.07em", textTransform: "uppercase", color: "rgba(15,17,23,0.4)", borderBottom: "1px solid var(--border)", whiteSpace: "nowrap" };
 const tdSt: React.CSSProperties = { padding: "11px 12px" };

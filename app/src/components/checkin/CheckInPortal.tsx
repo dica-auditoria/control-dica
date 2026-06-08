@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useRef, useTransition } from "react";
 import {
@@ -158,7 +158,7 @@ export default function CheckInPortal() {
   if (stage === "search") {
     return (
       <div style={{ minHeight: "100vh", background: "var(--surface)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24 }}>
-        <div style={{ background: "white", borderRadius: 12, padding: 36, width: "100%", maxWidth: 420, boxShadow: "0 4px 24px rgba(15,17,23,0.12)", textAlign: "center" }}>
+        <div style={{ background: "var(--card)", borderRadius: 12, padding: 36, width: "100%", maxWidth: 420, boxShadow: "0 4px 24px rgba(15,17,23,0.12)", textAlign: "center" }}>
           <div style={{ width: 56, height: 56, borderRadius: "50%", background: "var(--ink)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px", fontSize: 24 }}>
             🛡
           </div>

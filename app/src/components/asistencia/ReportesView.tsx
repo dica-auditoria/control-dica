@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useTransition } from "react";
 import { fetchReporteRangoAction, type ReporteEmpleado } from "@/app/actions/asistencia";
@@ -96,7 +96,7 @@ export default function ReportesView() {
 
   return (
     <>
-      <div style={{ padding: "20px 32px", borderBottom: "1px solid var(--border)", background: "white", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div style={{ padding: "20px 32px", borderBottom: "1px solid var(--border)", background: "var(--card)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div>
           <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: "var(--ink)", margin: 0 }}>Reportes de Asistencia</h1>
           <p style={{ fontSize: 13, color: "rgba(15,17,23,0.45)", marginTop: 4 }}>Rango de fechas · Tardanzas · Exportar Excel</p>
@@ -110,7 +110,7 @@ export default function ReportesView() {
 
       <div style={{ padding: "24px 32px" }}>
         {/* Filtros */}
-        <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 8, padding: "18px 20px", marginBottom: 20, display: "flex", gap: 14, flexWrap: "wrap", alignItems: "flex-end" }}>
+        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, padding: "18px 20px", marginBottom: 20, display: "flex", gap: 14, flexWrap: "wrap", alignItems: "flex-end" }}>
           <div>
             <label style={lbl}>Desde</label>
             <input type="date" style={iSt} value={fechaInicio} onChange={e => setFechaInicio(e.target.value)} />
@@ -163,7 +163,7 @@ export default function ReportesView() {
             </div>
 
             {/* Tabla */}
-            <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 8, overflow: "auto", boxShadow: "0 1px 3px rgba(15,17,23,0.06)" }}>
+            <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, overflow: "auto", boxShadow: "0 1px 3px rgba(15,17,23,0.06)" }}>
               <table style={{ borderCollapse: "collapse", minWidth: "100%" }}>
                 <thead>
                   <tr style={{ background: "var(--surface)" }}>
@@ -236,7 +236,7 @@ export default function ReportesView() {
 
 function SC({ label, value, color }: { label: string; value: number; color: string }) {
   return (
-    <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 8, padding: "14px 18px", boxShadow: "0 1px 3px rgba(15,17,23,0.04)" }}>
+    <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, padding: "14px 18px", boxShadow: "0 1px 3px rgba(15,17,23,0.04)" }}>
       <div style={{ fontSize: 11, fontWeight: 600, color: "rgba(15,17,23,0.45)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>{label}</div>
       <div style={{ fontSize: 30, fontWeight: 700, color, fontFamily: "'DM Mono', monospace" }}>{value}</div>
     </div>
@@ -244,7 +244,7 @@ function SC({ label, value, color }: { label: string; value: number; color: stri
 }
 
 const lbl: React.CSSProperties = { display: "block", fontSize: 11, fontWeight: 600, color: "rgba(15,17,23,0.5)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6 };
-const iSt: React.CSSProperties = { padding: "9px 12px", fontSize: 13, border: "1.5px solid var(--border-strong)", borderRadius: 4, fontFamily: "'DM Sans', sans-serif", color: "var(--ink)", background: "white", outline: "none" };
+const iSt: React.CSSProperties = { padding: "9px 12px", fontSize: 13, border: "1.5px solid var(--border-strong)", borderRadius: 4, fontFamily: "'DM Sans', sans-serif", color: "var(--ink)", background: "var(--card)", outline: "none" };
 const btnPrimary: React.CSSProperties = { padding: "10px 18px", background: "var(--accent)", color: "white", border: "none", borderRadius: 4, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" };
 const thSt: React.CSSProperties = { padding: "10px 12px", textAlign: "left", fontSize: 10, fontFamily: "'DM Mono', monospace", letterSpacing: "0.07em", textTransform: "uppercase", color: "rgba(15,17,23,0.4)", borderBottom: "1px solid var(--border)", whiteSpace: "nowrap" };
 const tdSt: React.CSSProperties = { padding: "11px 12px" };

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 export type SeccionId =
   | "datos_personales"
@@ -38,7 +38,7 @@ export default function EmpleadoSectionNav({ active, onChange, completitud, aler
   return (
     <aside style={{ width: 220, flexShrink: 0 }}>
       <nav style={{
-        background: "white",
+        background: "var(--card)",
         border: "1px solid var(--border)",
         borderRadius: 8,
         overflow: "hidden",

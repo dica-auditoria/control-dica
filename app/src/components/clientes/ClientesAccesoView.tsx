@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { crearUsuarioAction, editarClienteAction, toggleActivoClienteAction, eliminarClienteAction, fetchUserContratosAction, updateUserContratosAction } from "@/app/actions/usuarios";
@@ -234,7 +234,7 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
 
         {/* Tabla */}
         <div style={{
-          background: "white", border: "1px solid var(--border)", borderRadius: 8,
+          background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8,
           overflow: "hidden", boxShadow: "0 1px 3px rgba(15,17,23,0.08)",
         }}>
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
@@ -360,7 +360,7 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
           onClick={e => { if (e.target === e.currentTarget) setModalOpen(false); }}
         >
           <div style={{
-            background: "white", borderRadius: 10,
+            background: "var(--card)", borderRadius: 10,
             width: "100%", maxWidth: 480,
             boxShadow: "0 12px 40px rgba(15,17,23,0.2)",
           }}>
@@ -495,7 +495,7 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
                             title="Eliminar"
                             style={{
                               width: 32, height: 36, flexShrink: 0,
-                              background: "white", border: "1.5px solid rgba(200,71,42,0.3)",
+                              background: "var(--card)", border: "1.5px solid rgba(200,71,42,0.3)",
                               borderRadius: 4, cursor: "pointer",
                               color: "var(--accent)", fontSize: 18, lineHeight: 1,
                               display: "flex", alignItems: "center", justifyContent: "center",
@@ -567,7 +567,7 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
                           </select>
                           {contratosIds.length > 1 && (
                             <button type="button" onClick={() => setContratosIds(prev => prev.filter((_, idx) => idx !== i))}
-                              style={{ width: 32, height: 36, flexShrink: 0, background: "white", border: "1.5px solid rgba(200,71,42,0.3)", borderRadius: 4, cursor: "pointer", color: "var(--accent)", fontSize: 18, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                              style={{ width: 32, height: 36, flexShrink: 0, background: "var(--card)", border: "1.5px solid rgba(200,71,42,0.3)", borderRadius: 4, cursor: "pointer", color: "var(--accent)", fontSize: 18, display: "flex", alignItems: "center", justifyContent: "center" }}>
                               −
                             </button>
                           )}
@@ -609,7 +609,7 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
           style={{ position: "fixed", inset: 0, background: "rgba(15,17,23,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50, padding: 24 }}
           onClick={e => { if (e.target === e.currentTarget) setEditModal(null); }}
         >
-          <div style={{ background: "white", borderRadius: 10, width: "100%", maxWidth: 440, boxShadow: "0 12px 40px rgba(15,17,23,0.2)" }}>
+          <div style={{ background: "var(--card)", borderRadius: 10, width: "100%", maxWidth: 440, boxShadow: "0 12px 40px rgba(15,17,23,0.2)" }}>
             <div style={{ padding: "20px 24px 16px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <div>
                 <div style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)" }}>Editar acceso</div>
@@ -674,7 +674,7 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
                           </select>
                           {editContratosIds.length > 1 && (
                             <button type="button" onClick={() => setEditContratosIds(prev => prev.filter((_, idx) => idx !== i))}
-                              style={{ width: 32, height: 36, flexShrink: 0, background: "white", border: "1.5px solid rgba(200,71,42,0.3)", borderRadius: 4, cursor: "pointer", color: "var(--accent)", fontSize: 18, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                              style={{ width: 32, height: 36, flexShrink: 0, background: "var(--card)", border: "1.5px solid rgba(200,71,42,0.3)", borderRadius: 4, cursor: "pointer", color: "var(--accent)", fontSize: 18, display: "flex", alignItems: "center", justifyContent: "center" }}>
                               −
                             </button>
                           )}
@@ -746,7 +746,7 @@ const iStyle: React.CSSProperties = {
   width: "100%", padding: "9px 12px", fontSize: 13,
   border: "1.5px solid var(--border-strong)", borderRadius: 4,
   fontFamily: "'DM Sans', sans-serif", color: "var(--ink)",
-  background: "white", outline: "none", boxSizing: "border-box",
+  background: "var(--card)", outline: "none", boxSizing: "border-box",
 };
 
 const btnPrimary: React.CSSProperties = {
@@ -756,13 +756,13 @@ const btnPrimary: React.CSSProperties = {
 };
 
 const btnSmall: React.CSSProperties = {
-  padding: "5px 12px", background: "white", color: "rgba(15,17,23,0.6)",
+  padding: "5px 12px", background: "var(--card)", color: "rgba(15,17,23,0.6)",
   border: "1px solid var(--border-strong)", borderRadius: 4,
   fontSize: 12, cursor: "pointer", fontFamily: "'DM Sans', sans-serif",
 };
 
 const btnOutline: React.CSSProperties = {
-  padding: "9px 16px", background: "white", color: "var(--ink)",
+  padding: "9px 16px", background: "var(--card)", color: "var(--ink)",
   border: "1.5px solid var(--border-strong)", borderRadius: 4,
   fontSize: 13, cursor: "pointer", fontFamily: "'DM Sans', sans-serif",
 };

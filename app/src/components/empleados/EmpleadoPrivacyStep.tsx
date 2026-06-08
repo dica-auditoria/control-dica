@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useEmpleadoMutations } from "@/hooks/useEmpleadoMutations";
@@ -41,7 +41,7 @@ export default function EmpleadoPrivacyStep({ token, nombreCompleto, email }: Pr
         maxWidth: 640,
         margin: "48px auto",
         padding: 32,
-        background: "white",
+        background: "var(--card)",
         borderRadius: 8,
         textAlign: "center",
         boxShadow: "0 2px 12px rgba(15,17,23,0.08)",
@@ -62,7 +62,7 @@ export default function EmpleadoPrivacyStep({ token, nombreCompleto, email }: Pr
       maxWidth: 720,
       margin: "32px auto",
       padding: "32px 40px",
-      background: "white",
+      background: "var(--card)",
       borderRadius: 8,
       boxShadow: "0 2px 12px rgba(15,17,23,0.08)",
     }}>

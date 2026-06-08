@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -69,7 +69,7 @@ export default function SolicitudesView({ solicitudes: inicial }: { solicitudes:
       <div style={{
         padding: "20px 32px",
         borderBottom: "1px solid var(--border)",
-        background: "white",
+        background: "var(--card)",
         display: "flex", alignItems: "center", justifyContent: "space-between",
       }}>
         <div>
@@ -118,7 +118,7 @@ export default function SolicitudesView({ solicitudes: inicial }: { solicitudes:
       <div style={{ padding: "28px 32px" }}>
         {lista.length === 0 ? (
           <div style={{
-            background: "white", border: "1px solid var(--border)",
+            background: "var(--card)", border: "1px solid var(--border)",
             borderRadius: 8, padding: "48px 20px", textAlign: "center",
             color: "rgba(15,17,23,0.35)", fontSize: 13,
             fontFamily: "'DM Mono', monospace",
@@ -162,7 +162,7 @@ function SolicitudCard({
 
   return (
     <div style={{
-      background: "white",
+      background: "var(--card)",
       border: `1px solid ${isPending ? "rgba(181,86,14,0.2)" : "var(--border)"}`,
       borderRadius: 8,
       overflow: "hidden",

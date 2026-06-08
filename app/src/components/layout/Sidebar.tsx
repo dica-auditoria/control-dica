@@ -105,7 +105,7 @@ export default function Sidebar({ usuario, solicitudesPendientes = 0, requerimie
               padding: "9px 10px",
               borderRadius: 4,
               fontSize: 13, fontWeight: 500,
-              color: isActive ? "white" : "rgba(255,255,255,0.5)",
+              color: isActive ? "rgba(255,255,255,0.92)" : "rgba(255,255,255,0.52)",
               background: isActive ? "rgba(141,198,63,0.15)" : "transparent",
               textDecoration: "none",
               position: "relative",
@@ -145,7 +145,7 @@ export default function Sidebar({ usuario, solicitudesPendientes = 0, requerimie
             {initials}
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.8)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.72)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
               {usuario.nombre}
             </div>
             <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>

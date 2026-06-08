@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 
@@ -76,7 +76,7 @@ export default function AuditLogView({ entradas, total }: { entradas: AuditLogIt
       <div style={{
         padding: "20px 32px",
         borderBottom: "1px solid var(--border)",
-        background: "white",
+        background: "var(--card)",
         display: "flex", alignItems: "center", justifyContent: "space-between",
       }}>
         <div>
@@ -115,7 +115,7 @@ export default function AuditLogView({ entradas, total }: { entradas: AuditLogIt
       {/* Tabla */}
       <div style={{ padding: "28px 32px" }}>
         <div style={{
-          background: "white",
+          background: "var(--card)",
           border: "1px solid var(--border)",
           borderRadius: 8,
           overflow: "hidden",

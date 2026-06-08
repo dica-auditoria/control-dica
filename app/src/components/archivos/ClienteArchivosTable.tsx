@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { crearSolicitudAction } from "@/app/actions/solicitudes";
@@ -60,7 +60,7 @@ export default function ClienteArchivosTable({ archivos: inicial }: { archivos: 
   return (
     <>
       <div style={{
-        background: "white",
+        background: "var(--card)",
         border: "1px solid var(--border)",
         borderRadius: 8,
         overflow: "hidden",
@@ -145,7 +145,7 @@ export default function ClienteArchivosTable({ archivos: inicial }: { archivos: 
           onClick={e => { if (e.target === e.currentTarget) cerrarModal(); }}
         >
           <div style={{
-            background: "white", borderRadius: 10,
+            background: "var(--card)", borderRadius: 10,
             width: "100%", maxWidth: 460,
             boxShadow: "0 12px 40px rgba(15,17,23,0.2)",
           }}>
@@ -225,7 +225,7 @@ export default function ClienteArchivosTable({ archivos: inicial }: { archivos: 
                 display: "flex", gap: 10, justifyContent: "flex-end",
               }}>
                 <button type="button" onClick={cerrarModal} style={{
-                  padding: "8px 16px", background: "white",
+                  padding: "8px 16px", background: "var(--card)",
                   border: "1.5px solid var(--border-strong)",
                   borderRadius: 4, fontSize: 13, cursor: "pointer",
                   fontFamily: "'DM Sans', sans-serif",

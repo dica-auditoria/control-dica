@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -78,7 +78,7 @@ export default function EntidadesView({ entidades: inicial, rol }: EntidadesView
       <div style={{
         padding: "20px 32px",
         borderBottom: "1px solid var(--border)",
-        background: "white",
+        background: "var(--card)",
         display: "flex", alignItems: "center", justifyContent: "space-between",
       }}>
         <div>
@@ -128,7 +128,7 @@ export default function EntidadesView({ entidades: inicial, rol }: EntidadesView
 
         {/* Tabla */}
         <div style={{
-          background: "white",
+          background: "var(--card)",
           border: "1px solid var(--border)",
           borderRadius: 8,
           overflow: "hidden",
@@ -212,7 +212,7 @@ export default function EntidadesView({ entidades: inicial, rol }: EntidadesView
                         disabled={toggling === e.id}
                         style={{
                           padding: "5px 12px",
-                          background: "white",
+                          background: "var(--card)",
                           color: e.activo ? "var(--amber)" : "var(--green)",
                           border: `1px solid ${e.activo ? "rgba(181,86,14,0.25)" : "rgba(45,106,79,0.25)"}`,
                           borderRadius: 4, fontSize: 12, fontWeight: 500,
@@ -245,7 +245,7 @@ export default function EntidadesView({ entidades: inicial, rol }: EntidadesView
           onClick={e => { if (e.target === e.currentTarget) setModalOpen(false); }}
         >
           <div style={{
-            background: "white", borderRadius: 10,
+            background: "var(--card)", borderRadius: 10,
             width: "100%", maxWidth: 420,
             boxShadow: "0 12px 40px rgba(15,17,23,0.2)",
           }}>
@@ -305,7 +305,7 @@ export default function EntidadesView({ entidades: inicial, rol }: EntidadesView
                 display: "flex", gap: 10, justifyContent: "flex-end",
               }}>
                 <button type="button" onClick={() => setModalOpen(false)} style={{
-                  padding: "8px 16px", background: "white",
+                  padding: "8px 16px", background: "var(--card)",
                   border: "1.5px solid var(--border-strong)",
                   borderRadius: 4, fontSize: 13, cursor: "pointer",
                   fontFamily: "'DM Sans', sans-serif",
@@ -334,7 +334,7 @@ export default function EntidadesView({ entidades: inicial, rol }: EntidadesView
 function StatCard({ label, value, accent }: { label: string; value: number; accent: string }) {
   return (
     <div style={{
-      background: "white", border: "1px solid var(--border)", borderRadius: 8,
+      background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8,
       padding: 20, boxShadow: "0 1px 3px rgba(15,17,23,0.08)",
       borderTop: `3px solid ${accent}`,
     }}>

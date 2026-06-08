@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -125,7 +125,7 @@ export default function RequerimientosTab({ requerimientos, entidadId, contratoI
                         <div style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(15,17,23,0.35)", marginBottom: 8 }}>Documentos solicitados</div>
                         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                           {req.items.map(item => (
-                            <div key={item.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 12px", background: "white", borderRadius: 6, border: "1px solid var(--border)" }}>
+                            <div key={item.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 12px", background: "var(--card)", borderRadius: 6, border: "1px solid var(--border)" }}>
                               <input type="checkbox" checked={item.completado}
                                 onChange={async e => {
                                   await toggleItemCompletoAction(item.id, e.target.checked);
@@ -262,7 +262,7 @@ function CrearRequerimientoModal({ entidadId, contratoId, onClose, onCreated }: 
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 1200, background: "rgba(15,17,23,0.55)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div style={{ background: "white", borderRadius: 10, width: "100%", maxWidth: 560, maxHeight: "90vh", display: "flex", flexDirection: "column", boxShadow: "0 24px 64px rgba(15,17,23,0.25)", overflow: "hidden" }}>
+      <div style={{ background: "var(--card)", borderRadius: 10, width: "100%", maxWidth: 560, maxHeight: "90vh", display: "flex", flexDirection: "column", boxShadow: "0 24px 64px rgba(15,17,23,0.25)", overflow: "hidden" }}>
         <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", background: "var(--surface)", flexShrink: 0 }}>
           <div style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)" }}>Nuevo requerimiento</div>
           <div style={{ fontSize: 11, color: "rgba(15,17,23,0.4)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>Se notificará al cliente con los documentos a entregar y la fecha límite</div>
@@ -347,7 +347,7 @@ function ExtenderFechaModal({ requerimientoId, onClose, onUpdated }: { requerimi
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 1300, background: "rgba(15,17,23,0.55)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div style={{ background: "white", borderRadius: 10, width: "100%", maxWidth: 340, boxShadow: "0 24px 64px rgba(15,17,23,0.25)", overflow: "hidden" }}>
+      <div style={{ background: "var(--card)", borderRadius: 10, width: "100%", maxWidth: 340, boxShadow: "0 24px 64px rgba(15,17,23,0.25)", overflow: "hidden" }}>
         <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", background: "var(--surface)" }}>
           <div style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)" }}>Extender plazo</div>
         </div>
@@ -384,7 +384,7 @@ function CerrarModal({ requerimientoId, onClose, onClosed }: { requerimientoId: 
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 1300, background: "rgba(15,17,23,0.55)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div style={{ background: "white", borderRadius: 10, width: "100%", maxWidth: 400, boxShadow: "0 24px 64px rgba(15,17,23,0.25)", overflow: "hidden" }}>
+      <div style={{ background: "var(--card)", borderRadius: 10, width: "100%", maxWidth: 400, boxShadow: "0 24px 64px rgba(15,17,23,0.25)", overflow: "hidden" }}>
         <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", background: "var(--surface)" }}>
           <div style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)" }}>Marcar como completado</div>
         </div>
@@ -420,7 +420,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 const inputStyle: React.CSSProperties = {
   width: "100%", padding: "9px 12px", border: "1.5px solid var(--border)", borderRadius: 6,
   fontSize: 13, color: "var(--ink)", outline: "none", fontFamily: "'DM Sans', sans-serif",
-  boxSizing: "border-box", background: "white",
+  boxSizing: "border-box", background: "var(--card)",
 };
 const focusBorder = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => (e.currentTarget.style.borderColor = "var(--accent)");
 const blurBorder  = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => (e.currentTarget.style.borderColor = "var(--border)");

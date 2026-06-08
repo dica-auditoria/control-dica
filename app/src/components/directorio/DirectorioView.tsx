@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
@@ -175,7 +175,7 @@ export default function DirectorioView({ oficinas, zonas, entidades, empresas: i
   return (
     <>
       {/* Header */}
-      <div style={{ padding: "20px 32px", borderBottom: "1px solid var(--border)", background: "white", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div style={{ padding: "20px 32px", borderBottom: "1px solid var(--border)", background: "var(--card)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div>
           <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: "var(--ink)", margin: 0 }}>
             Directorio de Direcciones
@@ -268,7 +268,7 @@ export default function DirectorioView({ oficinas, zonas, entidades, empresas: i
           style={{ position: "fixed", inset: 0, zIndex: 50, background: "rgba(15,17,23,0.45)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
           onClick={e => { if (e.target === e.currentTarget) setModalEmpresaOpen(false); }}
         >
-          <div style={{ background: "white", borderRadius: 8, width: "100%", maxWidth: 420, boxShadow: "0 8px 32px rgba(15,17,23,0.18)" }}>
+          <div style={{ background: "var(--card)", borderRadius: 8, width: "100%", maxWidth: 420, boxShadow: "0 8px 32px rgba(15,17,23,0.18)" }}>
             <div style={{ padding: "18px 24px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <h2 style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>Nueva empresa</h2>
               <button onClick={() => setModalEmpresaOpen(false)} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "rgba(15,17,23,0.4)", lineHeight: 1 }}>×</button>
@@ -304,7 +304,7 @@ export default function DirectorioView({ oficinas, zonas, entidades, empresas: i
       {modalOpen && (
         <div style={{ position: "fixed", inset: 0, zIndex: 50, background: "rgba(15,17,23,0.45)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
           onClick={e => { if (e.target === e.currentTarget) setModalOpen(false); }}>
-          <div style={{ background: "white", borderRadius: 8, width: "100%", maxWidth: 640, maxHeight: "92vh", overflowY: "auto", boxShadow: "0 8px 32px rgba(15,17,23,0.18)" }}>
+          <div style={{ background: "var(--card)", borderRadius: 8, width: "100%", maxWidth: 640, maxHeight: "92vh", overflowY: "auto", boxShadow: "0 8px 32px rgba(15,17,23,0.18)" }}>
             {/* Modal header */}
             <div style={{ padding: "18px 24px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <h2 style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>
@@ -459,7 +459,7 @@ export default function DirectorioView({ oficinas, zonas, entidades, empresas: i
 function EmpresaCard({ empresa }: { empresa: EmpresaDirectorioItem }) {
   return (
     <div style={{
-      background: "white", border: "1px solid var(--border)", borderRadius: 8,
+      background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8,
       overflow: "hidden", boxShadow: "0 1px 3px rgba(15,17,23,0.06)",
       opacity: empresa.activo ? 1 : 0.55,
     }}>
@@ -530,7 +530,7 @@ function UbicacionCard({ ubicacion: u, puedeEditar, onEditar, onToggle, onElimin
   const tieneCoords = u.lat && u.lng;
 
   return (
-    <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden", boxShadow: "0 1px 3px rgba(15,17,23,0.06)", opacity: u.activo ? 1 : 0.55 }}>
+    <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden", boxShadow: "0 1px 3px rgba(15,17,23,0.06)", opacity: u.activo ? 1 : 0.55 }}>
       <div style={{ padding: "14px 16px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
           <div style={{ width: 36, height: 36, borderRadius: 6, background: u.tipo === "oficina" ? "rgba(45,106,79,0.1)" : "rgba(200,71,42,0.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>
@@ -619,8 +619,8 @@ function F({ label, required, children }: { label: string; required?: boolean; c
 }
 
 // -------- Styles --------
-const iStyle: React.CSSProperties = { width: "100%", padding: "9px 12px", fontSize: 13, border: "1.5px solid var(--border-strong)", borderRadius: 4, fontFamily: "'DM Sans', sans-serif", color: "var(--ink)", background: "white", outline: "none", boxSizing: "border-box" };
+const iStyle: React.CSSProperties = { width: "100%", padding: "9px 12px", fontSize: 13, border: "1.5px solid var(--border-strong)", borderRadius: 4, fontFamily: "'DM Sans', sans-serif", color: "var(--ink)", background: "var(--card)", outline: "none", boxSizing: "border-box" };
 const sectionLabel: React.CSSProperties = { fontSize: 11, fontWeight: 600, color: "rgba(15,17,23,0.4)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 10 };
 const btnPrimary: React.CSSProperties = { padding: "10px 18px", background: "var(--accent)", color: "white", border: "none", borderRadius: 4, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" };
-const btnOutline: React.CSSProperties = { padding: "10px 18px", background: "white", color: "var(--ink)", border: "1.5px solid var(--border-strong)", borderRadius: 4, fontSize: 13, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" };
-const btnSmall: React.CSSProperties = { padding: "5px 12px", background: "white", color: "rgba(15,17,23,0.6)", border: "1px solid var(--border-strong)", borderRadius: 4, fontSize: 12, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" };
+const btnOutline: React.CSSProperties = { padding: "10px 18px", background: "var(--card)", color: "var(--ink)", border: "1.5px solid var(--border-strong)", borderRadius: 4, fontSize: 13, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" };
+const btnSmall: React.CSSProperties = { padding: "5px 12px", background: "var(--card)", color: "rgba(15,17,23,0.6)", border: "1px solid var(--border-strong)", borderRadius: 4, fontSize: 12, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" };

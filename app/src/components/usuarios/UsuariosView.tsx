@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -124,7 +124,7 @@ export default function UsuariosView({
       {/* Topbar */}
       <div style={{
         padding: "20px 32px", borderBottom: "1px solid var(--border)",
-        background: "white", display: "flex", alignItems: "center", justifyContent: "space-between",
+        background: "var(--card)", display: "flex", alignItems: "center", justifyContent: "space-between",
       }}>
         <div>
           <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: "var(--ink)" }}>
@@ -164,7 +164,7 @@ export default function UsuariosView({
       {/* Tabla */}
       <div style={{ padding: "28px 32px" }}>
         <div style={{
-          background: "white", border: "1px solid var(--border)", borderRadius: 8,
+          background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8,
           overflow: "hidden", boxShadow: "0 1px 3px rgba(15,17,23,0.08)",
         }}>
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
@@ -305,7 +305,7 @@ export default function UsuariosView({
           }}
           onClick={e => { if (e.target === e.currentTarget) setModalOpen(false); }}
         >
-          <div style={{ background: "white", borderRadius: 10, width: "100%", maxWidth: 460, boxShadow: "0 12px 40px rgba(15,17,23,0.2)" }}>
+          <div style={{ background: "var(--card)", borderRadius: 10, width: "100%", maxWidth: 460, boxShadow: "0 12px 40px rgba(15,17,23,0.2)" }}>
             <div style={{ padding: "20px 24px 16px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <div style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)" }}>Nuevo usuario</div>
               <button onClick={() => setModalOpen(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(15,17,23,0.4)", padding: 4 }}>
@@ -370,7 +370,7 @@ export default function UsuariosView({
 
               <div style={{ padding: "14px 24px", borderTop: "1px solid var(--border)", display: "flex", gap: 10, justifyContent: "flex-end" }}>
                 <button type="button" onClick={() => setModalOpen(false)} style={{
-                  padding: "8px 16px", background: "white", border: "1.5px solid var(--border-strong)",
+                  padding: "8px 16px", background: "var(--card)", border: "1.5px solid var(--border-strong)",
                   borderRadius: 4, fontSize: 13, cursor: "pointer", fontFamily: "'DM Sans', sans-serif",
                 }}>Cancelar</button>
                 <button type="submit" disabled={submitting} style={{

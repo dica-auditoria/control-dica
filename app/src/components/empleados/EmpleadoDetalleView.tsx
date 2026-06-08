@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useTransition, useRef } from "react";
 import EmpleadoProfileHeader from "./EmpleadoProfileHeader";
@@ -247,7 +247,7 @@ export default function EmpleadoDetalleView({ empleado: inicial, supervisores = 
                 <div>
                   <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", marginBottom: 4 }}>Foto de perfil</div>
                   <div style={{ fontSize: 12, color: "rgba(15,17,23,0.45)", marginBottom: 8 }}>JPG, PNG o WebP · máx. 5 MB</div>
-                  <button onClick={() => fotoInputRef.current?.click()} disabled={fotoUploading} style={{ padding: "5px 14px", background: "white", border: "1.5px solid var(--border-strong)", borderRadius: 4, fontSize: 12, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", color: "var(--ink)" }}>
+                  <button onClick={() => fotoInputRef.current?.click()} disabled={fotoUploading} style={{ padding: "5px 14px", background: "var(--card)", border: "1.5px solid var(--border-strong)", borderRadius: 4, fontSize: 12, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", color: "var(--ink)" }}>
                     {fotoUploading ? "Subiendo…" : fotoUrl ? "Cambiar foto" : "Subir foto"}
                   </button>
                 </div>
@@ -365,7 +365,7 @@ export default function EmpleadoDetalleView({ empleado: inicial, supervisores = 
       {!soloLectura && editOpen && (
         <div style={{ position: "fixed", inset: 0, zIndex: 50, background: "rgba(15,17,23,0.45)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
           onClick={e => { if (e.target === e.currentTarget) setEditOpen(false); }}>
-          <div style={{ background: "white", borderRadius: 8, width: "100%", maxWidth: 620, maxHeight: "90vh", overflowY: "auto", boxShadow: "0 8px 32px rgba(15,17,23,0.18)" }}>
+          <div style={{ background: "var(--card)", borderRadius: 8, width: "100%", maxWidth: 620, maxHeight: "90vh", overflowY: "auto", boxShadow: "0 8px 32px rgba(15,17,23,0.18)" }}>
             <div style={{ padding: "18px 24px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <h2 style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>Editar empleado</h2>
               <button onClick={() => setEditOpen(false)} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "rgba(15,17,23,0.4)" }}>×</button>
@@ -469,7 +469,7 @@ function labelSeccion(id: SeccionId): string {
 
 function SectionPanel({ title, complete, warning, children }: { title: string; complete?: boolean; warning?: boolean; children: React.ReactNode }) {
   return (
-    <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden", boxShadow: "0 1px 3px rgba(15,17,23,0.05)" }}>
+    <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden", boxShadow: "0 1px 3px rgba(15,17,23,0.05)" }}>
       <div style={{ padding: "14px 20px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <span style={{ fontWeight: 600, fontSize: 14 }}>{title}</span>
         {complete && <span style={{ fontSize: 11, color: "var(--green)", fontWeight: 600 }}>✓ Completo</span>}
@@ -613,7 +613,7 @@ function DocumentosSection({
 
   return (
     <>
-      <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden", boxShadow: "0 1px 3px rgba(15,17,23,0.05)" }}>
+      <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden", boxShadow: "0 1px 3px rgba(15,17,23,0.05)" }}>
         {/* Header */}
         <div style={{ padding: "14px 20px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <span style={{ fontWeight: 600, fontSize: 14 }}>Documentos oficiales</span>
@@ -684,7 +684,7 @@ function DocumentosSection({
       {modalOpen && (
         <div style={{ position: "fixed", inset: 0, zIndex: 60, background: "rgba(15,17,23,0.45)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
           onClick={e => { if (e.target === e.currentTarget) setModalOpen(false); }}>
-          <div style={{ background: "white", borderRadius: 8, width: "100%", maxWidth: 480, boxShadow: "0 8px 32px rgba(15,17,23,0.18)", overflow: "hidden" }}>
+          <div style={{ background: "var(--card)", borderRadius: 8, width: "100%", maxWidth: 480, boxShadow: "0 8px 32px rgba(15,17,23,0.18)", overflow: "hidden" }}>
             <div style={{ padding: "16px 22px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <h2 style={{ margin: 0, fontSize: 15, fontWeight: 600 }}>Agregar documento</h2>
               <button onClick={() => setModalOpen(false)} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "rgba(15,17,23,0.4)" }}>×</button>
@@ -773,7 +773,7 @@ function ActivosEmpleadoSection({ empleadoId }: { empleadoId: string }) {
   };
 
   return (
-    <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden", boxShadow: "0 1px 3px rgba(15,17,23,0.05)" }}>
+    <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden", boxShadow: "0 1px 3px rgba(15,17,23,0.05)" }}>
       <div style={{ padding: "14px 20px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <span style={{ fontWeight: 600, fontSize: 14 }}>Activos asignados</span>
         {!cargado && <button onClick={cargar} disabled={isPending} style={btnAddDoc}>{isPending ? "Cargando…" : "Cargar activos"}</button>}
@@ -788,7 +788,7 @@ function ActivosEmpleadoSection({ empleadoId }: { empleadoId: string }) {
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {activos.map(a => (
               <div key={a.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 14px", background: "var(--surface)", borderRadius: 6, border: "1px solid var(--border)" }}>
-                <div style={{ width: 36, height: 36, borderRadius: 6, background: "white", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>
+                <div style={{ width: 36, height: 36, borderRadius: 6, background: "var(--card)", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>
                   {a.categoria_icono ?? "📦"}
                 </div>
                 <div style={{ flex: 1 }}>
@@ -877,7 +877,7 @@ function BancariosSection({ empleadoId }: { empleadoId: string }) {
 
   return (
     <>
-      <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden", boxShadow: "0 1px 3px rgba(15,17,23,0.05)" }}>
+      <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden", boxShadow: "0 1px 3px rgba(15,17,23,0.05)" }}>
         {/* Header */}
         <div style={{ padding: "14px 20px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <span style={{ fontWeight: 600, fontSize: 14, display: "flex", alignItems: "center", gap: 6 }}>
@@ -933,7 +933,7 @@ function BancariosSection({ empleadoId }: { empleadoId: string }) {
       {editOpen && (
         <div style={{ position: "fixed", inset: 0, zIndex: 60, background: "rgba(15,17,23,0.45)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
           onClick={e => { if (e.target === e.currentTarget) setEditOpen(false); }}>
-          <div style={{ background: "white", borderRadius: 8, width: "100%", maxWidth: 520, boxShadow: "0 8px 32px rgba(15,17,23,0.18)", overflow: "hidden" }}>
+          <div style={{ background: "var(--card)", borderRadius: 8, width: "100%", maxWidth: 520, boxShadow: "0 8px 32px rgba(15,17,23,0.18)", overflow: "hidden" }}>
             <div style={{ padding: "16px 22px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <h2 style={{ margin: 0, fontSize: 15, fontWeight: 600 }}>Datos bancarios</h2>
               <button onClick={() => setEditOpen(false)} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "rgba(15,17,23,0.4)" }}>×</button>
@@ -1009,10 +1009,10 @@ function BField({
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
-const iSt: React.CSSProperties = { width: "100%", padding: "9px 12px", fontSize: 13, border: "1.5px solid var(--border-strong)", borderRadius: 4, fontFamily: "'DM Sans', sans-serif", color: "var(--ink)", background: "white", outline: "none", boxSizing: "border-box" };
+const iSt: React.CSSProperties = { width: "100%", padding: "9px 12px", fontSize: 13, border: "1.5px solid var(--border-strong)", borderRadius: 4, fontFamily: "'DM Sans', sans-serif", color: "var(--ink)", background: "var(--card)", outline: "none", boxSizing: "border-box" };
 const sLbl: React.CSSProperties = { fontSize: 11, fontWeight: 600, color: "rgba(15,17,23,0.4)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 12 };
 const btnSm: React.CSSProperties = { padding: "6px 14px", background: "var(--amber)", color: "white", border: "none", borderRadius: 4, fontSize: 12, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" };
 const btnGn: React.CSSProperties = { padding: "10px 20px", background: "var(--green)", color: "white", border: "none", borderRadius: 4, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" };
-const btnOl: React.CSSProperties = { padding: "10px 18px", background: "white", color: "var(--ink)", border: "1.5px solid var(--border-strong)", borderRadius: 4, fontSize: 13, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" };
+const btnOl: React.CSSProperties = { padding: "10px 18px", background: "var(--card)", color: "var(--ink)", border: "1.5px solid var(--border-strong)", borderRadius: 4, fontSize: 13, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" };
 const btnAddDoc: React.CSSProperties = { padding: "6px 14px", background: "var(--green)", color: "white", border: "none", borderRadius: 4, fontSize: 12, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" };
 const btnLink: React.CSSProperties = { background: "none", border: "none", fontSize: 12, color: "#1677ff", cursor: "pointer", fontFamily: "'DM Sans', sans-serif", padding: "2px 4px", textDecoration: "underline" };

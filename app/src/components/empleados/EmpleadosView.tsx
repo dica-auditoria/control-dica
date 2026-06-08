@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import Link from "next/link";
@@ -58,7 +58,7 @@ export default function EmpleadosView({ initialEmpleados, initialStats, titulo, 
       <div style={{
         padding: "20px 32px",
         borderBottom: "1px solid var(--border)",
-        background: "white",
+        background: "var(--card)",
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
@@ -77,7 +77,7 @@ export default function EmpleadosView({ initialEmpleados, initialStats, titulo, 
             <button
               onClick={handleExport}
               disabled={exporting}
-              style={{ padding: "9px 16px", background: "white", border: "1.5px solid var(--border-strong)", borderRadius: 4, fontSize: 13, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", color: "var(--ink)", display: "flex", alignItems: "center", gap: 6 }}
+              style={{ padding: "9px 16px", background: "var(--card)", border: "1.5px solid var(--border-strong)", borderRadius: 4, fontSize: 13, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", color: "var(--ink)", display: "flex", alignItems: "center", gap: 6 }}
             >
               <CsvIcon />
               {exporting ? "Exportando…" : "Exportar CSV"}
@@ -107,7 +107,7 @@ export default function EmpleadosView({ initialEmpleados, initialStats, titulo, 
         <EmpleadosFiltersBar filters={filters} onChange={handleFilter} />
 
         <div style={{
-          background: "white", border: "1px solid var(--border)", borderRadius: 8,
+          background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8,
           overflow: "hidden", boxShadow: "0 1px 3px rgba(15,17,23,0.08)",
           opacity: loading ? 0.6 : 1, transition: "opacity 0.15s",
         }}>

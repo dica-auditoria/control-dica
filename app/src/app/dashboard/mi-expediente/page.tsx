@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+﻿import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { fetchMiExpedienteAction } from "@/app/actions/empleados";
 import EmpleadoDetalleView from "@/components/empleados/EmpleadoDetalleView";
@@ -20,7 +20,7 @@ export default async function MiExpedientePage() {
           Mi Expediente
         </h1>
         <div style={{
-          marginTop: 32, padding: 32, background: "white",
+          marginTop: 32, padding: 32, background: "var(--card)",
           border: "1px solid var(--border)", borderRadius: 8,
           textAlign: "center", color: "rgba(15,17,23,0.45)", fontSize: 14,
         }}>

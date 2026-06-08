@@ -5,7 +5,7 @@ export function DicaLogo({
   variant?: "white" | "color";
   fontSize?: number;
 }) {
-  const c = variant === "white" ? "#ffffff" : "#1B4F8A";
+  const c = variant === "white" ? "rgba(255,255,255,0.88)" : "#1B4F8A";
   const tagC = variant === "white" ? "rgba(255,255,255,0.38)" : "rgba(27,79,138,0.40)";
   const barW = Math.round(fontSize * 0.15);
   const dotH = barW;

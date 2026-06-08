@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import UploadZone from "./UploadZone";
@@ -40,7 +40,7 @@ export default function ArchivosView({ archivos: inicial, entidadId, rol }: Arch
         padding: "20px 32px",
         borderBottom: "1px solid var(--border)",
         display: "flex", alignItems: "center", justifyContent: "space-between",
-        background: "white",
+        background: "var(--card)",
       }}>
         <div>
           <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: "var(--ink)" }}>Archivos</div>
@@ -68,7 +68,7 @@ export default function ArchivosView({ archivos: inicial, entidadId, rol }: Arch
       {/* Tabla */}
       <div style={{ padding: "28px 32px" }}>
         <div style={{
-          background: "white",
+          background: "var(--card)",
           border: "1px solid var(--border)",
           borderRadius: 8,
           overflow: "hidden",
@@ -151,7 +151,7 @@ export default function ArchivosView({ archivos: inicial, entidadId, rol }: Arch
           onClick={e => { if (e.target === e.currentTarget) setModalOpen(false); }}
         >
           <div style={{
-            background: "white", borderRadius: 10,
+            background: "var(--card)", borderRadius: 10,
             width: "100%", maxWidth: 540,
             boxShadow: "0 12px 40px rgba(15,17,23,0.2)",
             overflow: "hidden",

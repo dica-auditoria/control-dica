@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useTransition } from "react";
 import { createClient } from "@/lib/supabase/client";
@@ -101,7 +101,7 @@ export default function ActivoDetalleModal({ activo, onClose }: Props) {
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 60, background: "rgba(15,17,23,0.5)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div style={{ background: "white", borderRadius: 8, width: "100%", maxWidth: 680, maxHeight: "92vh", display: "flex", flexDirection: "column", boxShadow: "0 8px 32px rgba(15,17,23,0.2)" }}>
+      <div style={{ background: "var(--card)", borderRadius: 8, width: "100%", maxWidth: 680, maxHeight: "92vh", display: "flex", flexDirection: "column", boxShadow: "0 8px 32px rgba(15,17,23,0.2)" }}>
         {/* Header */}
         <div style={{ padding: "16px 22px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexShrink: 0 }}>
           <div>
@@ -317,4 +317,4 @@ function TabLog({ log, cargado, isPending }: { log: ActivoLogEntry[]; cargado: b
   );
 }
 
-const btnMini: React.CSSProperties = { padding: "3px 8px", background: "white", border: "1px solid var(--border-strong)", borderRadius: 3, fontSize: 11, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", color: "rgba(15,17,23,0.65)" };
+const btnMini: React.CSSProperties = { padding: "3px 8px", background: "var(--card)", border: "1px solid var(--border-strong)", borderRadius: 3, fontSize: 11, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", color: "rgba(15,17,23,0.65)" };

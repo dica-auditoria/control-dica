@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -64,7 +64,7 @@ export default function ContratoArchivosView({
       <div style={{
         padding: "20px 32px 0",
         borderBottom: "1px solid var(--border)",
-        background: "white",
+        background: "var(--card)",
       }}>
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, paddingBottom: 14 }}>
           {/* Breadcrumb + título */}
@@ -129,7 +129,7 @@ export default function ContratoArchivosView({
       <div style={{ padding: "24px 32px" }}>
         {/* Info contrato */}
         <div style={{
-          background: "white", border: "1px solid var(--border)", borderRadius: 8,
+          background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8,
           padding: "14px 20px", marginBottom: 20,
           display: "flex", gap: 32, flexWrap: "wrap",
           boxShadow: "0 1px 3px rgba(15,17,23,0.06)",
@@ -146,7 +146,7 @@ export default function ContratoArchivosView({
         {/* Upload zone */}
         {uploadOpen && (
           <div style={{
-            background: "white", border: "1px solid var(--border)", borderRadius: 8,
+            background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8,
             padding: "20px 24px", marginBottom: 20,
             boxShadow: "0 1px 3px rgba(15,17,23,0.06)",
           }}>
@@ -164,7 +164,7 @@ export default function ContratoArchivosView({
 
         {/* Requerimientos — solo en tab cliente */}
         {tab === "cliente" && (
-          <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden", boxShadow: "0 1px 3px rgba(15,17,23,0.06)", marginBottom: 20 }}>
+          <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden", boxShadow: "0 1px 3px rgba(15,17,23,0.06)", marginBottom: 20 }}>
             <RequerimientosTab
               requerimientos={requerimientos}
               entidadId={entidadId}
@@ -175,7 +175,7 @@ export default function ContratoArchivosView({
         )}
 
         {/* Tabla archivos */}
-        <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden", boxShadow: "0 1px 3px rgba(15,17,23,0.06)" }}>
+        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden", boxShadow: "0 1px 3px rgba(15,17,23,0.06)" }}>
           <div style={{ padding: "14px 20px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 10 }}>
             <div style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)" }}>
               Archivos — {tabConfig[tab].label}

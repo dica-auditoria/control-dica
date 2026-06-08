@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+﻿import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import UploadZone from "@/components/archivos/UploadZone";
 
@@ -24,7 +24,7 @@ export default async function SubirPage() {
       <div style={{
         padding: "20px 32px",
         borderBottom: "1px solid var(--border)",
-        background: "white",
+        background: "var(--card)",
       }}>
         <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: "var(--ink)" }}>
           Subir Archivo
@@ -53,7 +53,7 @@ export default async function SubirPage() {
 
           {/* Upload card */}
           <div style={{
-            background: "white",
+            background: "var(--card)",
             border: "1px solid var(--border)",
             borderRadius: 8,
             boxShadow: "0 1px 3px rgba(15,17,23,0.08)",

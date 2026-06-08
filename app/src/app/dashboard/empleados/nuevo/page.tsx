@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import EmpleadoAltaForm from "@/components/empleados/EmpleadoAltaForm";
@@ -81,7 +81,7 @@ export default async function NuevoEmpleadoPage() {
       </div>
 
       <div style={{
-        background: "white",
+        background: "var(--card)",
         border: "1px solid var(--border)",
         borderRadius: 8,
         padding: 28,

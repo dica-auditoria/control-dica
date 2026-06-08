@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
@@ -63,7 +63,7 @@ export default function BuscarPage() {
             fontSize: 15, color: "var(--ink)",
             border: "1.5px solid var(--border-strong)", borderRadius: 8,
             outline: "none", fontFamily: "'DM Sans', sans-serif",
-            background: "white", boxSizing: "border-box",
+            background: "var(--card)", boxSizing: "border-box",
             boxShadow: "0 2px 8px rgba(15,17,23,0.06)",
           }}
           onFocus={e => (e.currentTarget.style.borderColor = "var(--accent)")}
@@ -112,7 +112,7 @@ function GrupoResultados({ titulo, items, onNavigate }: { titulo: string; items:
       <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(15,17,23,0.4)", marginBottom: 8 }}>
         {titulo} · {items.length}
       </div>
-      <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden", boxShadow: "0 1px 3px rgba(15,17,23,0.06)" }}>
+      <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden", boxShadow: "0 1px 3px rgba(15,17,23,0.06)" }}>
         {items.map((item, i) => (
           <div
             key={item.id}

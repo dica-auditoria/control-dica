@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -362,7 +362,7 @@ function PreviewModal({ archivo, isAdmin, onClose, onDeleted }: { archivo: Archi
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 1000, background: "rgba(15,17,23,0.55)", display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(4px)", padding: 24 }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div style={{ background: "white", borderRadius: 10, width: "100%", maxWidth: 960, maxHeight: "90vh", display: "flex", flexDirection: "column", boxShadow: "0 24px 64px rgba(15,17,23,0.25)", overflow: "hidden" }}>
+      <div style={{ background: "var(--card)", borderRadius: 10, width: "100%", maxWidth: 960, maxHeight: "90vh", display: "flex", flexDirection: "column", boxShadow: "0 24px 64px rgba(15,17,23,0.25)", overflow: "hidden" }}>
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 20px", borderBottom: "1px solid var(--border)", background: "var(--surface)", flexShrink: 0 }}>
           <FileTypeIcon tipo={archivo.tipo} />
@@ -384,7 +384,7 @@ function PreviewModal({ archivo, isAdmin, onClose, onDeleted }: { archivo: Archi
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, color: "rgba(15,17,23,0.4)", padding: 48 }}><SpinnerLg /><span style={{ fontSize: 13, fontFamily: "'DM Mono', monospace" }}>Cargando…</span></div>
           ) : isCsv && csvData ? (
             <div style={{ width: "100%", overflow: "auto", padding: 20 }}>
-              <table style={{ borderCollapse: "collapse", fontSize: 12, fontFamily: "'DM Mono', monospace", width: "100%", background: "white", borderRadius: 6, overflow: "hidden", boxShadow: "0 1px 4px rgba(0,0,0,0.08)" }}>
+              <table style={{ borderCollapse: "collapse", fontSize: 12, fontFamily: "'DM Mono', monospace", width: "100%", background: "var(--card)", borderRadius: 6, overflow: "hidden", boxShadow: "0 1px 4px rgba(0,0,0,0.08)" }}>
                 <thead>
                   <tr>{csvData[0]?.map((h, i) => <th key={i} style={{ padding: "8px 14px", textAlign: "left", background: "var(--surface)", borderBottom: "2px solid var(--border)", fontWeight: 700, color: "var(--ink)", whiteSpace: "nowrap" }}>{h}</th>)}</tr>
                 </thead>
@@ -462,7 +462,7 @@ function MoveModal({ archivo, folderPaths, onClose, onMoved }: { archivo: Archiv
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 1100, background: "rgba(15,17,23,0.55)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div style={{ background: "white", borderRadius: 10, width: "100%", maxWidth: 400, boxShadow: "0 24px 64px rgba(15,17,23,0.25)", overflow: "hidden" }}>
+      <div style={{ background: "var(--card)", borderRadius: 10, width: "100%", maxWidth: 400, boxShadow: "0 24px 64px rgba(15,17,23,0.25)", overflow: "hidden" }}>
         <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", background: "var(--surface)" }}>
           <div style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)" }}>Mover archivo</div>
           <div style={{ fontSize: 12, color: "rgba(15,17,23,0.45)", marginTop: 2, fontFamily: "'DM Mono', monospace" }}>{filename}</div>
@@ -618,7 +618,7 @@ export default function ArchivoExplorer({ archivos, emptyMsg, isAdmin = false, e
       {selectedIds.size > 0 && (
         <div style={{ padding: "8px 20px", background: "rgba(200,71,42,0.06)", borderBottom: "1px solid rgba(200,71,42,0.15)", display: "flex", alignItems: "center", gap: 12 }}>
           <span style={{ fontSize: 12, fontWeight: 600, color: "var(--accent)" }}>{selectedIds.size} seleccionado{selectedIds.size !== 1 ? "s" : ""}</span>
-          <button onClick={handleBulkZip} disabled={downloadingZip} style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, padding: "5px 12px", border: "1px solid var(--border-strong)", borderRadius: 4, background: "white", cursor: "pointer", color: "var(--ink)", fontFamily: "'DM Sans', sans-serif" }}>
+          <button onClick={handleBulkZip} disabled={downloadingZip} style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, padding: "5px 12px", border: "1px solid var(--border-strong)", borderRadius: 4, background: "var(--card)", cursor: "pointer", color: "var(--ink)", fontFamily: "'DM Sans', sans-serif" }}>
             <ZipIcon /> {downloadingZip ? "Preparando…" : "Descargar ZIP"}
           </button>
           {isAdmin && (
@@ -636,7 +636,7 @@ export default function ArchivoExplorer({ archivos, emptyMsg, isAdmin = false, e
         <div style={{ position: "relative", flex: 1, minWidth: 180, maxWidth: 300 }}>
           <span style={{ position: "absolute", left: 9, top: "50%", transform: "translateY(-50%)", color: "rgba(15,17,23,0.3)", pointerEvents: "none" }}><SearchIcon /></span>
           <input type="text" placeholder="Buscar…" value={search} onChange={e => setSearch(e.target.value)}
-            style={{ width: "100%", paddingLeft: 30, paddingRight: search ? 26 : 10, paddingTop: 6, paddingBottom: 6, border: "1.5px solid var(--border)", borderRadius: 6, fontSize: 13, color: "var(--ink)", outline: "none", fontFamily: "'DM Sans', sans-serif", background: "white", boxSizing: "border-box" }}
+            style={{ width: "100%", paddingLeft: 30, paddingRight: search ? 26 : 10, paddingTop: 6, paddingBottom: 6, border: "1.5px solid var(--border)", borderRadius: 6, fontSize: 13, color: "var(--ink)", outline: "none", fontFamily: "'DM Sans', sans-serif", background: "var(--card)", boxSizing: "border-box" }}
             onFocus={e => (e.currentTarget.style.borderColor = "var(--accent)")}
             onBlur={e => (e.currentTarget.style.borderColor = "var(--border)")} />
           {search && <button onClick={() => setSearch("")} style={{ position: "absolute", right: 7, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "rgba(15,17,23,0.35)", padding: 0, display: "flex" }}><XSmallIcon /></button>}
@@ -668,13 +668,13 @@ export default function ArchivoExplorer({ archivos, emptyMsg, isAdmin = false, e
           )}
           {isAdmin && (
             <button onClick={() => setNuevaCarpetaParent("")}
-              style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "6px 12px", borderRadius: 4, border: "1.5px solid var(--border-strong)", fontSize: 12, fontWeight: 500, color: "var(--ink)", background: "white", cursor: "pointer", fontFamily: "'DM Sans', sans-serif", whiteSpace: "nowrap" }}>
+              style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "6px 12px", borderRadius: 4, border: "1.5px solid var(--border-strong)", fontSize: 12, fontWeight: 500, color: "var(--ink)", background: "var(--card)", cursor: "pointer", fontFamily: "'DM Sans', sans-serif", whiteSpace: "nowrap" }}>
               <NewFolderIcon /> Nueva carpeta
             </button>
           )}
           {contratoId && (
             <button onClick={handleZipAll} disabled={downloadingZip}
-              style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 4, border: "1.5px solid var(--border-strong)", fontSize: 12, fontWeight: 500, color: "var(--ink)", background: "white", cursor: downloadingZip ? "not-allowed" : "pointer", fontFamily: "'DM Sans', sans-serif", opacity: downloadingZip ? 0.6 : 1, whiteSpace: "nowrap" }}>
+              style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 4, border: "1.5px solid var(--border-strong)", fontSize: 12, fontWeight: 500, color: "var(--ink)", background: "var(--card)", cursor: downloadingZip ? "not-allowed" : "pointer", fontFamily: "'DM Sans', sans-serif", opacity: downloadingZip ? 0.6 : 1, whiteSpace: "nowrap" }}>
               <ZipIcon /> ZIP
             </button>
           )}
@@ -756,7 +756,7 @@ function NuevaCarpetaModal({ parentPath, entidadId, contratoId, destino, onClose
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 1100, background: "rgba(15,17,23,0.55)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div style={{ background: "white", borderRadius: 10, width: "100%", maxWidth: 380, boxShadow: "0 24px 64px rgba(15,17,23,0.25)", overflow: "hidden" }}>
+      <div style={{ background: "var(--card)", borderRadius: 10, width: "100%", maxWidth: 380, boxShadow: "0 24px 64px rgba(15,17,23,0.25)", overflow: "hidden" }}>
         <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", background: "var(--surface)", display: "flex", alignItems: "center", gap: 10 }}>
           <NewFolderIcon />
           <div>

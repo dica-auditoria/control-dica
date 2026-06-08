@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useRef, useCallback, useId, useEffect } from "react";
 import { calcularSHA256, formatHash } from "@/lib/sha256";
@@ -226,7 +226,7 @@ export default function UploadZone({ entidadId, contratoId, destino = "cliente",
 
       {/* Lista de archivos */}
       {entries.length > 0 && (
-        <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden" }}>
+        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden" }}>
           {/* Header lista */}
           <div style={{
             padding: "10px 16px",
@@ -365,7 +365,7 @@ function formatBytes(bytes: number) {
 
 const btnSecondary: React.CSSProperties = {
   display: "inline-flex", alignItems: "center", gap: 7,
-  padding: "8px 16px", background: "white",
+  padding: "8px 16px", background: "var(--card)",
   border: "1.5px solid var(--border-strong)", borderRadius: 4,
   fontSize: 13, cursor: "pointer", color: "var(--ink)",
   fontFamily: "'DM Sans', sans-serif",

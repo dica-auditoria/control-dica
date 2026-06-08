@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useRef, useTransition } from "react";
 import {
@@ -42,7 +42,7 @@ const iStyle: React.CSSProperties = {
   width: "100%", padding: "9px 12px", fontSize: 13,
   border: "1.5px solid var(--border-strong)", borderRadius: 6,
   fontFamily: "'DM Sans', sans-serif", color: "var(--ink)",
-  background: "white", boxSizing: "border-box",
+  background: "var(--card)", boxSizing: "border-box",
 };
 
 // ─── Setup form (no employee record) ────────────────────────────────────────
@@ -86,7 +86,7 @@ function SetupPerfilForm({ nombreDefault, onCreado }: { nombreDefault: string; o
         </p>
       </div>
 
-      <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 8, padding: 24, display: "flex", flexDirection: "column", gap: 18 }}>
+      <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, padding: 24, display: "flex", flexDirection: "column", gap: 18 }}>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
           <F label="Nombre(s)" required>
             <input style={iStyle} value={form.nombres} onChange={e => set("nombres", e.target.value)} placeholder="Rodrigo" />
@@ -272,7 +272,7 @@ export default function EmpleadoCheckinView({
       : isEntrada ? "#1677ff" : "#f97316";
 
   return (
-    <div style={{ minHeight: "100%", background: "white", display: "flex", flexDirection: "column", fontFamily: "'DM Sans', sans-serif" }}>
+    <div style={{ minHeight: "100%", background: "var(--card)", display: "flex", flexDirection: "column", fontFamily: "'DM Sans', sans-serif" }}>
 
       {/* ── Mapa ── */}
       <div style={{ height: 260, background: "#dde1e8", position: "relative", overflow: "hidden", flexShrink: 0 }}>

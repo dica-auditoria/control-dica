@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -95,7 +95,7 @@ export default function EmpleadoAltaForm({ supervisores, ubicaciones }: Props) {
         <code style={{
           display: "block",
           padding: 12,
-          background: "white",
+          background: "var(--card)",
           borderRadius: 4,
           fontSize: 12,
           wordBreak: "break-all",

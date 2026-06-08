@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
@@ -54,7 +54,7 @@ export default function LoginPage() {
             fontFamily: "'DM Serif Display', serif",
             fontSize: 48,
             lineHeight: 1.1,
-            color: "white",
+            color: "rgba(255,255,255,0.88)",
             marginBottom: 20,
           }}>
             Gestión documental{" "}
@@ -120,7 +120,7 @@ export default function LoginPage() {
                 required
                 style={{
                   width: "100%", padding: "11px 14px",
-                  background: "white",
+                  background: "var(--card)",
                   border: "1.5px solid var(--border-strong)",
                   borderRadius: 4,
                   fontFamily: "'DM Sans', sans-serif",
@@ -144,7 +144,7 @@ export default function LoginPage() {
                 required
                 style={{
                   width: "100%", padding: "11px 14px",
-                  background: "white",
+                  background: "var(--card)",
                   border: "1.5px solid var(--border-strong)",
                   borderRadius: 4,
                   fontFamily: "'DM Sans', sans-serif",
