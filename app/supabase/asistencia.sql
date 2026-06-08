@@ -34,14 +34,26 @@ CREATE INDEX IF NOT EXISTS idx_asistencia_tipo     ON public.empleado_asistencia
 -- RLS
 ALTER TABLE public.empleado_asistencia ENABLE ROW LEVEL SECURITY;
 
-DROP POLICY IF EXISTS "admin_ver_asistencia"       ON public.empleado_asistencia;
-DROP POLICY IF EXISTS "admin_gestionar_asistencia" ON public.empleado_asistencia;
+DROP POLICY IF EXISTS "admin_ver_asistencia"        ON public.empleado_asistencia;
+DROP POLICY IF EXISTS "admin_gestionar_asistencia"  ON public.empleado_asistencia;
+DROP POLICY IF EXISTS "empleado_insertar_asistencia" ON public.empleado_asistencia;
 
 CREATE POLICY "admin_ver_asistencia" ON public.empleado_asistencia
   FOR SELECT TO authenticated
-  USING (get_user_role() IN ('admin', 'superadmin'));
+  USING (get_user_role() IN ('admin', 'superadmin', 'rrhh'));
 
 CREATE POLICY "admin_gestionar_asistencia" ON public.empleado_asistencia
   FOR ALL TO authenticated
-  USING (get_user_role() IN ('admin', 'superadmin'))
-  WITH CHECK (get_user_role() IN ('admin', 'superadmin'));
+  USING (get_user_role() IN ('admin', 'superadmin', 'rrhh'))
+  WITH CHECK (get_user_role() IN ('admin', 'superadmin', 'rrhh'));
+
+-- Employees can insert their own attendance records
+CREATE POLICY "empleado_insertar_asistencia" ON public.empleado_asistencia
+  FOR INSERT TO authenticated
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.empleados
+      WHERE id = empleado_id
+      AND email_institucional = auth.email()
+    )
+  );

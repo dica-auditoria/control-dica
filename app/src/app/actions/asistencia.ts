@@ -310,7 +310,9 @@ export async function registrarCheckinPublicoAction(input: {
     }
   }
 
-  const { error } = await db(supabase, "empleado_asistencia").insert({
+  // Use admin client to bypass RLS — validation already done above
+  const admin = createAdminClient();
+  const { error } = await (admin.from("empleado_asistencia") as any).insert({
     empleado_id: input.empleado_id, ubicacion_id: geo.ubicacionId,
     tipo: input.tipo, lat: input.lat ?? null, lng: input.lng ?? null,
     distancia_metros: geo.distancia, dentro_radio: geo.dentroRadio, ip,
