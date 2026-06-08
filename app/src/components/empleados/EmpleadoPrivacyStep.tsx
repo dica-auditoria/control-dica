@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useEmpleadoMutations } from "@/hooks/useEmpleadoMutations";
 import { VERSION_AVISO_PRIVACIDAD } from "@/lib/empleados/constants";
 
@@ -24,10 +25,23 @@ interface Props {
 }
 
 export default function EmpleadoPrivacyStep({ token, nombreCompleto, email }: Props) {
+  const router = useRouter();
   const { aceptarPrivacidad, loading, error, clearError } = useEmpleadoMutations();
   const [aceptaAviso, setAceptaAviso] = useState(false);
   const [aceptaSensibles, setAceptaSensibles] = useState(false);
   const [done, setDone] = useState(false);
+  const [countdown, setCountdown] = useState(4);
+
+  useEffect(() => {
+    if (!done) return;
+    const interval = setInterval(() => {
+      setCountdown(c => {
+        if (c <= 1) { clearInterval(interval); router.push("/login"); return 0; }
+        return c - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [done, router]);
 
   const handleContinue = async () => {
     clearError();
@@ -46,13 +60,33 @@ export default function EmpleadoPrivacyStep({ token, nombreCompleto, email }: Pr
         textAlign: "center",
         boxShadow: "0 2px 12px rgba(15,17,23,0.08)",
       }}>
-        <h2 style={{ color: "var(--green)", fontFamily: "'DM Serif Display', serif" }}>
+        <div style={{ fontSize: 40, marginBottom: 16 }}>✓</div>
+        <h2 style={{ color: "var(--green)", fontFamily: "'DM Serif Display', serif", marginBottom: 12 }}>
           Aceptación registrada
         </h2>
-        <p style={{ fontSize: 14, color: "var(--muted-2)", marginTop: 12 }}>
-          Gracias, {nombreCompleto}. Puede cerrar esta ventana. Recibirá instrucciones
-          en {email} para completar su expediente.
+        <p style={{ fontSize: 14, color: "var(--muted-2)", marginBottom: 20, lineHeight: 1.6 }}>
+          Gracias, <strong>{nombreCompleto}</strong>. Tu aviso de privacidad quedó registrado.<br />
+          Serás redirigido al inicio de sesión en unos segundos.
         </p>
+        <div style={{ fontSize: 13, color: "var(--muted)", fontFamily: "'DM Mono', monospace", marginBottom: 20 }}>
+          Redirigiendo en {countdown}…
+        </div>
+        <button
+          onClick={() => router.push("/login")}
+          style={{
+            padding: "10px 24px",
+            background: "var(--green)",
+            color: "white",
+            border: "none",
+            borderRadius: 4,
+            fontSize: 13,
+            fontWeight: 600,
+            cursor: "pointer",
+            fontFamily: "'DM Sans', sans-serif",
+          }}
+        >
+          Ir al inicio de sesión ahora
+        </button>
       </div>
     );
   }
