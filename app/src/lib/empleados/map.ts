@@ -24,6 +24,8 @@ export function mapEmpleadoDetalle(raw: Record<string, unknown>): EmpleadoDetall
     hora_entrada: (raw.hora_entrada as string) ?? null,
     hora_salida: (raw.hora_salida as string) ?? null,
     tolerancia_minutos: (raw.tolerancia_minutos as number) ?? 10,
+    fecha_inicio_proyecto: (raw.fecha_inicio_proyecto as string) ?? null,
+    fecha_fin_proyecto: (raw.fecha_fin_proyecto as string) ?? null,
     datos_personales: (raw.datos_personales as EmpleadoDetalle["datos_personales"]) ?? null,
     documentos: (raw.documentos as EmpleadoDetalle["documentos"]) ?? [],
     bitacora: (raw.bitacora as EmpleadoBitacoraEntry[]) ?? [],
