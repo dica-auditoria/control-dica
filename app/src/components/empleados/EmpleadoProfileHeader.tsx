@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import Image from "next/image";
@@ -21,7 +21,7 @@ export default function EmpleadoProfileHeader({ empleado, fotoUrl, onEditar, sol
   return (
     <>
       <Link href="/dashboard/empleados" style={{
-        fontSize: 13, color: "rgba(15,17,23,0.5)",
+        fontSize: 13, color: "var(--muted-2)",
         textDecoration: "none", display: "inline-block", marginBottom: 16,
       }}>
         ← Regresar a empleados
@@ -50,11 +50,11 @@ export default function EmpleadoProfileHeader({ empleado, fotoUrl, onEditar, sol
               </h1>
               <StatusBadge estado={empleado.estado} />
             </div>
-            <div style={{ fontSize: 13, color: "rgba(15,17,23,0.55)", marginBottom: 4 }}>
+            <div style={{ fontSize: 13, color: "var(--muted-2)", marginBottom: 4 }}>
               {empleado.puesto} · Depto. {empleado.departamento}
               {empleado.codigo_empleado && ` · ${empleado.codigo_empleado}`}
             </div>
-            <div style={{ fontSize: 12, fontFamily: "'DM Mono', monospace", color: "rgba(15,17,23,0.45)" }}>
+            <div style={{ fontSize: 12, fontFamily: "'DM Mono', monospace", color: "var(--muted)" }}>
               {empleado.email_institucional} · Ingreso: {ingreso}
             </div>
           </div>

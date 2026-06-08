@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React from "react";
 
@@ -33,7 +33,7 @@ export default function ConfirmDialog({
           <div style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)" }}>{title}</div>
         </div>
         <div style={{ padding: "16px 24px" }}>
-          <p style={{ fontSize: 13, color: "rgba(15,17,23,0.65)", margin: 0, lineHeight: 1.65 }}>{message}</p>
+          <p style={{ fontSize: 13, color: "var(--muted-2)", margin: 0, lineHeight: 1.65 }}>{message}</p>
         </div>
         <div style={{ padding: "12px 24px 18px", display: "flex", gap: 8, justifyContent: "flex-end" }}>
           <button

@@ -48,7 +48,7 @@ export default async function ClientePrivacidadPage() {
 
       <p style={{
         textAlign: "center", marginTop: 24,
-        fontSize: 11, color: "rgba(15,17,23,0.3)",
+        fontSize: 11, color: "var(--muted)",
         fontFamily: "'DM Mono', monospace",
       }}>
         Este portal es de uso exclusivo para clientes de DICA México · ISO 27001

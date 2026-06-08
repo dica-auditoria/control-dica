@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 
@@ -47,7 +47,7 @@ const ACCION_CFG: Record<string, { label: string; bg: string; color: string }> =
   USER_ROLE_UPDATE: { label: "USER_ROLE_UPDATE", bg: "#fdecea", color: "#c8472a" },
   USER_ENTITY_UPDATE: { label: "USER_ENTITY_UPDATE", bg: "#fff3e0", color: "#b5560e" },
   LOGIN:          { label: "LOGIN",          bg: "#e3f2fd", color: "#1565c0" },
-  LOGOUT:         { label: "LOGOUT",         bg: "var(--surface-2)", color: "rgba(15,17,23,0.45)" },
+  LOGOUT:         { label: "LOGOUT",         bg: "var(--surface-2)", color: "var(--muted)" },
 };
 
 function recursoLabel(item: AuditLogItem): string {
@@ -83,7 +83,7 @@ export default function AuditLogView({ entradas, total }: { entradas: AuditLogIt
           <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: "var(--ink)" }}>
             Audit Log
           </div>
-          <div style={{ fontSize: 12, color: "rgba(15,17,23,0.4)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>
+          <div style={{ fontSize: 12, color: "var(--muted)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>
             Registro inmutable — solo lectura · mostrando los últimos {total} eventos
           </div>
         </div>
@@ -129,7 +129,7 @@ export default function AuditLogView({ entradas, total }: { entradas: AuditLogIt
             borderBottom: "1px solid var(--border)",
             display: "flex", alignItems: "center", gap: 8,
             fontSize: 11, fontFamily: "'DM Mono', monospace",
-            color: "rgba(15,17,23,0.4)",
+            color: "var(--muted)",
           }}>
             <LockIcon />
             append-only · sin UPDATE · sin DELETE · ISO/IEC 27001 A.8.15
@@ -143,7 +143,7 @@ export default function AuditLogView({ entradas, total }: { entradas: AuditLogIt
                     padding: "10px 20px", textAlign: "left",
                     fontSize: 10, fontFamily: "'DM Mono', monospace",
                     letterSpacing: "0.08em", textTransform: "uppercase",
-                    color: "rgba(15,17,23,0.4)",
+                    color: "var(--muted)",
                     borderBottom: "1px solid var(--border)",
                     whiteSpace: "nowrap",
                   }}>{h}</th>
@@ -155,22 +155,22 @@ export default function AuditLogView({ entradas, total }: { entradas: AuditLogIt
                 <tr>
                   <td colSpan={6} style={{
                     padding: "40px 20px", textAlign: "center",
-                    color: "rgba(15,17,23,0.35)", fontSize: 13,
+                    color: "var(--muted)", fontSize: 13,
                     fontFamily: "'DM Mono', monospace",
                   }}>
                     Sin eventos para este filtro
                   </td>
                 </tr>
               ) : lista.map(e => {
-                const cfg = ACCION_CFG[e.accion] ?? { label: e.accion, bg: "var(--surface-2)", color: "rgba(15,17,23,0.5)" };
+                const cfg = ACCION_CFG[e.accion] ?? { label: e.accion, bg: "var(--surface-2)", color: "var(--muted-2)" };
                 return (
                   <tr key={e.id} style={{ borderBottom: "1px solid var(--border)" }}>
                     {/* Timestamp */}
                     <td style={{ padding: "11px 20px", whiteSpace: "nowrap" }}>
-                      <div style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "rgba(15,17,23,0.55)" }}>
+                      <div style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "var(--muted-2)" }}>
                         {new Date(e.created_at).toLocaleDateString("es-MX")}
                       </div>
-                      <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", color: "rgba(15,17,23,0.35)", marginTop: 1 }}>
+                      <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", color: "var(--muted)", marginTop: 1 }}>
                         {new Date(e.created_at).toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
                       </div>
                     </td>
@@ -194,7 +194,7 @@ export default function AuditLogView({ entradas, total }: { entradas: AuditLogIt
                     </td>
 
                     {/* Recurso */}
-                    <td style={{ padding: "11px 20px", fontSize: 12, color: "rgba(15,17,23,0.6)", maxWidth: 200 }}>
+                    <td style={{ padding: "11px 20px", fontSize: 12, color: "var(--muted-2)", maxWidth: 200 }}>
                       <span style={{
                         display: "block", overflow: "hidden",
                         textOverflow: "ellipsis", whiteSpace: "nowrap",
@@ -206,7 +206,7 @@ export default function AuditLogView({ entradas, total }: { entradas: AuditLogIt
                       {e.accion === "REQUEST_DELETE" && e.detalle_json?.motivo != null && (
                         <span style={{
                           display: "block", fontSize: 10,
-                          color: "rgba(15,17,23,0.35)", marginTop: 2,
+                          color: "var(--muted)", marginTop: 2,
                           overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                         }}>
                           {(() => { const m = String(e.detalle_json!.motivo); return m.slice(0, 40) + (m.length > 40 ? "…" : ""); })()}
@@ -215,13 +215,13 @@ export default function AuditLogView({ entradas, total }: { entradas: AuditLogIt
                     </td>
 
                     {/* Entidad */}
-                    <td style={{ padding: "11px 20px", fontSize: 12, color: "rgba(15,17,23,0.55)", whiteSpace: "nowrap" }}>
+                    <td style={{ padding: "11px 20px", fontSize: 12, color: "var(--muted-2)", whiteSpace: "nowrap" }}>
                       {e.entidad_nombre ?? "—"}
                     </td>
 
                     {/* IP */}
                     <td style={{ padding: "11px 20px" }}>
-                      <span style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "rgba(15,17,23,0.35)" }}>
+                      <span style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "var(--muted)" }}>
                         {maskIp(e.ip)}
                       </span>
                     </td>
@@ -237,7 +237,7 @@ export default function AuditLogView({ entradas, total }: { entradas: AuditLogIt
               padding: "10px 20px",
               borderTop: "1px solid var(--border)",
               fontSize: 11, fontFamily: "'DM Mono', monospace",
-              color: "rgba(15,17,23,0.3)", textAlign: "right",
+              color: "var(--muted)", textAlign: "right",
             }}>
               {lista.length} {lista.length === 1 ? "evento" : "eventos"}
               {filtro !== "TODAS" && ` · filtro: ${filtro}`}

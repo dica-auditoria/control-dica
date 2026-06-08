@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { DEPARTAMENTOS, ESTADOS_EMPLEADO } from "@/lib/empleados/constants";
 import type { EmpleadosFilters } from "@/hooks/useEmpleados";
@@ -27,7 +27,7 @@ export default function EmpleadosFiltersBar({ filters, onChange }: Props) {
           left: 12,
           top: "50%",
           transform: "translateY(-50%)",
-          color: "rgba(15,17,23,0.35)",
+          color: "var(--muted)",
           fontSize: 14,
         }}>
           ⌕
@@ -76,7 +76,7 @@ function FilterSelect({
 }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-      <span style={{ fontSize: 12, color: "rgba(15,17,23,0.45)", whiteSpace: "nowrap" }}>
+      <span style={{ fontSize: 12, color: "var(--muted)", whiteSpace: "nowrap" }}>
         {label}:
       </span>
       <select

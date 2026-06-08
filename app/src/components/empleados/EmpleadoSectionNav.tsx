@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 export type SeccionId =
   | "datos_personales"
@@ -127,7 +127,7 @@ function Indicador({ estado }: { estado?: SeccionEstado }) {
     <span style={{
       fontSize: 10,
       fontFamily: "'DM Mono', monospace",
-      color: "rgba(15,17,23,0.4)",
+      color: "var(--muted)",
     }}>
       {estado.porcentaje}%
     </span>

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect, useRef, useTransition } from "react";
 import {
@@ -81,7 +81,7 @@ function SetupPerfilForm({ nombreDefault, onCreado }: { nombreDefault: string; o
         <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: "var(--ink)", marginBottom: 6 }}>
           Configura tu perfil de empleado
         </div>
-        <p style={{ fontSize: 13, color: "rgba(15,17,23,0.5)", margin: 0, lineHeight: 1.6 }}>
+        <p style={{ fontSize: 13, color: "var(--muted-2)", margin: 0, lineHeight: 1.6 }}>
           No tienes un registro de empleado asociado a tu cuenta. Completa los datos básicos para activar el check-in y aparecer en el directorio de personal.
         </p>
       </div>
@@ -138,7 +138,7 @@ function SetupPerfilForm({ nombreDefault, onCreado }: { nombreDefault: string; o
 function F({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
   return (
     <div>
-      <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "rgba(15,17,23,0.5)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6 }}>
+      <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "var(--muted-2)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6 }}>
         {label}{required && <span style={{ color: "var(--accent)", marginLeft: 2 }}>*</span>}
       </label>
       {children}
@@ -238,7 +238,7 @@ export default function EmpleadoCheckinView({
         <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, color: "var(--ink)" }}>
           Check-in no disponible
         </div>
-        <p style={{ fontSize: 13, color: "rgba(15,17,23,0.5)", maxWidth: 340, margin: 0, lineHeight: 1.6 }}>
+        <p style={{ fontSize: 13, color: "var(--muted-2)", maxWidth: 340, margin: 0, lineHeight: 1.6 }}>
           El módulo de check-in no aplica para el área de <strong>{empleado.departamento}</strong>.
           El registro de asistencia se gestiona de forma interna.
         </p>
@@ -280,7 +280,7 @@ export default function EmpleadoCheckinView({
           ? <div ref={mapRef} style={{ width: "100%", height: "100%" }} />
           : (
             <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 10 }}>
-              {geoState === "loading" && <><div style={{ fontSize: 36 }}>📡</div><div style={{ fontSize: 13, color: "rgba(15,17,23,0.45)" }}>Obteniendo ubicación…</div></>}
+              {geoState === "loading" && <><div style={{ fontSize: 36 }}>📡</div><div style={{ fontSize: 13, color: "var(--muted)" }}>Obteniendo ubicación…</div></>}
               {geoState === "error" && <><div style={{ fontSize: 13, color: "#dc2626", marginBottom: 8 }}>No se pudo obtener GPS</div><button onClick={solicitarGPS} style={{ padding: "8px 18px", background: "#1677ff", color: "white", border: "none", borderRadius: 6, fontSize: 13, cursor: "pointer" }}>Reintentar</button></>}
             </div>
           )
@@ -292,7 +292,7 @@ export default function EmpleadoCheckinView({
         )}
         <div style={{ position: "absolute", bottom: 10, left: 10, padding: "6px 12px", borderRadius: 8, background: "rgba(255,255,255,0.88)", backdropFilter: "blur(4px)", fontSize: 12, color: "var(--ink)", fontWeight: 500 }}>
           {empleado.nombre}
-          <span style={{ color: "rgba(15,17,23,0.4)", fontFamily: "'DM Mono', monospace", fontSize: 10, marginLeft: 6 }}>{rol.toUpperCase()}</span>
+          <span style={{ color: "var(--muted)", fontFamily: "'DM Mono', monospace", fontSize: 10, marginLeft: 6 }}>{rol.toUpperCase()}</span>
         </div>
       </div>
 
@@ -303,7 +303,7 @@ export default function EmpleadoCheckinView({
         <div style={{ fontSize: 64, fontWeight: 700, color: "#0f1117", fontFamily: "'DM Mono', monospace", lineHeight: 1, letterSpacing: "-0.02em" }}>
           {now.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" })}
         </div>
-        <div style={{ fontSize: 14, color: "rgba(15,17,23,0.4)", marginTop: 8, marginBottom: 36 }}>
+        <div style={{ fontSize: 14, color: "var(--muted)", marginTop: 8, marginBottom: 36 }}>
           {now.toLocaleDateString("es-MX", { day: "numeric", month: "long", year: "numeric" })}
         </div>
 
@@ -356,8 +356,8 @@ function SummaryItem({ label, value }: { label: string; value: string }) {
   return (
     <div style={{ textAlign: "center" }}>
       <ClockIcon />
-      <div style={{ fontSize: 14, fontWeight: 600, color: "rgba(15,17,23,0.6)", fontFamily: "'DM Mono', monospace", marginTop: 6, marginBottom: 3 }}>{value}</div>
-      <div style={{ fontSize: 11, color: "rgba(15,17,23,0.38)" }}>{label}</div>
+      <div style={{ fontSize: 14, fontWeight: 600, color: "var(--muted-2)", fontFamily: "'DM Mono', monospace", marginTop: 6, marginBottom: 3 }}>{value}</div>
+      <div style={{ fontSize: 11, color: "var(--muted)" }}>{label}</div>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -85,7 +85,7 @@ export default function EntidadesView({ entidades: inicial, rol }: EntidadesView
           <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: "var(--ink)" }}>
             Clientes
           </div>
-          <div style={{ fontSize: 12, color: "rgba(15,17,23,0.4)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>
+          <div style={{ fontSize: 12, color: "var(--muted)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>
             {activas} activa{activas !== 1 ? "s" : ""} · {entidades.length} entidad{entidades.length !== 1 ? "es" : ""}
           </div>
         </div>
@@ -151,7 +151,7 @@ export default function EntidadesView({ entidades: inicial, rol }: EntidadesView
                 <tr>
                   <td colSpan={isSuperadmin ? 7 : 6} style={{
                     padding: "40px 20px", textAlign: "center",
-                    color: "rgba(15,17,23,0.35)", fontSize: 13,
+                    color: "var(--muted)", fontSize: 13,
                     fontFamily: "'DM Mono', monospace",
                   }}>
                     No hay entidades registradas
@@ -161,7 +161,7 @@ export default function EntidadesView({ entidades: inicial, rol }: EntidadesView
                 <tr key={e.id} style={{ borderBottom: "1px solid var(--border)" }}>
                   <td style={{ padding: "14px 20px" }}>
                     <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>{e.nombre}</div>
-                    <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", color: "rgba(15,17,23,0.35)", marginTop: 2 }}>
+                    <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", color: "var(--muted)", marginTop: 2 }}>
                       {e.id.slice(0, 8)}…
                     </div>
                   </td>
@@ -187,7 +187,7 @@ export default function EntidadesView({ entidades: inicial, rol }: EntidadesView
                         {e.pendientes} pendiente{e.pendientes !== 1 ? "s" : ""}
                       </span>
                     ) : (
-                      <span style={{ fontSize: 12, color: "rgba(15,17,23,0.3)", fontFamily: "'DM Mono', monospace" }}>—</span>
+                      <span style={{ fontSize: 12, color: "var(--muted)", fontFamily: "'DM Mono', monospace" }}>—</span>
                     )}
                   </td>
                   <td style={{ padding: "14px 20px" }}>
@@ -202,7 +202,7 @@ export default function EntidadesView({ entidades: inicial, rol }: EntidadesView
                       {e.activo ? "Activa" : "Inactiva"}
                     </span>
                   </td>
-                  <td style={{ padding: "14px 20px", fontSize: 12, fontFamily: "'DM Mono', monospace", color: "rgba(15,17,23,0.4)" }}>
+                  <td style={{ padding: "14px 20px", fontSize: 12, fontFamily: "'DM Mono', monospace", color: "var(--muted)" }}>
                     {new Date(e.created_at).toLocaleDateString("es-MX")}
                   </td>
                   {isSuperadmin && (
@@ -257,7 +257,7 @@ export default function EntidadesView({ entidades: inicial, rol }: EntidadesView
               <div style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)" }}>
                 Nueva entidad
               </div>
-              <button onClick={() => setModalOpen(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(15,17,23,0.4)", padding: 4 }}>
+              <button onClick={() => setModalOpen(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", padding: 4 }}>
                 <XIcon />
               </button>
             </div>
@@ -267,7 +267,7 @@ export default function EntidadesView({ entidades: inicial, rol }: EntidadesView
                 <label style={{
                   display: "block", fontSize: 11, fontWeight: 600,
                   letterSpacing: "0.08em", textTransform: "uppercase",
-                  color: "rgba(15,17,23,0.5)", marginBottom: 8,
+                  color: "var(--muted-2)", marginBottom: 8,
                   fontFamily: "'DM Mono', monospace",
                 }}>
                   Nombre de la entidad
@@ -338,7 +338,7 @@ function StatCard({ label, value, accent }: { label: string; value: number; acce
       padding: 20, boxShadow: "0 1px 3px rgba(15,17,23,0.08)",
       borderTop: `3px solid ${accent}`,
     }}>
-      <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(15,17,23,0.4)", marginBottom: 8 }}>
+      <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--muted)", marginBottom: 8 }}>
         {label}
       </div>
       <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 36, color: "var(--ink)", lineHeight: 1 }}>
@@ -354,7 +354,7 @@ function Th({ children }: { children?: React.ReactNode }) {
       padding: "10px 20px", textAlign: "left",
       fontSize: 10, fontFamily: "'DM Mono', monospace",
       letterSpacing: "0.08em", textTransform: "uppercase",
-      color: "rgba(15,17,23,0.4)", borderBottom: "1px solid var(--border)",
+      color: "var(--muted)", borderBottom: "1px solid var(--border)",
     }}>
       {children}
     </th>

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -130,7 +130,7 @@ export default function UsuariosView({
           <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: "var(--ink)" }}>
             Acceso al sistema
           </div>
-          <div style={{ fontSize: 12, color: "rgba(15,17,23,0.4)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>
+          <div style={{ fontSize: 12, color: "var(--muted)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>
             {cuentasAcceso} cuenta{cuentasAcceso !== 1 ? "s" : ""} interna{cuentasAcceso !== 1 ? "s" : ""} · {clientes} cliente{clientes !== 1 ? "s" : ""}
           </div>
         </div>
@@ -182,12 +182,12 @@ export default function UsuariosView({
                 <tr>
                   <td colSpan={5} style={{
                     padding: "40px 20px", textAlign: "center",
-                    color: "rgba(15,17,23,0.35)", fontSize: 13,
+                    color: "var(--muted)", fontSize: 13,
                     fontFamily: "'DM Mono', monospace",
                   }}>Sin usuarios en esta categoría</td>
                 </tr>
               ) : lista.map(u => {
-                const rolCfg = ROL_COLORS[u.rol] ?? { bg: "var(--surface-2)", color: "rgba(15,17,23,0.5)" };
+                const rolCfg = ROL_COLORS[u.rol] ?? { bg: "var(--surface-2)", color: "var(--muted-2)" };
                 const isBusy = !!processing[u.id];
 
                 return (
@@ -208,7 +208,7 @@ export default function UsuariosView({
                     </td>
 
                     {/* Email */}
-                    <td style={{ padding: "12px 20px", fontSize: 12, fontFamily: "'DM Mono', monospace", color: "rgba(15,17,23,0.55)" }}>
+                    <td style={{ padding: "12px 20px", fontSize: 12, fontFamily: "'DM Mono', monospace", color: "var(--muted-2)" }}>
                       {u.email}
                     </td>
 
@@ -284,7 +284,7 @@ export default function UsuariosView({
                     </td>
 
                     {/* Creado */}
-                    <td style={{ padding: "12px 20px", fontSize: 12, fontFamily: "'DM Mono', monospace", color: "rgba(15,17,23,0.4)" }}>
+                    <td style={{ padding: "12px 20px", fontSize: 12, fontFamily: "'DM Mono', monospace", color: "var(--muted)" }}>
                       {new Date(u.created_at).toLocaleDateString("es-MX")}
                     </td>
                   </tr>
@@ -308,7 +308,7 @@ export default function UsuariosView({
           <div style={{ background: "var(--card)", borderRadius: 10, width: "100%", maxWidth: 460, boxShadow: "0 12px 40px rgba(15,17,23,0.2)" }}>
             <div style={{ padding: "20px 24px 16px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <div style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)" }}>Nuevo usuario</div>
-              <button onClick={() => setModalOpen(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(15,17,23,0.4)", padding: 4 }}>
+              <button onClick={() => setModalOpen(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", padding: 4 }}>
                 <XIcon />
               </button>
             </div>
@@ -402,7 +402,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       <label style={{
         display: "block", fontSize: 11, fontWeight: 600,
         letterSpacing: "0.08em", textTransform: "uppercase",
-        color: "rgba(15,17,23,0.5)", marginBottom: 7,
+        color: "var(--muted-2)", marginBottom: 7,
         fontFamily: "'DM Mono', monospace",
       }}>{label}</label>
       {children}
@@ -415,7 +415,7 @@ function Th({ children }: { children: React.ReactNode }) {
     <th style={{
       padding: "10px 20px", textAlign: "left", fontSize: 10,
       fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em",
-      textTransform: "uppercase", color: "rgba(15,17,23,0.4)",
+      textTransform: "uppercase", color: "var(--muted)",
       borderBottom: "1px solid var(--border)",
     }}>{children}</th>
   );

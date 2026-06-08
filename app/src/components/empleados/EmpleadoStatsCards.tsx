@@ -30,7 +30,7 @@ export default function EmpleadoStatsCards({ stats }: { stats: EmpleadosStats })
         value={stats.capacitacionesPendientes}
         meta="Asignadas"
         accent="#1565c0"
-        bg="#e3f2fd"
+        bg="var(--tint-blue2)"
       />
     </div>
   );

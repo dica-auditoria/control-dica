@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect, useTransition } from "react";
 import { createClient } from "@/lib/supabase/client";
@@ -110,11 +110,11 @@ export default function ActivoDetalleModal({ activo, onClose }: Props) {
               <h2 style={{ margin: 0, fontSize: 16, fontWeight: 600, color: "var(--ink)" }}>{activo.nombre}</h2>
               {activo.numero_activo && <span style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "var(--green)", fontWeight: 700 }}>{activo.numero_activo}</span>}
             </div>
-            <div style={{ fontSize: 12, color: "rgba(15,17,23,0.45)", marginTop: 3 }}>
+            <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 3 }}>
               {[activo.categoria_nombre, activo.marca, activo.modelo].filter(Boolean).join(" · ")}
             </div>
           </div>
-          <button onClick={onClose} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "rgba(15,17,23,0.4)", flexShrink: 0 }}>×</button>
+          <button onClick={onClose} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "var(--muted)", flexShrink: 0 }}>×</button>
         </div>
 
         {/* Tabs */}
@@ -200,7 +200,7 @@ function TabDatos({ activo }: { activo: InventarioActivo }) {
 function DR({ label, value, mono, icon }: { label: string; value: string | null | undefined; mono?: boolean; icon?: string }) {
   return (
     <div>
-      <div style={{ fontSize: 10, color: "rgba(15,17,23,0.4)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 5 }}>{label}</div>
+      <div style={{ fontSize: 10, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 5 }}>{label}</div>
       <div style={{ fontSize: 13, color: value ? "var(--ink)" : "rgba(15,17,23,0.25)", fontFamily: mono ? "'DM Mono', monospace" : undefined }}>
         {icon && <span style={{ marginRight: 4 }}>{icon}</span>}
         {value ?? "—"}
@@ -229,7 +229,7 @@ function TabArchivos({ fotos, docs, uploading, uploadError, onUpload, onEliminar
           <UploadBtn tipo="foto" uploading={uploading} onUpload={onUpload} accept="image/jpeg,image/png,image/webp" label="+ Agregar foto" />
         </div>
         {fotos.length === 0 ? (
-          <div style={{ padding: "20px", textAlign: "center", background: "var(--surface)", borderRadius: 6, fontSize: 13, color: "rgba(15,17,23,0.35)" }}>Sin fotos</div>
+          <div style={{ padding: "20px", textAlign: "center", background: "var(--surface)", borderRadius: 6, fontSize: 13, color: "var(--muted)" }}>Sin fotos</div>
         ) : (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px,1fr))", gap: 10 }}>
             {fotos.map(f => (
@@ -239,7 +239,7 @@ function TabArchivos({ fotos, docs, uploading, uploadError, onUpload, onEliminar
                   <button onClick={() => onDescargar(f)} style={btnMini}>Ver</button>
                   <button onClick={() => onEliminar(f)} style={{ ...btnMini, color: "var(--accent)" }}>✕</button>
                 </div>
-                <div style={{ padding: "0 8px 6px", fontSize: 10, color: "rgba(15,17,23,0.4)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{f.nombre}</div>
+                <div style={{ padding: "0 8px 6px", fontSize: 10, color: "var(--muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{f.nombre}</div>
               </div>
             ))}
           </div>
@@ -253,7 +253,7 @@ function TabArchivos({ fotos, docs, uploading, uploadError, onUpload, onEliminar
           <UploadBtn tipo="documento" uploading={uploading} onUpload={onUpload} accept=".pdf,image/*" label="+ Agregar doc" />
         </div>
         {docs.length === 0 ? (
-          <div style={{ padding: "20px", textAlign: "center", background: "var(--surface)", borderRadius: 6, fontSize: 13, color: "rgba(15,17,23,0.35)" }}>Sin documentos</div>
+          <div style={{ padding: "20px", textAlign: "center", background: "var(--surface)", borderRadius: 6, fontSize: 13, color: "var(--muted)" }}>Sin documentos</div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {docs.map(d => (
@@ -290,13 +290,13 @@ function UploadBtn({ tipo, uploading, onUpload, accept, label }: {
 // ── Tab: Log ──────────────────────────────────────────────────────────────────
 
 function TabLog({ log, cargado, isPending }: { log: ActivoLogEntry[]; cargado: boolean; isPending: boolean }) {
-  if (!cargado || isPending) return <div style={{ padding: "32px 0", textAlign: "center", color: "rgba(15,17,23,0.35)", fontSize: 13 }}>Cargando historial…</div>;
-  if (!log.length) return <div style={{ padding: "32px 0", textAlign: "center", color: "rgba(15,17,23,0.35)", fontSize: 13 }}>Sin eventos registrados</div>;
+  if (!cargado || isPending) return <div style={{ padding: "32px 0", textAlign: "center", color: "var(--muted)", fontSize: 13 }}>Cargando historial…</div>;
+  if (!log.length) return <div style={{ padding: "32px 0", textAlign: "center", color: "var(--muted)", fontSize: 13 }}>Sin eventos registrados</div>;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
       {log.map((entry, i) => {
-        const meta = LOG_LABELS[entry.accion] ?? { icon: "•", color: "rgba(15,17,23,0.4)" };
+        const meta = LOG_LABELS[entry.accion] ?? { icon: "•", color: "var(--muted)" };
         const fecha = new Date(entry.created_at).toLocaleString("es-MX", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
         return (
           <div key={entry.id} style={{ display: "flex", gap: 14, paddingBottom: i < log.length - 1 ? 18 : 0 }}>
@@ -306,7 +306,7 @@ function TabLog({ log, cargado, isPending }: { log: ActivoLogEntry[]; cargado: b
             </div>
             <div style={{ flex: 1, paddingTop: 4 }}>
               <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>{entry.accion.replace(/_/g, " ")}</div>
-              <div style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "rgba(15,17,23,0.4)", marginTop: 2 }}>
+              <div style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "var(--muted)", marginTop: 2 }}>
                 {entry.usuario_nombre ? `${entry.usuario_nombre} · ` : ""}{fecha}
               </div>
             </div>
@@ -317,4 +317,4 @@ function TabLog({ log, cargado, isPending }: { log: ActivoLogEntry[]; cargado: b
   );
 }
 
-const btnMini: React.CSSProperties = { padding: "3px 8px", background: "var(--card)", border: "1px solid var(--border-strong)", borderRadius: 3, fontSize: 11, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", color: "rgba(15,17,23,0.65)" };
+const btnMini: React.CSSProperties = { padding: "3px 8px", background: "var(--card)", border: "1px solid var(--border-strong)", borderRadius: 3, fontSize: 11, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", color: "var(--muted-2)" };

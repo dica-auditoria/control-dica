@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
@@ -76,7 +76,7 @@ export default function ClientePrivacidadStep({ nombre, email }: Props) {
         <h2 style={{ color: "var(--green)", fontFamily: "'DM Serif Display', serif", fontSize: 22, marginBottom: 8 }}>
           Aceptación registrada
         </h2>
-        <p style={{ fontSize: 14, color: "rgba(15,17,23,0.55)" }}>
+        <p style={{ fontSize: 14, color: "var(--muted-2)" }}>
           Gracias, {nombre}. Redirigiendo a tu portal…
         </p>
       </div>
@@ -93,7 +93,7 @@ export default function ClientePrivacidadStep({ nombre, email }: Props) {
       <div style={{ marginBottom: 28, paddingBottom: 20, borderBottom: "1px solid var(--border)" }}>
         <div style={{
           fontSize: 10, fontFamily: "'DM Mono', monospace", letterSpacing: "0.12em",
-          textTransform: "uppercase", color: "rgba(15,17,23,0.35)", marginBottom: 8,
+          textTransform: "uppercase", color: "var(--muted)", marginBottom: 8,
         }}>
           Control DICA México · Aviso de privacidad
         </div>
@@ -103,7 +103,7 @@ export default function ClientePrivacidadStep({ nombre, email }: Props) {
         }}>
           Aviso de Privacidad
         </h1>
-        <p style={{ fontSize: 13, color: "rgba(15,17,23,0.5)", margin: 0 }}>
+        <p style={{ fontSize: 13, color: "var(--muted-2)", margin: 0 }}>
           {nombre} · {email}
         </p>
       </div>
@@ -142,7 +142,7 @@ export default function ClientePrivacidadStep({ nombre, email }: Props) {
       {/* Meta info */}
       <p style={{
         fontSize: 11, fontFamily: "'DM Mono', monospace",
-        color: "rgba(15,17,23,0.35)", marginBottom: 24,
+        color: "var(--muted)", marginBottom: 24,
       }}>
         Versión del aviso: {VERSION_AVISO_CLIENTE} · Su aceptación quedará registrada con fecha, hora e IP.
       </p>
@@ -159,7 +159,7 @@ export default function ClientePrivacidadStep({ nombre, email }: Props) {
 
       {/* Acción */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <p style={{ fontSize: 12, color: "rgba(15,17,23,0.4)", margin: 0 }}>
+        <p style={{ fontSize: 12, color: "var(--muted)", margin: 0 }}>
           Al continuar, accederás al portal de documentos.
         </p>
         <button

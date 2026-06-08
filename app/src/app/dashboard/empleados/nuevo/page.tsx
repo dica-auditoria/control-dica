@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import EmpleadoAltaForm from "@/components/empleados/EmpleadoAltaForm";
@@ -48,7 +48,7 @@ export default async function NuevoEmpleadoPage() {
     <div style={{ padding: "28px 32px", maxWidth: 900 }}>
       <Link href="/dashboard/empleados" style={{
         fontSize: 13,
-        color: "rgba(15,17,23,0.5)",
+        color: "var(--muted-2)",
         textDecoration: "none",
         display: "inline-block",
         marginBottom: 16,
@@ -75,7 +75,7 @@ export default async function NuevoEmpleadoPage() {
         }}>
           Alta de nuevo empleado
         </h1>
-        <p style={{ fontSize: 13, color: "rgba(15,17,23,0.5)", marginTop: 8 }}>
+        <p style={{ fontSize: 13, color: "var(--muted-2)", marginTop: 8 }}>
           Captura solo los datos esenciales. El empleado completará el resto desde su cuenta.
         </p>
       </div>

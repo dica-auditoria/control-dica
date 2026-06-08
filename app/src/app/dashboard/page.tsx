@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import type { ArchivoEstado, UserRole } from "@/types/database";
 import ClienteArchivosTable, { type ClienteArchivo } from "@/components/archivos/ClienteArchivosTable";
@@ -48,7 +48,7 @@ export default async function DashboardPage() {
       <div className="page-pad">
         <div style={{ marginBottom: 28 }}>
           <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: "var(--ink)" }}>Dashboard</h1>
-          <p style={{ fontSize: 12, color: "rgba(15,17,23,0.4)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>
+          <p style={{ fontSize: 12, color: "var(--muted)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>
             Resumen general del sistema
           </p>
         </div>
@@ -56,27 +56,27 @@ export default async function DashboardPage() {
         {/* Stats */}
         <div className="grid-resp-4" style={{ marginBottom: 28 }}>
           <StatCard label="Total archivos" value={totalArchivos ?? 0} meta="En custodia activa"
-            accent="#c8472a" tint="#fdecea" icon={<IconFiles />} />
+            accent="var(--accent)" tint="var(--tint-red)" icon={<IconFiles />} />
           <StatCard label="Entidades" value={totalEntidades ?? 0} meta="Clientes activos"
-            accent="#1B4F8A" tint="#dce8f5" icon={<IconBuilding />} />
+            accent="var(--green)" tint="var(--tint-blue)" icon={<IconBuilding />} />
           <StatCard label="Solicitudes" value={totalSolicitudes ?? 0} meta="Pendientes de revisión"
-            accent="#b5560e" tint="#fff3e0" icon={<IconAlert />} />
+            accent="var(--amber)" tint="var(--tint-amber)" icon={<IconAlert />} />
           <StatCard label="Integridad" value={`${integridadPct}%`} meta="SHA-256 verificado"
-            accent="#2d7a3a" tint="#d8f3dc" icon={<IconShieldCheck />} />
+            accent="#2d7a3a" tint="var(--tint-green)" icon={<IconShieldCheck />} />
         </div>
 
         {/* Tabla archivos recientes */}
         <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden", boxShadow: "0 1px 3px rgba(15,17,23,0.08)" }}>
           <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)" }}>
             <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>Archivos recientes</div>
-            <div style={{ fontSize: 11, color: "rgba(15,17,23,0.4)", fontFamily: "'DM Mono', monospace", marginTop: 1 }}>Últimas cargas al sistema</div>
+            <div style={{ fontSize: 11, color: "var(--muted)", fontFamily: "'DM Mono', monospace", marginTop: 1 }}>Últimas cargas al sistema</div>
           </div>
           <div className="table-scroll">
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr style={{ background: "var(--surface)" }}>
                 {["Archivo", "Entidad", "Fecha", "Estado"].map(h => (
-                  <th key={h} style={{ padding: "10px 20px", textAlign: "left", fontSize: 10, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(15,17,23,0.4)", borderBottom: "1px solid var(--border)" }}>{h}</th>
+                  <th key={h} style={{ padding: "10px 20px", textAlign: "left", fontSize: 10, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--muted)", borderBottom: "1px solid var(--border)" }}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -89,10 +89,10 @@ export default async function DashboardPage() {
                       {f.nombre}
                     </div>
                   </td>
-                  <td style={{ padding: "12px 20px", borderBottom: "1px solid var(--border)", fontSize: 12, color: "rgba(15,17,23,0.55)" }}>
+                  <td style={{ padding: "12px 20px", borderBottom: "1px solid var(--border)", fontSize: 12, color: "var(--muted-2)" }}>
                     {(f.entidades as { nombre: string } | null)?.nombre ?? "—"}
                   </td>
-                  <td style={{ padding: "12px 20px", borderBottom: "1px solid var(--border)", fontSize: 12, fontFamily: "'DM Mono', monospace", color: "rgba(15,17,23,0.45)" }}>
+                  <td style={{ padding: "12px 20px", borderBottom: "1px solid var(--border)", fontSize: 12, fontFamily: "'DM Mono', monospace", color: "var(--muted)" }}>
                     {new Date(f.created_at).toLocaleDateString("es-MX")}
                   </td>
                   <td style={{ padding: "12px 20px", borderBottom: "1px solid var(--border)" }}>
@@ -118,7 +118,7 @@ export default async function DashboardPage() {
           <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: "var(--ink)" }}>
             Bienvenido{emp ? `, ${(emp as Record<string, unknown>).nombres as string}` : ""}
           </h1>
-          <p style={{ fontSize: 12, color: "rgba(15,17,23,0.4)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>
+          <p style={{ fontSize: 12, color: "var(--muted)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>
             Portal del empleado — Control DICA
           </p>
         </div>
@@ -130,19 +130,19 @@ export default async function DashboardPage() {
                 label="Progreso de perfil"
                 value={`${(emp as Record<string, unknown>).progreso_perfil as number}%`}
                 meta="Completitud de tu expediente"
-                accent="#1B4F8A" tint="#dce8f5" icon={<IconChart />}
+                accent="var(--green)" tint="var(--tint-blue)" icon={<IconChart />}
               />
               <StatCard
                 label="Departamento"
                 value={(emp as Record<string, unknown>).departamento as string}
                 meta={(emp as Record<string, unknown>).puesto as string}
-                accent="#b89a5c" tint="#fff8ec" icon={<IconBriefcase />}
+                accent="#b89a5c" tint="var(--tint-gold)" icon={<IconBriefcase />}
               />
               <StatCard
                 label="Estado"
                 value={(emp as Record<string, unknown>).estado === "activo" ? "Activo" : "Pendiente"}
                 meta={`Código: ${(emp as Record<string, unknown>).codigo_empleado ?? "—"}`}
-                accent="#2d7a3a" tint="#d8f3dc" icon={<IconUser />}
+                accent="#2d7a3a" tint="var(--tint-green)" icon={<IconUser />}
               />
             </>
           )}
@@ -195,7 +195,7 @@ export default async function DashboardPage() {
     <div className="page-pad">
       <div style={{ marginBottom: 24 }}>
         <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: "var(--ink)" }}>Mi Portal</h1>
-        <p style={{ fontSize: 12, color: "rgba(15,17,23,0.4)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>
+        <p style={{ fontSize: 12, color: "var(--muted)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>
           Documentos y requerimientos de tu expediente
         </p>
       </div>
@@ -220,7 +220,7 @@ function StatCard({ label, value, meta, accent, tint, icon }: {
   return (
     <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, padding: 20, boxShadow: "0 1px 3px rgba(15,17,23,0.06)" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14 }}>
-        <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(15,17,23,0.4)" }}>{label}</div>
+        <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--muted)" }}>{label}</div>
         <div style={{
           width: 36, height: 36, background: tint, borderRadius: 8,
           display: "flex", alignItems: "center", justifyContent: "center",
@@ -228,7 +228,7 @@ function StatCard({ label, value, meta, accent, tint, icon }: {
         }}>{icon}</div>
       </div>
       <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, color: "var(--ink)", lineHeight: 1, marginBottom: 6 }}>{value}</div>
-      <div style={{ fontSize: 12, color: "rgba(15,17,23,0.4)" }}>{meta}</div>
+      <div style={{ fontSize: 12, color: "var(--muted)" }}>{meta}</div>
     </div>
   );
 }
@@ -243,7 +243,7 @@ function AccesoRapido({ href, titulo, desc, color }: { href: string; titulo: str
       transition: "box-shadow 0.15s",
     }}>
       <div style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", marginBottom: 4 }}>{titulo}</div>
-      <div style={{ fontSize: 12, color: "rgba(15,17,23,0.45)" }}>{desc}</div>
+      <div style={{ fontSize: 12, color: "var(--muted)" }}>{desc}</div>
     </Link>
   );
 }
@@ -254,7 +254,7 @@ function ExtBadge({ tipo }: { tipo: string }) {
     xlsx: { bg: "#e8f5e9", color: "#2e7d32" },
     zip: { bg: "#e8eaf6", color: "#3949ab" },
   };
-  const style = colors[tipo.toLowerCase()] ?? { bg: "var(--surface-2)", color: "rgba(15,17,23,0.5)" };
+  const style = colors[tipo.toLowerCase()] ?? { bg: "var(--surface-2)", color: "var(--muted-2)" };
   return (
     <span style={{ ...style, fontFamily: "'DM Mono', monospace", fontSize: 9, padding: "2px 5px", borderRadius: 3, textTransform: "uppercase", letterSpacing: "0.06em", fontWeight: 600 }}>
       {tipo}

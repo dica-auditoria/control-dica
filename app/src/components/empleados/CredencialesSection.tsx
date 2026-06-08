@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect } from "react";
 import {
@@ -16,7 +16,7 @@ function fmtDate(iso: string | null) {
 function Row({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
     <div>
-      <div style={{ fontSize: 11, color: "rgba(15,17,23,0.4)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>{label}</div>
+      <div style={{ fontSize: 11, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>{label}</div>
       <div style={{ fontSize: 14, color: "var(--ink)", fontFamily: mono ? "'DM Mono', monospace" : undefined }}>{value}</div>
     </div>
   );
@@ -77,7 +77,7 @@ export default function CredencialesSection({ empleadoId }: { empleadoId: string
     return (
       <div style={cardStyle}>
         <div style={headerStyle}>Credenciales de acceso</div>
-        <div style={{ padding: 20, color: "rgba(15,17,23,0.35)", fontSize: 13 }}>Cargando…</div>
+        <div style={{ padding: 20, color: "var(--muted)", fontSize: 13 }}>Cargando…</div>
       </div>
     );
   }
@@ -86,7 +86,7 @@ export default function CredencialesSection({ empleadoId }: { empleadoId: string
     return (
       <div style={cardStyle}>
         <div style={headerStyle}>Credenciales de acceso</div>
-        <div style={{ padding: 20, color: "rgba(15,17,23,0.35)", fontSize: 13 }}>No disponible</div>
+        <div style={{ padding: 20, color: "var(--muted)", fontSize: 13 }}>No disponible</div>
       </div>
     );
   }
@@ -123,7 +123,7 @@ export default function CredencialesSection({ empleadoId }: { empleadoId: string
               <Row label="Email de acceso" value={cred.portal.email_auth ?? "—"} mono />
             </div>
           ) : (
-            <p style={{ fontSize: 13, color: "rgba(15,17,23,0.5)", marginBottom: 20, lineHeight: 1.6 }}>
+            <p style={{ fontSize: 13, color: "var(--muted-2)", marginBottom: 20, lineHeight: 1.6 }}>
               El empleado no tiene acceso al portal. Envía una invitación para que pueda crear su cuenta y acceder a sus datos.
             </p>
           )}
@@ -175,11 +175,11 @@ export default function CredencialesSection({ empleadoId }: { empleadoId: string
                 <span style={{ padding: "2px 8px", borderRadius: 4, fontSize: 11, fontFamily: "'DM Mono', monospace", fontWeight: 600, background: inv.usada ? "rgba(45,106,79,0.1)" : "var(--surface-2)", color: inv.usada ? "var(--green)" : "rgba(15,17,23,0.45)" }}>
                   {inv.usada ? "Usada" : "Pendiente"}
                 </span>
-                <span style={{ fontSize: 12, color: "rgba(15,17,23,0.5)", textTransform: "capitalize" }}>{inv.tipo}</span>
-                <span style={{ fontSize: 12, fontFamily: "'DM Mono', monospace", color: "rgba(15,17,23,0.4)", marginLeft: "auto" }}>
+                <span style={{ fontSize: 12, color: "var(--muted-2)", textTransform: "capitalize" }}>{inv.tipo}</span>
+                <span style={{ fontSize: 12, fontFamily: "'DM Mono', monospace", color: "var(--muted)", marginLeft: "auto" }}>
                   {fmtDate(inv.created_at)}
                 </span>
-                <span style={{ fontSize: 11, color: "rgba(15,17,23,0.35)", fontFamily: "'DM Mono', monospace" }}>
+                <span style={{ fontSize: 11, color: "var(--muted)", fontFamily: "'DM Mono', monospace" }}>
                   Vence: {fmtDate(inv.expires_at)}
                 </span>
               </div>

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useTransition } from "react";
 import { fetchReporteRangoAction, type ReporteEmpleado } from "@/app/actions/asistencia";
@@ -13,7 +13,7 @@ const STATUS_LABEL: Record<string, string> = {
 const STATUS_COLOR: Record<string, { bg: string; color: string }> = {
   a_tiempo:      { bg: "rgba(34,197,94,0.12)",  color: "#16a34a" },
   tardanza:      { bg: "rgba(234,179,8,0.15)",  color: "#a16207" },
-  no_registrado: { bg: "rgba(15,17,23,0.06)",   color: "rgba(15,17,23,0.35)" },
+  no_registrado: { bg: "rgba(15,17,23,0.06)",   color: "var(--muted)" },
 };
 
 function exportCSV(empleados: ReporteEmpleado[], fechas: string[], seleccionados: Set<string>, horaEntrada: string) {
@@ -99,7 +99,7 @@ export default function ReportesView() {
       <div style={{ padding: "20px 32px", borderBottom: "1px solid var(--border)", background: "var(--card)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div>
           <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: "var(--ink)", margin: 0 }}>Reportes de Asistencia</h1>
-          <p style={{ fontSize: 13, color: "rgba(15,17,23,0.45)", marginTop: 4 }}>Rango de fechas · Tardanzas · Exportar Excel</p>
+          <p style={{ fontSize: 13, color: "var(--muted)", marginTop: 4 }}>Rango de fechas · Tardanzas · Exportar Excel</p>
         </div>
         {consultado && (
           <button onClick={() => exportCSV(empleados, fechas, seleccionados, horaEntrada)} style={btnPrimary}>
@@ -156,7 +156,7 @@ export default function ReportesView() {
                 </div>
               ))}
               {seleccionados.size > 0 && (
-                <span style={{ fontSize: 12, color: "rgba(15,17,23,0.5)", marginLeft: "auto" }}>
+                <span style={{ fontSize: 12, color: "var(--muted-2)", marginLeft: "auto" }}>
                   {seleccionados.size} empleado{seleccionados.size !== 1 ? "s" : ""} marcado{seleccionados.size !== 1 ? "s" : ""} para exportar
                 </span>
               )}
@@ -191,9 +191,9 @@ export default function ReportesView() {
                       </td>
                       <td style={tdSt}>
                         <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", whiteSpace: "nowrap" }}>{e.nombre}</div>
-                        {e.codigo && <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", color: "rgba(15,17,23,0.4)" }}>{e.codigo}</div>}
+                        {e.codigo && <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", color: "var(--muted)" }}>{e.codigo}</div>}
                       </td>
-                      <td style={{ ...tdSt, fontSize: 11, color: "rgba(15,17,23,0.55)", whiteSpace: "nowrap" }}>{e.departamento}</td>
+                      <td style={{ ...tdSt, fontSize: 11, color: "var(--muted-2)", whiteSpace: "nowrap" }}>{e.departamento}</td>
                       {fechas.map(f => {
                         const d = e.dias[f];
                         const s = d?.status ?? "no_registrado";
@@ -219,12 +219,12 @@ export default function ReportesView() {
                 </tbody>
               </table>
               {empleados.length === 0 && (
-                <div style={{ padding: 48, textAlign: "center", color: "rgba(15,17,23,0.35)", fontFamily: "'DM Mono', monospace", fontSize: 13 }}>
+                <div style={{ padding: 48, textAlign: "center", color: "var(--muted)", fontFamily: "'DM Mono', monospace", fontSize: 13 }}>
                   Sin empleados activos en el período seleccionado
                 </div>
               )}
             </div>
-            <div style={{ marginTop: 10, fontSize: 11, color: "rgba(15,17,23,0.35)", fontFamily: "'DM Mono', monospace" }}>
+            <div style={{ marginTop: 10, fontSize: 11, color: "var(--muted)", fontFamily: "'DM Mono', monospace" }}>
               Tardanza: check-in después de las {horaEntrada} · Pasa el cursor sobre una celda para ver la hora exacta de entrada
             </div>
           </>
@@ -237,14 +237,14 @@ export default function ReportesView() {
 function SC({ label, value, color }: { label: string; value: number; color: string }) {
   return (
     <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, padding: "14px 18px", boxShadow: "0 1px 3px rgba(15,17,23,0.04)" }}>
-      <div style={{ fontSize: 11, fontWeight: 600, color: "rgba(15,17,23,0.45)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>{label}</div>
+      <div style={{ fontSize: 11, fontWeight: 600, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>{label}</div>
       <div style={{ fontSize: 30, fontWeight: 700, color, fontFamily: "'DM Mono', monospace" }}>{value}</div>
     </div>
   );
 }
 
-const lbl: React.CSSProperties = { display: "block", fontSize: 11, fontWeight: 600, color: "rgba(15,17,23,0.5)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6 };
+const lbl: React.CSSProperties = { display: "block", fontSize: 11, fontWeight: 600, color: "var(--muted-2)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6 };
 const iSt: React.CSSProperties = { padding: "9px 12px", fontSize: 13, border: "1.5px solid var(--border-strong)", borderRadius: 4, fontFamily: "'DM Sans', sans-serif", color: "var(--ink)", background: "var(--card)", outline: "none" };
 const btnPrimary: React.CSSProperties = { padding: "10px 18px", background: "var(--accent)", color: "white", border: "none", borderRadius: 4, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" };
-const thSt: React.CSSProperties = { padding: "10px 12px", textAlign: "left", fontSize: 10, fontFamily: "'DM Mono', monospace", letterSpacing: "0.07em", textTransform: "uppercase", color: "rgba(15,17,23,0.4)", borderBottom: "1px solid var(--border)", whiteSpace: "nowrap" };
+const thSt: React.CSSProperties = { padding: "10px 12px", textAlign: "left", fontSize: 10, fontFamily: "'DM Mono', monospace", letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--muted)", borderBottom: "1px solid var(--border)", whiteSpace: "nowrap" };
 const tdSt: React.CSSProperties = { padding: "11px 12px" };

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
@@ -43,14 +43,14 @@ export default function BuscarPage() {
     <div style={{ padding: "28px 32px", maxWidth: 760 }}>
       <div style={{ marginBottom: 24 }}>
         <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: "var(--ink)", margin: 0 }}>Búsqueda</h1>
-        <p style={{ fontSize: 12, color: "rgba(15,17,23,0.4)", fontFamily: "'DM Mono', monospace", marginTop: 4 }}>
+        <p style={{ fontSize: 12, color: "var(--muted)", fontFamily: "'DM Mono', monospace", marginTop: 4 }}>
           Archivos, clientes y contratos
         </p>
       </div>
 
       {/* Search input */}
       <div style={{ position: "relative", marginBottom: 28 }}>
-        <div style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "rgba(15,17,23,0.35)", pointerEvents: "none" }}>
+        <div style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "var(--muted)", pointerEvents: "none" }}>
           <SearchIcon />
         </div>
         <input
@@ -78,13 +78,13 @@ export default function BuscarPage() {
 
       {/* Results */}
       {!buscado && !buscando && (
-        <div style={{ textAlign: "center", padding: "48px 0", color: "rgba(15,17,23,0.3)", fontSize: 13, fontFamily: "'DM Mono', monospace" }}>
+        <div style={{ textAlign: "center", padding: "48px 0", color: "var(--muted)", fontSize: 13, fontFamily: "'DM Mono', monospace" }}>
           Escribe al menos 2 caracteres para buscar
         </div>
       )}
 
       {buscado && resultados.length === 0 && (
-        <div style={{ textAlign: "center", padding: "48px 0", color: "rgba(15,17,23,0.3)", fontSize: 13, fontFamily: "'DM Mono', monospace" }}>
+        <div style={{ textAlign: "center", padding: "48px 0", color: "var(--muted)", fontSize: 13, fontFamily: "'DM Mono', monospace" }}>
           Sin resultados para &ldquo;{query}&rdquo;
         </div>
       )}
@@ -109,7 +109,7 @@ export default function BuscarPage() {
 function GrupoResultados({ titulo, items, onNavigate }: { titulo: string; items: ResultadoBusqueda[]; onNavigate: (href: string) => void }) {
   return (
     <div>
-      <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(15,17,23,0.4)", marginBottom: 8 }}>
+      <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--muted)", marginBottom: 8 }}>
         {titulo} · {items.length}
       </div>
       <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden", boxShadow: "0 1px 3px rgba(15,17,23,0.06)" }}>
@@ -130,12 +130,12 @@ function GrupoResultados({ titulo, items, onNavigate }: { titulo: string; items:
               <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                 {item.titulo}
               </div>
-              <div style={{ fontSize: 11, color: "rgba(15,17,23,0.45)", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                 {item.subtitulo}
               </div>
             </div>
             {item.extra && item.tipo !== "archivo" && (
-              <span style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", padding: "2px 7px", borderRadius: 3, background: "var(--surface-2)", color: "rgba(15,17,23,0.5)", textTransform: "uppercase", flexShrink: 0 }}>
+              <span style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", padding: "2px 7px", borderRadius: 3, background: "var(--surface-2)", color: "var(--muted-2)", textTransform: "uppercase", flexShrink: 0 }}>
                 {item.extra}
               </span>
             )}

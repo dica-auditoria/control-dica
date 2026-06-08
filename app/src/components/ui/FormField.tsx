@@ -1,4 +1,4 @@
-﻿interface FormFieldProps {
+interface FormFieldProps {
   label: string;
   required?: boolean;
   hint?: string;
@@ -22,7 +22,7 @@ export default function FormField({ label, required, hint, children }: FormField
       </label>
       {children}
       {hint && (
-        <div style={{ fontSize: 11, color: "rgba(15,17,23,0.4)", marginTop: 4 }}>{hint}</div>
+        <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 4 }}>{hint}</div>
       )}
     </div>
   );

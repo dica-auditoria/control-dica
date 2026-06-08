@@ -1,4 +1,4 @@
-﻿import { redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import UploadZone from "@/components/archivos/UploadZone";
 
@@ -29,7 +29,7 @@ export default async function SubirPage() {
         <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: "var(--ink)" }}>
           Subir Archivo
         </div>
-        <div style={{ fontSize: 12, color: "rgba(15,17,23,0.4)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>
+        <div style={{ fontSize: 12, color: "var(--muted)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>
           {perfil.entidades?.nombre ?? "Tu entidad"}
         </div>
       </div>
@@ -40,7 +40,7 @@ export default async function SubirPage() {
           <div style={{
             padding: "12px 16px", marginBottom: 20,
             background: "var(--surface-2)", borderRadius: 6,
-            fontSize: 12, color: "rgba(15,17,23,0.55)",
+            fontSize: 12, color: "var(--muted-2)",
             fontFamily: "'DM Mono', monospace",
             display: "flex", gap: 10, alignItems: "flex-start",
           }}>

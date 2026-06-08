@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import Link from "next/link";
@@ -88,7 +88,7 @@ export default function EmpleadosView({ initialEmpleados, initialStats, titulo, 
           <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: "var(--ink)", margin: 0 }}>
             {titulo ?? "Empleados"}
           </h1>
-          <p style={{ fontSize: 13, color: "rgba(15,17,23,0.45)", marginTop: 4 }}>
+          <p style={{ fontSize: 13, color: "var(--muted)", marginTop: 4 }}>
             {subtitulo ?? "Gestión integral del personal de DICA"}
           </p>
         </div>
@@ -136,7 +136,7 @@ export default function EmpleadosView({ initialEmpleados, initialStats, titulo, 
           {/* Paginación */}
           {totalPages > 1 && (
             <div style={{ padding: "12px 20px", borderTop: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-              <span style={{ fontSize: 12, color: "rgba(15,17,23,0.45)", fontFamily: "'DM Mono', monospace" }}>
+              <span style={{ fontSize: 12, color: "var(--muted)", fontFamily: "'DM Mono', monospace" }}>
                 {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, data.length)} de {data.length}
               </span>
               <div style={{ display: "flex", gap: 4 }}>
@@ -182,8 +182,8 @@ function PageBtn({ onClick, disabled, active, children }: { onClick: () => void;
       disabled={disabled}
       style={{
         width: 32, height: 32, border: "1.5px solid var(--border-strong)",
-        borderRadius: 4, background: active ? "var(--ink)" : "white",
-        color: active ? "white" : disabled ? "rgba(15,17,23,0.25)" : "var(--ink)",
+        borderRadius: 4, background: active ? "var(--ink)" : "var(--card)",
+        color: active ? "var(--surface)" : disabled ? "var(--muted)" : "var(--ink)",
         fontSize: 13, cursor: disabled ? "default" : "pointer",
         fontFamily: "'DM Mono', monospace",
       }}

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useTransition, useRef } from "react";
 import EmpleadoProfileHeader from "./EmpleadoProfileHeader";
@@ -246,7 +246,7 @@ export default function EmpleadoDetalleView({ empleado: inicial, supervisores = 
                 </div>
                 <div>
                   <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", marginBottom: 4 }}>Foto de perfil</div>
-                  <div style={{ fontSize: 12, color: "rgba(15,17,23,0.45)", marginBottom: 8 }}>JPG, PNG o WebP · máx. 5 MB</div>
+                  <div style={{ fontSize: 12, color: "var(--muted)", marginBottom: 8 }}>JPG, PNG o WebP · máx. 5 MB</div>
                   <button onClick={() => fotoInputRef.current?.click()} disabled={fotoUploading} style={{ padding: "5px 14px", background: "var(--card)", border: "1.5px solid var(--border-strong)", borderRadius: 4, fontSize: 12, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", color: "var(--ink)" }}>
                     {fotoUploading ? "Subiendo…" : fotoUrl ? "Cambiar foto" : "Subir foto"}
                   </button>
@@ -321,7 +321,7 @@ export default function EmpleadoDetalleView({ empleado: inicial, supervisores = 
           {seccion === "bitacora" && (
             <SectionPanel title="Bitácora de cambios">
               {empleado.bitacora.length === 0 ? (
-                <p style={{ fontSize: 13, color: "rgba(15,17,23,0.45)" }}>Sin eventos registrados</p>
+                <p style={{ fontSize: 13, color: "var(--muted)" }}>Sin eventos registrados</p>
               ) : (
                 <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
                   {empleado.bitacora.map((entry, i) => <BitacoraEntry key={entry.id} entry={entry} isLast={i === empleado.bitacora.length - 1} />)}
@@ -347,13 +347,13 @@ export default function EmpleadoDetalleView({ empleado: inicial, supervisores = 
           )}
           {seccion === "credenciales" && soloLectura && (
             <SectionPanel title="Credenciales">
-              <p style={{ fontSize: 13, color: "rgba(15,17,23,0.45)" }}>Administrado por el equipo de sistemas.</p>
+              <p style={{ fontSize: 13, color: "var(--muted)" }}>Administrado por el equipo de sistemas.</p>
             </SectionPanel>
           )}
 
           {!["datos_personales","relacion_laboral","documentos","bitacora","bancarios","activos","emergencia","credenciales"].includes(seccion) && (
             <SectionPanel title={labelSeccion(seccion)}>
-              <div style={{ padding: "32px 0", textAlign: "center", color: "rgba(15,17,23,0.35)", fontSize: 13 }}>
+              <div style={{ padding: "32px 0", textAlign: "center", color: "var(--muted)", fontSize: 13 }}>
                 El empleado completará esta sección desde su portal de autoservicio.
               </div>
             </SectionPanel>
@@ -368,7 +368,7 @@ export default function EmpleadoDetalleView({ empleado: inicial, supervisores = 
           <div style={{ background: "var(--card)", borderRadius: 8, width: "100%", maxWidth: 620, maxHeight: "90vh", overflowY: "auto", boxShadow: "0 8px 32px rgba(15,17,23,0.18)" }}>
             <div style={{ padding: "18px 24px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <h2 style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>Editar empleado</h2>
-              <button onClick={() => setEditOpen(false)} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "rgba(15,17,23,0.4)" }}>×</button>
+              <button onClick={() => setEditOpen(false)} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "var(--muted)" }}>×</button>
             </div>
 
             <div style={{ padding: "20px 24px", display: "flex", flexDirection: "column", gap: 20 }}>
@@ -456,7 +456,7 @@ function BitacoraEntry({ entry, isLast }: { entry: EmpleadoBitacoraEntry; isLast
       </div>
       <div style={{ flex: 1 }}>
         <div style={{ fontSize: 13, color: "var(--ink)", fontWeight: 500 }}>{label}</div>
-        <div style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "rgba(15,17,23,0.4)", marginTop: 2 }}>{fecha}</div>
+        <div style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "var(--muted)", marginTop: 2 }}>{fecha}</div>
       </div>
     </div>
   );
@@ -483,7 +483,7 @@ function SectionPanel({ title, complete, warning, children }: { title: string; c
 function DataRow({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
     <div>
-      <div style={{ fontSize: 11, color: "rgba(15,17,23,0.4)", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>{label}</div>
+      <div style={{ fontSize: 11, color: "var(--muted)", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>{label}</div>
       <div style={{ fontSize: 14, color: "var(--ink)", fontFamily: mono ? "'DM Mono', monospace" : undefined }}>{value}</div>
     </div>
   );
@@ -492,7 +492,7 @@ function DataRow({ label, value, mono }: { label: string; value: string; mono?: 
 function MF({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
   return (
     <div>
-      <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "rgba(15,17,23,0.55)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6 }}>
+      <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "var(--muted-2)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6 }}>
         {label}{required && <span style={{ color: "var(--accent)", marginLeft: 2 }}>*</span>}
       </label>
       {children}
@@ -626,7 +626,7 @@ function DocumentosSection({
         {/* List */}
         <div style={{ padding: docs.length === 0 ? "40px 20px" : "8px 20px 12px" }}>
           {docs.length === 0 ? (
-            <div style={{ textAlign: "center", color: "rgba(15,17,23,0.35)", fontSize: 13, fontFamily: "'DM Mono', monospace" }}>
+            <div style={{ textAlign: "center", color: "var(--muted)", fontSize: 13, fontFamily: "'DM Mono', monospace" }}>
               Sin documentos registrados
             </div>
           ) : (
@@ -654,7 +654,7 @@ function DocumentosSection({
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>{doc.nombre}</div>
                       {doc.numero_documento && (
-                        <div style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "rgba(15,17,23,0.45)", marginTop: 2 }}>
+                        <div style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "var(--muted)", marginTop: 2 }}>
                           {doc.numero_documento}
                         </div>
                       )}
@@ -687,7 +687,7 @@ function DocumentosSection({
           <div style={{ background: "var(--card)", borderRadius: 8, width: "100%", maxWidth: 480, boxShadow: "0 8px 32px rgba(15,17,23,0.18)", overflow: "hidden" }}>
             <div style={{ padding: "16px 22px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <h2 style={{ margin: 0, fontSize: 15, fontWeight: 600 }}>Agregar documento</h2>
-              <button onClick={() => setModalOpen(false)} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "rgba(15,17,23,0.4)" }}>×</button>
+              <button onClick={() => setModalOpen(false)} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "var(--muted)" }}>×</button>
             </div>
 
             <div style={{ padding: "18px 22px", display: "flex", flexDirection: "column", gap: 16 }}>
@@ -719,7 +719,7 @@ function DocumentosSection({
                   <span style={{ fontSize: 13, color: archivo ? "var(--green)" : "rgba(15,17,23,0.5)", fontWeight: archivo ? 600 : 400 }}>
                     {archivo ? archivo.name : "Haz clic para seleccionar archivo"}
                   </span>
-                  {!archivo && <span style={{ fontSize: 11, color: "rgba(15,17,23,0.35)" }}>PDF, JPG o PNG · máx. 10 MB</span>}
+                  {!archivo && <span style={{ fontSize: 11, color: "var(--muted)" }}>PDF, JPG o PNG · máx. 10 MB</span>}
                   <input
                     type="file"
                     accept=".pdf,image/jpeg,image/png,image/webp"
@@ -781,9 +781,9 @@ function ActivosEmpleadoSection({ empleadoId }: { empleadoId: string }) {
       </div>
       <div style={{ padding: 20 }}>
         {!cargado ? (
-          <div style={{ textAlign: "center", color: "rgba(15,17,23,0.35)", fontSize: 13 }}>Haz clic en &quot;Cargar activos&quot; para ver el equipo asignado.</div>
+          <div style={{ textAlign: "center", color: "var(--muted)", fontSize: 13 }}>Haz clic en &quot;Cargar activos&quot; para ver el equipo asignado.</div>
         ) : !activos?.length ? (
-          <div style={{ textAlign: "center", color: "rgba(15,17,23,0.35)", fontSize: 13 }}>Sin activos asignados actualmente.</div>
+          <div style={{ textAlign: "center", color: "var(--muted)", fontSize: 13 }}>Sin activos asignados actualmente.</div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {activos.map(a => (
@@ -793,13 +793,13 @@ function ActivosEmpleadoSection({ empleadoId }: { empleadoId: string }) {
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>{a.activo_nombre}</div>
-                  <div style={{ fontSize: 11, color: "rgba(15,17,23,0.5)", marginTop: 2 }}>
+                  <div style={{ fontSize: 11, color: "var(--muted-2)", marginTop: 2 }}>
                     {[a.categoria_nombre, a.marca, a.modelo].filter(Boolean).join(" · ")}
                   </div>
                 </div>
                 <div style={{ textAlign: "right" }}>
                   {a.numero_activo && <div style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "var(--green)", fontWeight: 600 }}>{a.numero_activo}</div>}
-                  <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", color: "rgba(15,17,23,0.4)" }}>
+                  <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", color: "var(--muted)" }}>
                     Desde {new Date(a.fecha_asignacion + "T12:00:00").toLocaleDateString("es-MX", { day: "numeric", month: "short", year: "numeric" })}
                   </div>
                 </div>
@@ -896,14 +896,14 @@ function BancariosSection({ empleadoId }: { empleadoId: string }) {
         <div style={{ padding: 20 }}>
           {!cargado ? (
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, padding: "20px 0" }}>
-              <div style={{ fontSize: 13, color: "rgba(15,17,23,0.45)" }}>Los datos están protegidos. Haz clic para cargar.</div>
+              <div style={{ fontSize: 13, color: "var(--muted)" }}>Los datos están protegidos. Haz clic para cargar.</div>
               <button onClick={cargar} disabled={isPending} style={{ ...btnAddDoc, background: "var(--ink)" }}>
                 {isPending ? "Cargando…" : "🔓 Cargar datos bancarios"}
               </button>
             </div>
           ) : !data ? (
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, padding: "20px 0" }}>
-              <div style={{ fontSize: 13, color: "rgba(15,17,23,0.45)" }}>Sin datos bancarios registrados</div>
+              <div style={{ fontSize: 13, color: "var(--muted)" }}>Sin datos bancarios registrados</div>
               <button onClick={openEdit} style={btnAddDoc}>+ Agregar datos bancarios</button>
             </div>
           ) : (
@@ -922,7 +922,7 @@ function BancariosSection({ empleadoId }: { empleadoId: string }) {
         {cargado && data && (
           <div style={{ padding: "10px 20px", borderTop: "1px solid var(--border)", background: "var(--surface)", display: "flex", alignItems: "center", gap: 6 }}>
             <span style={{ fontSize: 13 }}>🛡</span>
-            <span style={{ fontSize: 11, color: "rgba(15,17,23,0.45)", fontStyle: "italic" }}>
+            <span style={{ fontSize: 11, color: "var(--muted)", fontStyle: "italic" }}>
               Cada operación de descifrado queda registrada en la bitácora con tu usuario, IP y timestamp.
             </span>
           </div>
@@ -936,7 +936,7 @@ function BancariosSection({ empleadoId }: { empleadoId: string }) {
           <div style={{ background: "var(--card)", borderRadius: 8, width: "100%", maxWidth: 520, boxShadow: "0 8px 32px rgba(15,17,23,0.18)", overflow: "hidden" }}>
             <div style={{ padding: "16px 22px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <h2 style={{ margin: 0, fontSize: 15, fontWeight: 600 }}>Datos bancarios</h2>
-              <button onClick={() => setEditOpen(false)} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "rgba(15,17,23,0.4)" }}>×</button>
+              <button onClick={() => setEditOpen(false)} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "var(--muted)" }}>×</button>
             </div>
             <div style={{ padding: "18px 22px", display: "flex", flexDirection: "column", gap: 14 }}>
               {saveError && <div style={{ padding: 10, background: "var(--red-light)", color: "var(--accent)", borderRadius: 4, fontSize: 13 }}>{saveError}</div>}
@@ -965,7 +965,7 @@ function BancariosSection({ empleadoId }: { empleadoId: string }) {
                   <input style={iSt} value={form.salario_texto ?? ""} onChange={e => sf("salario_texto", e.target.value)} placeholder="Ej. $25,000.00 MXN" />
                 </MF>
               </div>
-              <div style={{ padding: "10px 12px", background: "var(--amber-light)", borderRadius: 4, fontSize: 12, color: "rgba(15,17,23,0.6)", border: "1px solid rgba(181,86,14,0.15)" }}>
+              <div style={{ padding: "10px 12px", background: "var(--amber-light)", borderRadius: 4, fontSize: 12, color: "var(--muted-2)", border: "1px solid rgba(181,86,14,0.15)" }}>
                 🔒 Esta información es sensible. El acceso y modificación queda registrado en la bitácora.
               </div>
               <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, paddingTop: 6, borderTop: "1px solid var(--border)" }}>
@@ -994,11 +994,11 @@ function BField({
 }) {
   return (
     <div>
-      <div style={{ fontSize: 11, color: "rgba(15,17,23,0.4)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6 }}>{label}</div>
+      <div style={{ fontSize: 11, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6 }}>{label}</div>
       <div style={{ fontSize: 14, color: "var(--ink)", fontFamily: masked ? "'DM Mono', monospace" : undefined, display: "flex", alignItems: "center", gap: 8 }}>
         <span>{revealed && revealedValue ? revealedValue : (value ?? "—")}</span>
         {masked && revealedValue && (
-          <button onClick={onReveal} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, color: "rgba(15,17,23,0.3)", fontSize: 14, lineHeight: 1 }}
+          <button onClick={onReveal} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, color: "var(--muted)", fontSize: 14, lineHeight: 1 }}
             title={revealed ? "Ocultar" : "Ver valor"}>
             {revealed ? "🙈" : "👁"}
           </button>
@@ -1010,7 +1010,7 @@ function BField({
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 const iSt: React.CSSProperties = { width: "100%", padding: "9px 12px", fontSize: 13, border: "1.5px solid var(--border-strong)", borderRadius: 4, fontFamily: "'DM Sans', sans-serif", color: "var(--ink)", background: "var(--card)", outline: "none", boxSizing: "border-box" };
-const sLbl: React.CSSProperties = { fontSize: 11, fontWeight: 600, color: "rgba(15,17,23,0.4)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 12 };
+const sLbl: React.CSSProperties = { fontSize: 11, fontWeight: 600, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 12 };
 const btnSm: React.CSSProperties = { padding: "6px 14px", background: "var(--amber)", color: "white", border: "none", borderRadius: 4, fontSize: 12, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" };
 const btnGn: React.CSSProperties = { padding: "10px 20px", background: "var(--green)", color: "white", border: "none", borderRadius: 4, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" };
 const btnOl: React.CSSProperties = { padding: "10px 18px", background: "var(--card)", color: "var(--ink)", border: "1.5px solid var(--border-strong)", borderRadius: 4, fontSize: 13, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" };

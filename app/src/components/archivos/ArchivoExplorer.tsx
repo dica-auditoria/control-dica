@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -155,7 +155,7 @@ function renderRows(nodes: Map<string, TreeNode>, depth: number, ctx: RowCtx): R
         rows.push(
           <tr key={`upload-${node.fullPath}`}>
             <td colSpan={6} style={{ padding: "12px 20px 16px", paddingLeft: indent + 52, background: "rgba(245,166,35,0.04)", borderBottom: "1px solid var(--border)" }}>
-              <div style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "rgba(15,17,23,0.4)", marginBottom: 10, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+              <div style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "var(--muted)", marginBottom: 10, textTransform: "uppercase", letterSpacing: "0.08em" }}>
                 Subir a: {node.name}
               </div>
               <UploadZone
@@ -189,14 +189,14 @@ function FolderRow({ node, indent, isOpen, isUploadActive, ctx }: { node: Folder
       <td style={{ padding: "8px 0 8px 16px", width: 32 }} onClick={e => e.stopPropagation()} />
       <td style={{ padding: "8px 20px" }} onClick={() => ctx.toggle(node.fullPath)}>
         <div style={{ paddingLeft: indent, display: "flex", alignItems: "center", gap: 6 }}>
-          <span style={{ display: "inline-flex", flexShrink: 0, transform: isOpen ? "rotate(90deg)" : "rotate(0deg)", transition: "transform 0.15s", color: "rgba(15,17,23,0.35)" }}><ChevronIcon /></span>
+          <span style={{ display: "inline-flex", flexShrink: 0, transform: isOpen ? "rotate(90deg)" : "rotate(0deg)", transition: "transform 0.15s", color: "var(--muted)" }}><ChevronIcon /></span>
           <FolderSvg open={isOpen} />
           <span style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>{node.name}</span>
-          <span style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", padding: "1px 6px", borderRadius: 100, background: "rgba(15,17,23,0.07)", color: "rgba(15,17,23,0.4)", marginLeft: 2 }}>{node.fileCount}</span>
+          <span style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", padding: "1px 6px", borderRadius: 100, background: "rgba(15,17,23,0.07)", color: "var(--muted)", marginLeft: 2 }}>{node.fileCount}</span>
         </div>
       </td>
       <td colSpan={3} onClick={() => ctx.toggle(node.fullPath)} style={{ padding: "8px 20px" }}>
-        <span style={{ fontSize: 11, color: "rgba(15,17,23,0.2)", fontFamily: "'DM Mono', monospace" }}>{node.fileCount} archivo{node.fileCount !== 1 ? "s" : ""}</span>
+        <span style={{ fontSize: 11, color: "var(--muted)", fontFamily: "'DM Mono', monospace" }}>{node.fileCount} archivo{node.fileCount !== 1 ? "s" : ""}</span>
       </td>
       <td style={{ padding: "8px 14px" }} onClick={e => e.stopPropagation()}>
         <div style={{ opacity: hov || isUploadActive ? 1 : 0, transition: "opacity 0.1s", display: "flex", gap: 2 }}>
@@ -277,10 +277,10 @@ function FileRow({ node, indent, ctx }: { node: FileNode; indent: number; ctx: R
         </div>
       </td>
       <td style={{ padding: "10px 20px" }}>
-        <span style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", fontWeight: 700, padding: "2px 7px", borderRadius: 3, background: "var(--surface-2)", color: "rgba(15,17,23,0.6)", textTransform: "uppercase" }}>{a.tipo}</span>
+        <span style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", fontWeight: 700, padding: "2px 7px", borderRadius: 3, background: "var(--surface-2)", color: "var(--muted-2)", textTransform: "uppercase" }}>{a.tipo}</span>
       </td>
-      <td style={{ padding: "10px 20px", fontSize: 12, fontFamily: "'DM Mono', monospace", color: "rgba(15,17,23,0.5)" }}>{formatBytes(a.size_bytes)}</td>
-      <td style={{ padding: "10px 20px", fontSize: 12, fontFamily: "'DM Mono', monospace", color: "rgba(15,17,23,0.5)" }}>{new Date(a.created_at).toLocaleDateString("es-MX")}</td>
+      <td style={{ padding: "10px 20px", fontSize: 12, fontFamily: "'DM Mono', monospace", color: "var(--muted-2)" }}>{formatBytes(a.size_bytes)}</td>
+      <td style={{ padding: "10px 20px", fontSize: 12, fontFamily: "'DM Mono', monospace", color: "var(--muted-2)" }}>{new Date(a.created_at).toLocaleDateString("es-MX")}</td>
       <td style={{ padding: "10px 14px" }}>
         <div style={{ display: "flex", gap: 2, opacity: hov && !renaming ? 1 : 0, transition: "opacity 0.1s" }}>
           <ActionBtn title="Vista previa" onClick={() => ctx.onPreview(a)}><EyeIcon /></ActionBtn>
@@ -368,20 +368,20 @@ function PreviewModal({ archivo, isAdmin, onClose, onDeleted }: { archivo: Archi
           <FileTypeIcon tipo={archivo.tipo} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{fileName}</div>
-            <div style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "rgba(15,17,23,0.4)", marginTop: 2 }}>
+            <div style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "var(--muted)", marginTop: 2 }}>
               {formatBytes(archivo.size_bytes)} · {archivo.subido_por_nombre ?? "—"} · {new Date(archivo.created_at).toLocaleDateString("es-MX")}
             </div>
           </div>
           <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>
             {viewUrl && <a href={viewUrl} download={fileName} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 4, border: "1.5px solid var(--border-strong)", fontSize: 13, fontWeight: 500, color: "var(--ink)", textDecoration: "none", fontFamily: "'DM Sans', sans-serif" }}><DownloadIcon /> Descargar</a>}
-            <button onClick={onClose} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 32, height: 32, borderRadius: 4, border: "none", background: "transparent", cursor: "pointer", color: "rgba(15,17,23,0.4)" }}><XIcon /></button>
+            <button onClick={onClose} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 32, height: 32, borderRadius: 4, border: "none", background: "transparent", cursor: "pointer", color: "var(--muted)" }}><XIcon /></button>
           </div>
         </div>
 
         {/* Body */}
         <div style={{ flex: 1, overflow: "auto", background: (canPreview || isCsv) ? "#f5f5f5" : "white", display: "flex", alignItems: isCsv ? "flex-start" : "center", justifyContent: "center", minHeight: 0 }}>
           {loadingUrl ? (
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, color: "rgba(15,17,23,0.4)", padding: 48 }}><SpinnerLg /><span style={{ fontSize: 13, fontFamily: "'DM Mono', monospace" }}>Cargando…</span></div>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, color: "var(--muted)", padding: 48 }}><SpinnerLg /><span style={{ fontSize: 13, fontFamily: "'DM Mono', monospace" }}>Cargando…</span></div>
           ) : isCsv && csvData ? (
             <div style={{ width: "100%", overflow: "auto", padding: 20 }}>
               <table style={{ borderCollapse: "collapse", fontSize: 12, fontFamily: "'DM Mono', monospace", width: "100%", background: "var(--card)", borderRadius: 6, overflow: "hidden", boxShadow: "0 1px 4px rgba(0,0,0,0.08)" }}>
@@ -391,12 +391,12 @@ function PreviewModal({ archivo, isAdmin, onClose, onDeleted }: { archivo: Archi
                 <tbody>
                   {csvData.slice(1).map((row, ri) => (
                     <tr key={ri} style={{ borderBottom: "1px solid var(--border)" }}>
-                      {row.map((cell, ci) => <td key={ci} style={{ padding: "7px 14px", color: "rgba(15,17,23,0.7)", whiteSpace: "nowrap" }}>{cell}</td>)}
+                      {row.map((cell, ci) => <td key={ci} style={{ padding: "7px 14px", color: "var(--muted-2)", whiteSpace: "nowrap" }}>{cell}</td>)}
                     </tr>
                   ))}
                 </tbody>
               </table>
-              <div style={{ marginTop: 8, fontSize: 11, color: "rgba(15,17,23,0.35)", fontFamily: "'DM Mono', monospace" }}>{csvData.length - 1} filas · {csvData[0]?.length ?? 0} columnas</div>
+              <div style={{ marginTop: 8, fontSize: 11, color: "var(--muted)", fontFamily: "'DM Mono', monospace" }}>{csvData.length - 1} filas · {csvData[0]?.length ?? 0} columnas</div>
             </div>
           ) : canPreview && isImage ? (
             <img src={viewUrl!} alt={fileName} style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} />
@@ -404,8 +404,8 @@ function PreviewModal({ archivo, isAdmin, onClose, onDeleted }: { archivo: Archi
             <iframe src={viewUrl!} title={fileName} style={{ width: "100%", height: "100%", minHeight: 500, border: "none" }} />
           ) : (
             <div style={{ textAlign: "center", padding: 48, display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
-              <div style={{ width: 64, height: 64, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 700, fontFamily: "'DM Mono', monospace", background: "var(--surface-2)", color: "rgba(15,17,23,0.35)", textTransform: "uppercase" }}>{archivo.tipo.slice(0, 3)}</div>
-              <div style={{ color: "rgba(15,17,23,0.5)", fontSize: 13 }}>Vista previa no disponible para <strong>.{archivo.tipo}</strong></div>
+              <div style={{ width: 64, height: 64, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 700, fontFamily: "'DM Mono', monospace", background: "var(--surface-2)", color: "var(--muted)", textTransform: "uppercase" }}>{archivo.tipo.slice(0, 3)}</div>
+              <div style={{ color: "var(--muted-2)", fontSize: 13 }}>Vista previa no disponible para <strong>.{archivo.tipo}</strong></div>
               {viewUrl && <a href={viewUrl} download={fileName} style={{ display: "inline-flex", alignItems: "center", gap: 7, padding: "10px 20px", background: "var(--ink)", color: "white", borderRadius: 4, fontSize: 13, fontWeight: 500, textDecoration: "none", fontFamily: "'DM Sans', sans-serif" }}><DownloadIcon /> Descargar archivo</a>}
             </div>
           )}
@@ -413,14 +413,14 @@ function PreviewModal({ archivo, isAdmin, onClose, onDeleted }: { archivo: Archi
 
         {/* Footer */}
         <div style={{ padding: "12px 20px", borderTop: "1px solid var(--border)", background: "var(--surface)", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
-          <span style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "rgba(15,17,23,0.3)" }}>SHA-256: {archivo.hash_sha256}</span>
+          <span style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "var(--muted)" }}>SHA-256: {archivo.hash_sha256}</span>
           {isAdmin && (
             <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
               {deleteError && <span style={{ fontSize: 12, color: "var(--accent)" }}>{deleteError}</span>}
               {confirmDelete ? (
                 <>
-                  <span style={{ fontSize: 12, color: "rgba(15,17,23,0.6)" }}>¿Eliminar permanentemente?</span>
-                  <button onClick={() => setConfirmDelete(false)} style={{ fontSize: 12, background: "none", border: "1px solid var(--border)", borderRadius: 4, padding: "5px 12px", cursor: "pointer", color: "rgba(15,17,23,0.6)" }}>Cancelar</button>
+                  <span style={{ fontSize: 12, color: "var(--muted-2)" }}>¿Eliminar permanentemente?</span>
+                  <button onClick={() => setConfirmDelete(false)} style={{ fontSize: 12, background: "none", border: "1px solid var(--border)", borderRadius: 4, padding: "5px 12px", cursor: "pointer", color: "var(--muted-2)" }}>Cancelar</button>
                   <button onClick={handleDelete} disabled={deleting} style={{ fontSize: 12, background: "var(--accent)", border: "none", borderRadius: 4, padding: "5px 12px", cursor: deleting ? "not-allowed" : "pointer", color: "white", fontWeight: 600, opacity: deleting ? 0.7 : 1 }}>{deleting ? "Eliminando…" : "Sí, eliminar"}</button>
                 </>
               ) : (
@@ -465,7 +465,7 @@ function MoveModal({ archivo, folderPaths, onClose, onMoved }: { archivo: Archiv
       <div style={{ background: "var(--card)", borderRadius: 10, width: "100%", maxWidth: 400, boxShadow: "0 24px 64px rgba(15,17,23,0.25)", overflow: "hidden" }}>
         <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", background: "var(--surface)" }}>
           <div style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)" }}>Mover archivo</div>
-          <div style={{ fontSize: 12, color: "rgba(15,17,23,0.45)", marginTop: 2, fontFamily: "'DM Mono', monospace" }}>{filename}</div>
+          <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 2, fontFamily: "'DM Mono', monospace" }}>{filename}</div>
         </div>
         <div style={{ padding: 16, maxHeight: 320, overflowY: "auto" }}>
           {all.map(path => {
@@ -484,7 +484,7 @@ function MoveModal({ archivo, folderPaths, onClose, onMoved }: { archivo: Archiv
           })}
         </div>
         <div style={{ padding: "12px 20px", borderTop: "1px solid var(--border)", display: "flex", gap: 8, justifyContent: "flex-end" }}>
-          <button onClick={onClose} style={{ padding: "7px 16px", border: "1px solid var(--border)", borderRadius: 4, background: "none", cursor: "pointer", fontSize: 13, color: "rgba(15,17,23,0.6)" }}>Cancelar</button>
+          <button onClick={onClose} style={{ padding: "7px 16px", border: "1px solid var(--border)", borderRadius: 4, background: "none", cursor: "pointer", fontSize: 13, color: "var(--muted-2)" }}>Cancelar</button>
           <button onClick={handleMove} disabled={saving} style={{ padding: "7px 16px", background: "var(--ink)", color: "white", border: "none", borderRadius: 4, cursor: saving ? "not-allowed" : "pointer", fontSize: 13, fontWeight: 600, opacity: saving ? 0.7 : 1 }}>{saving ? "Moviendo…" : "Mover aquí"}</button>
         </div>
       </div>
@@ -609,7 +609,7 @@ export default function ArchivoExplorer({ archivos, emptyMsg, isAdmin = false, e
   };
 
   if (archivos.length === 0) {
-    return <div style={{ padding: "48px 20px", textAlign: "center", color: "rgba(15,17,23,0.35)", fontSize: 13, fontFamily: "'DM Mono', monospace" }}>{emptyMsg}</div>;
+    return <div style={{ padding: "48px 20px", textAlign: "center", color: "var(--muted)", fontSize: 13, fontFamily: "'DM Mono', monospace" }}>{emptyMsg}</div>;
   }
 
   return (
@@ -626,7 +626,7 @@ export default function ArchivoExplorer({ archivos, emptyMsg, isAdmin = false, e
               <TrashIcon /> {bulkDeleting ? "Eliminando…" : "Eliminar"}
             </button>
           )}
-          <button onClick={() => setSelectedIds(new Set())} style={{ marginLeft: "auto", fontSize: 11, color: "rgba(15,17,23,0.4)", background: "none", border: "none", cursor: "pointer", fontFamily: "'DM Mono', monospace" }}>Limpiar selección</button>
+          <button onClick={() => setSelectedIds(new Set())} style={{ marginLeft: "auto", fontSize: 11, color: "var(--muted)", background: "none", border: "none", cursor: "pointer", fontFamily: "'DM Mono', monospace" }}>Limpiar selección</button>
         </div>
       )}
 
@@ -634,12 +634,12 @@ export default function ArchivoExplorer({ archivos, emptyMsg, isAdmin = false, e
       <div style={{ padding: "10px 20px", borderBottom: "1px solid var(--border)", background: "var(--surface)", display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
         {/* Search */}
         <div style={{ position: "relative", flex: 1, minWidth: 180, maxWidth: 300 }}>
-          <span style={{ position: "absolute", left: 9, top: "50%", transform: "translateY(-50%)", color: "rgba(15,17,23,0.3)", pointerEvents: "none" }}><SearchIcon /></span>
+          <span style={{ position: "absolute", left: 9, top: "50%", transform: "translateY(-50%)", color: "var(--muted)", pointerEvents: "none" }}><SearchIcon /></span>
           <input type="text" placeholder="Buscar…" value={search} onChange={e => setSearch(e.target.value)}
             style={{ width: "100%", paddingLeft: 30, paddingRight: search ? 26 : 10, paddingTop: 6, paddingBottom: 6, border: "1.5px solid var(--border)", borderRadius: 6, fontSize: 13, color: "var(--ink)", outline: "none", fontFamily: "'DM Sans', sans-serif", background: "var(--card)", boxSizing: "border-box" }}
             onFocus={e => (e.currentTarget.style.borderColor = "var(--accent)")}
             onBlur={e => (e.currentTarget.style.borderColor = "var(--border)")} />
-          {search && <button onClick={() => setSearch("")} style={{ position: "absolute", right: 7, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "rgba(15,17,23,0.35)", padding: 0, display: "flex" }}><XSmallIcon /></button>}
+          {search && <button onClick={() => setSearch("")} style={{ position: "absolute", right: 7, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--muted)", padding: 0, display: "flex" }}><XSmallIcon /></button>}
         </div>
 
         {/* Tipo pills */}
@@ -657,12 +657,12 @@ export default function ArchivoExplorer({ archivos, emptyMsg, isAdmin = false, e
 
         {/* Right side */}
         <div style={{ marginLeft: "auto", display: "flex", gap: 10, alignItems: "center" }}>
-          <span style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "rgba(15,17,23,0.4)", whiteSpace: "nowrap" }}>
+          <span style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "var(--muted)", whiteSpace: "nowrap" }}>
             {isFiltering ? `${allDisplayIds.length} resultado${allDisplayIds.length !== 1 ? "s" : ""}` : `${archivos.length} archivo${archivos.length !== 1 ? "s" : ""} · ${formatBytes(totalBytes)}`}
           </span>
           {hasFolders && !isFiltering && (
             <button onClick={() => setManualExpanded(allExpanded ? new Set() : new Set(collectFolderPaths(tree)))}
-              style={{ fontSize: 11, color: "rgba(15,17,23,0.45)", background: "none", border: "none", cursor: "pointer", padding: 0, fontFamily: "'DM Mono', monospace", whiteSpace: "nowrap" }}>
+              style={{ fontSize: 11, color: "var(--muted)", background: "none", border: "none", cursor: "pointer", padding: 0, fontFamily: "'DM Mono', monospace", whiteSpace: "nowrap" }}>
               {allExpanded ? "Contraer" : "Expandir"}
             </button>
           )}
@@ -701,7 +701,7 @@ export default function ArchivoExplorer({ archivos, emptyMsg, isAdmin = false, e
         <tbody>
           {renderRows(displayTree, 0, ctx)}
           {isFiltering && allDisplayIds.length === 0 && (
-            <tr><td colSpan={6} style={{ padding: "40px 20px", textAlign: "center", color: "rgba(15,17,23,0.35)", fontSize: 13, fontFamily: "'DM Mono', monospace" }}>Sin resultados{search ? ` para "${search}"` : ""}</td></tr>
+            <tr><td colSpan={6} style={{ padding: "40px 20px", textAlign: "center", color: "var(--muted)", fontSize: 13, fontFamily: "'DM Mono', monospace" }}>Sin resultados{search ? ` para "${search}"` : ""}</td></tr>
           )}
         </tbody>
       </table>
@@ -761,11 +761,11 @@ function NuevaCarpetaModal({ parentPath, entidadId, contratoId, destino, onClose
           <NewFolderIcon />
           <div>
             <div style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)" }}>Nueva carpeta</div>
-            {parentPath && <div style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "rgba(15,17,23,0.4)", marginTop: 1 }}>dentro de {parentPath}</div>}
+            {parentPath && <div style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "var(--muted)", marginTop: 1 }}>dentro de {parentPath}</div>}
           </div>
         </div>
         <form onSubmit={handleSubmit} style={{ padding: 20 }}>
-          <label style={{ display: "block", fontSize: 11, fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(15,17,23,0.4)", marginBottom: 8 }}>
+          <label style={{ display: "block", fontSize: 11, fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--muted)", marginBottom: 8 }}>
             Nombre de la carpeta
           </label>
           <input
@@ -778,13 +778,13 @@ function NuevaCarpetaModal({ parentPath, entidadId, contratoId, destino, onClose
             onBlur={e => (e.currentTarget.style.borderColor = "var(--border)")}
           />
           {nombre && (
-            <div style={{ marginTop: 8, fontSize: 11, fontFamily: "'DM Mono', monospace", color: "rgba(15,17,23,0.35)" }}>
-              Ruta: <span style={{ color: "rgba(15,17,23,0.6)" }}>{preview}</span>
+            <div style={{ marginTop: 8, fontSize: 11, fontFamily: "'DM Mono', monospace", color: "var(--muted)" }}>
+              Ruta: <span style={{ color: "var(--muted-2)" }}>{preview}</span>
             </div>
           )}
           {error && <div style={{ marginTop: 8, fontSize: 12, color: "var(--accent)" }}>{error}</div>}
           <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 16 }}>
-            <button type="button" onClick={onClose} style={{ padding: "7px 16px", border: "1px solid var(--border)", borderRadius: 4, background: "none", cursor: "pointer", fontSize: 13, color: "rgba(15,17,23,0.6)" }}>Cancelar</button>
+            <button type="button" onClick={onClose} style={{ padding: "7px 16px", border: "1px solid var(--border)", borderRadius: 4, background: "none", cursor: "pointer", fontSize: 13, color: "var(--muted-2)" }}>Cancelar</button>
             <button type="submit" disabled={!nombre.trim() || saving} style={{ padding: "7px 16px", background: "var(--ink)", color: "white", border: "none", borderRadius: 4, cursor: (!nombre.trim() || saving) ? "not-allowed" : "pointer", fontSize: 13, fontWeight: 600, opacity: (!nombre.trim() || saving) ? 0.5 : 1 }}>
               {saving ? "Creando…" : "Crear carpeta"}
             </button>

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -76,7 +76,7 @@ export default function SolicitudesView({ solicitudes: inicial }: { solicitudes:
           <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: "var(--ink)" }}>
             Solicitudes de Eliminación
           </div>
-          <div style={{ fontSize: 12, color: "rgba(15,17,23,0.4)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>
+          <div style={{ fontSize: 12, color: "var(--muted)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>
             Requieren autorización del administrador
           </div>
         </div>
@@ -120,7 +120,7 @@ export default function SolicitudesView({ solicitudes: inicial }: { solicitudes:
           <div style={{
             background: "var(--card)", border: "1px solid var(--border)",
             borderRadius: 8, padding: "48px 20px", textAlign: "center",
-            color: "rgba(15,17,23,0.35)", fontSize: 13,
+            color: "var(--muted)", fontSize: 13,
             fontFamily: "'DM Mono', monospace",
           }}>
             {filtro === "pendientes" ? "Sin solicitudes pendientes" : "No hay solicitudes registradas"}
@@ -179,7 +179,7 @@ function SolicitudCard({
           <ExtBadge tipo={s.archivo_tipo} />
           <span style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>{s.archivo_nombre}</span>
           {s.entidad_nombre && (
-            <span style={{ fontSize: 11, color: "rgba(15,17,23,0.45)", fontFamily: "'DM Mono', monospace" }}>
+            <span style={{ fontSize: 11, color: "var(--muted)", fontFamily: "'DM Mono', monospace" }}>
               · {s.entidad_nombre}
             </span>
           )}
@@ -190,32 +190,32 @@ function SolicitudCard({
       {/* Body */}
       <div style={{ padding: "14px 20px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px 24px" }}>
         <div>
-          <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(15,17,23,0.4)", marginBottom: 3 }}>
+          <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--muted)", marginBottom: 3 }}>
             Solicitante
           </div>
           <div style={{ fontSize: 13, color: "var(--ink)" }}>{s.solicitante_nombre ?? "—"}</div>
         </div>
         <div>
-          <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(15,17,23,0.4)", marginBottom: 3 }}>
+          <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--muted)", marginBottom: 3 }}>
             Fecha solicitud
           </div>
-          <div style={{ fontSize: 13, fontFamily: "'DM Mono', monospace", color: "rgba(15,17,23,0.6)" }}>
+          <div style={{ fontSize: 13, fontFamily: "'DM Mono', monospace", color: "var(--muted-2)" }}>
             {new Date(s.created_at).toLocaleDateString("es-MX")}
           </div>
         </div>
         {!isPending && s.revisor_nombre && (
           <>
             <div>
-              <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(15,17,23,0.4)", marginBottom: 3 }}>
+              <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--muted)", marginBottom: 3 }}>
                 Revisado por
               </div>
               <div style={{ fontSize: 13, color: "var(--ink)" }}>{s.revisor_nombre}</div>
             </div>
             <div>
-              <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(15,17,23,0.4)", marginBottom: 3 }}>
+              <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--muted)", marginBottom: 3 }}>
                 Fecha revisión
               </div>
-              <div style={{ fontSize: 13, fontFamily: "'DM Mono', monospace", color: "rgba(15,17,23,0.6)" }}>
+              <div style={{ fontSize: 13, fontFamily: "'DM Mono', monospace", color: "var(--muted-2)" }}>
                 {s.revisado_at ? new Date(s.revisado_at).toLocaleDateString("es-MX") : "—"}
               </div>
             </div>
@@ -225,7 +225,7 @@ function SolicitudCard({
 
       {/* Motivo */}
       <div style={{ padding: "0 20px 14px" }}>
-        <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(15,17,23,0.4)", marginBottom: 6 }}>
+        <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--muted)", marginBottom: 6 }}>
           Motivo
         </div>
         <div style={{
@@ -303,7 +303,7 @@ function ExtBadge({ tipo }: { tipo: string }) {
     docx: { bg: "#e3f2fd", color: "#1565c0" },
     csv:  { bg: "#f3e5f5", color: "#6a1b9a" },
   };
-  const s = map[tipo.toLowerCase()] ?? { bg: "var(--surface-2)", color: "rgba(15,17,23,0.5)" };
+  const s = map[tipo.toLowerCase()] ?? { bg: "var(--surface-2)", color: "var(--muted-2)" };
   return (
     <span style={{ ...s, fontFamily: "'DM Mono', monospace", fontSize: 9, padding: "2px 5px", borderRadius: 3, textTransform: "uppercase", letterSpacing: "0.06em", fontWeight: 600, flexShrink: 0 }}>
       {tipo.toLowerCase()}
@@ -317,7 +317,7 @@ function EstadoBadge({ estado }: { estado: string }) {
     aprobado:   { bg: "var(--red-light)",   color: "var(--accent)", label: "Aprobado" },
     rechazado:  { bg: "var(--green-light)", color: "var(--green)", label: "Rechazado" },
   };
-  const { bg, color, label } = cfg[estado] ?? { bg: "var(--surface-2)", color: "rgba(15,17,23,0.5)", label: estado };
+  const { bg, color, label } = cfg[estado] ?? { bg: "var(--surface-2)", color: "var(--muted-2)", label: estado };
   return (
     <span style={{
       display: "inline-flex", alignItems: "center", gap: 5,

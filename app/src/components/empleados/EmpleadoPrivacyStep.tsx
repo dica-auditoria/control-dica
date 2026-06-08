@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { useEmpleadoMutations } from "@/hooks/useEmpleadoMutations";
@@ -49,7 +49,7 @@ export default function EmpleadoPrivacyStep({ token, nombreCompleto, email }: Pr
         <h2 style={{ color: "var(--green)", fontFamily: "'DM Serif Display', serif" }}>
           Aceptación registrada
         </h2>
-        <p style={{ fontSize: 14, color: "rgba(15,17,23,0.55)", marginTop: 12 }}>
+        <p style={{ fontSize: 14, color: "var(--muted-2)", marginTop: 12 }}>
           Gracias, {nombreCompleto}. Puede cerrar esta ventana. Recibirá instrucciones
           en {email} para completar su expediente.
         </p>
@@ -74,7 +74,7 @@ export default function EmpleadoPrivacyStep({ token, nombreCompleto, email }: Pr
       }}>
         Paso 1: Aviso de privacidad
       </h1>
-      <p style={{ fontSize: 13, color: "rgba(15,17,23,0.5)", marginBottom: 24 }}>
+      <p style={{ fontSize: 13, color: "var(--muted-2)", marginBottom: 24 }}>
         {nombreCompleto} · {email}
       </p>
 
@@ -119,7 +119,7 @@ export default function EmpleadoPrivacyStep({ token, nombreCompleto, email }: Pr
 
       <p style={{
         fontSize: 11,
-        color: "rgba(15,17,23,0.4)",
+        color: "var(--muted)",
         fontFamily: "'DM Mono', monospace",
         marginBottom: 24,
       }}>

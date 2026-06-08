@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -51,7 +51,7 @@ export default function RequerimientosTab({ requerimientos, entidadId, contratoI
     <>
       {/* Toolbar */}
       <div style={{ padding: "12px 20px", borderBottom: "1px solid var(--border)", background: "var(--surface)", display: "flex", alignItems: "center", gap: 10 }}>
-        <span style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "rgba(15,17,23,0.4)" }}>
+        <span style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "var(--muted)" }}>
           {requerimientos.length} requerimiento{requerimientos.length !== 1 ? "s" : ""}{pendientes > 0 ? ` · ${pendientes} activo${pendientes !== 1 ? "s" : ""}` : ""}
         </span>
         <button onClick={() => setCrear(true)}
@@ -62,7 +62,7 @@ export default function RequerimientosTab({ requerimientos, entidadId, contratoI
 
       {/* List */}
       {requerimientos.length === 0 ? (
-        <div style={{ padding: "48px 20px", textAlign: "center", color: "rgba(15,17,23,0.35)", fontSize: 13, fontFamily: "'DM Mono', monospace" }}>
+        <div style={{ padding: "48px 20px", textAlign: "center", color: "var(--muted)", fontSize: 13, fontFamily: "'DM Mono', monospace" }}>
           Sin requerimientos — crea uno para solicitar documentos al cliente
         </div>
       ) : (
@@ -81,7 +81,7 @@ export default function RequerimientosTab({ requerimientos, entidadId, contratoI
                 <div
                   onClick={() => setExpanded(isOpen ? null : req.id)}
                   style={{ padding: "14px 20px", cursor: "pointer", display: "flex", alignItems: "center", gap: 14, background: isOpen ? "rgba(15,17,23,0.02)" : "white" }}>
-                  <span style={{ display: "inline-flex", color: "rgba(15,17,23,0.3)", transition: "transform 0.15s", transform: isOpen ? "rotate(90deg)" : "none" }}><ChevronIcon /></span>
+                  <span style={{ display: "inline-flex", color: "var(--muted)", transition: "transform 0.15s", transform: isOpen ? "rotate(90deg)" : "none" }}><ChevronIcon /></span>
 
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
@@ -94,11 +94,11 @@ export default function RequerimientosTab({ requerimientos, entidadId, contratoI
                           <div style={{ width: 80, height: 4, borderRadius: 2, background: "var(--surface-2)", overflow: "hidden" }}>
                             <div style={{ width: `${pct}%`, height: "100%", background: req.estado === "completado" ? "var(--green)" : "var(--accent)", borderRadius: 2, transition: "width 0.3s" }} />
                           </div>
-                          <span style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "rgba(15,17,23,0.4)" }}>{itemsDone}/{itemsTotal}</span>
+                          <span style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "var(--muted)" }}>{itemsDone}/{itemsTotal}</span>
                         </div>
                       )}
                       {req.archivos_count > 0 && (
-                        <span style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "rgba(15,17,23,0.4)" }}>{req.archivos_count} archivo{req.archivos_count !== 1 ? "s" : ""} subido{req.archivos_count !== 1 ? "s" : ""}</span>
+                        <span style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "var(--muted)" }}>{req.archivos_count} archivo{req.archivos_count !== 1 ? "s" : ""} subido{req.archivos_count !== 1 ? "s" : ""}</span>
                       )}
                     </div>
                   </div>
@@ -108,7 +108,7 @@ export default function RequerimientosTab({ requerimientos, entidadId, contratoI
                     <div style={{ fontSize: 12, fontFamily: "'DM Mono', monospace", color: req.estado === "vencido" ? "var(--accent)" : dias <= 3 ? "#B8860B" : "rgba(15,17,23,0.5)" }}>
                       {req.estado === "completado" ? formatFecha(req.fecha_limite) : dias < 0 ? `Venció hace ${Math.abs(dias)}d` : dias === 0 ? "Vence hoy" : `${dias}d restante${dias !== 1 ? "s" : ""}`}
                     </div>
-                    <div style={{ fontSize: 11, color: "rgba(15,17,23,0.3)", marginTop: 2 }}>{formatFecha(req.fecha_limite)}</div>
+                    <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 2 }}>{formatFecha(req.fecha_limite)}</div>
                   </div>
                 </div>
 
@@ -116,13 +116,13 @@ export default function RequerimientosTab({ requerimientos, entidadId, contratoI
                 {isOpen && (
                   <div style={{ padding: "0 20px 20px 52px", background: "rgba(15,17,23,0.015)" }}>
                     {req.descripcion && (
-                      <p style={{ fontSize: 12, color: "rgba(15,17,23,0.55)", marginBottom: 16, marginTop: 4 }}>{req.descripcion}</p>
+                      <p style={{ fontSize: 12, color: "var(--muted-2)", marginBottom: 16, marginTop: 4 }}>{req.descripcion}</p>
                     )}
 
                     {/* Items */}
                     {req.items.length > 0 && (
                       <div style={{ marginBottom: 16 }}>
-                        <div style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(15,17,23,0.35)", marginBottom: 8 }}>Documentos solicitados</div>
+                        <div style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--muted)", marginBottom: 8 }}>Documentos solicitados</div>
                         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                           {req.items.map(item => (
                             <div key={item.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 12px", background: "var(--card)", borderRadius: 6, border: "1px solid var(--border)" }}>
@@ -134,7 +134,7 @@ export default function RequerimientosTab({ requerimientos, entidadId, contratoI
                                 style={{ width: 15, height: 15, accentColor: "var(--accent)", cursor: "pointer", flexShrink: 0 }} />
                               <div style={{ flex: 1, minWidth: 0 }}>
                                 <span style={{ fontSize: 13, color: "var(--ink)", textDecoration: item.completado ? "line-through" : "none", opacity: item.completado ? 0.5 : 1 }}>{item.nombre}</span>
-                                {item.descripcion && <span style={{ fontSize: 11, color: "rgba(15,17,23,0.4)", marginLeft: 8 }}>{item.descripcion}</span>}
+                                {item.descripcion && <span style={{ fontSize: 11, color: "var(--muted)", marginLeft: 8 }}>{item.descripcion}</span>}
                               </div>
                               {item.obligatorio && !item.completado && (
                                 <span style={{ fontSize: 10, padding: "1px 6px", borderRadius: 3, background: "rgba(200,71,42,0.08)", color: "var(--accent)", fontFamily: "'DM Mono', monospace", fontWeight: 700 }}>obligatorio</span>
@@ -172,7 +172,7 @@ export default function RequerimientosTab({ requerimientos, entidadId, contratoI
                     </div>
 
                     {req.notas_cierre && (
-                      <div style={{ marginTop: 12, padding: "10px 12px", background: "rgba(45,166,95,0.06)", borderRadius: 6, border: "1px solid rgba(45,166,95,0.15)", fontSize: 12, color: "rgba(15,17,23,0.6)" }}>
+                      <div style={{ marginTop: 12, padding: "10px 12px", background: "rgba(45,166,95,0.06)", borderRadius: 6, border: "1px solid rgba(45,166,95,0.15)", fontSize: 12, color: "var(--muted-2)" }}>
                         <span style={{ fontWeight: 600, color: "#1B7A3E" }}>Nota de cierre: </span>{req.notas_cierre}
                       </div>
                     )}
@@ -265,7 +265,7 @@ function CrearRequerimientoModal({ entidadId, contratoId, onClose, onCreated }: 
       <div style={{ background: "var(--card)", borderRadius: 10, width: "100%", maxWidth: 560, maxHeight: "90vh", display: "flex", flexDirection: "column", boxShadow: "0 24px 64px rgba(15,17,23,0.25)", overflow: "hidden" }}>
         <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", background: "var(--surface)", flexShrink: 0 }}>
           <div style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)" }}>Nuevo requerimiento</div>
-          <div style={{ fontSize: 11, color: "rgba(15,17,23,0.4)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>Se notificará al cliente con los documentos a entregar y la fecha límite</div>
+          <div style={{ fontSize: 11, color: "var(--muted)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>Se notificará al cliente con los documentos a entregar y la fecha límite</div>
         </div>
 
         <form onSubmit={handleSubmit} style={{ flex: 1, overflowY: "auto", padding: 20, display: "flex", flexDirection: "column", gap: 16 }}>
@@ -286,7 +286,7 @@ function CrearRequerimientoModal({ entidadId, contratoId, onClose, onCreated }: 
           </Field>
 
           <div>
-            <div style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(15,17,23,0.4)", marginBottom: 10 }}>
+            <div style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--muted)", marginBottom: 10 }}>
               Documentos a solicitar
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
@@ -295,14 +295,14 @@ function CrearRequerimientoModal({ entidadId, contratoId, onClose, onCreated }: 
                   <input value={item.nombre} onChange={e => updateItem(i, "nombre", e.target.value)}
                     placeholder={`Documento ${i + 1} (ej. INE vigente)`}
                     style={{ ...inputStyle, flex: 1 }} onFocus={focusBorder} onBlur={blurBorder} />
-                  <label style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12, color: "rgba(15,17,23,0.5)", cursor: "pointer", whiteSpace: "nowrap" }}>
+                  <label style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12, color: "var(--muted-2)", cursor: "pointer", whiteSpace: "nowrap" }}>
                     <input type="checkbox" checked={item.obligatorio} onChange={e => updateItem(i, "obligatorio", e.target.checked)}
                       style={{ accentColor: "var(--accent)" }} />
                     oblig.
                   </label>
                   {items.length > 1 && (
                     <button type="button" onClick={() => removeItem(i)}
-                      style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(15,17,23,0.3)", padding: 4, display: "flex" }}><XSmIcon /></button>
+                      style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", padding: 4, display: "flex" }}><XSmIcon /></button>
                   )}
                 </div>
               ))}
@@ -411,7 +411,7 @@ function CerrarModal({ requerimientoId, onClose, onClosed }: { requerimientoId: 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label style={{ display: "block", fontSize: 11, fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(15,17,23,0.4)", marginBottom: 6 }}>{label}</label>
+      <label style={{ display: "block", fontSize: 11, fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--muted)", marginBottom: 6 }}>{label}</label>
       {children}
     </div>
   );

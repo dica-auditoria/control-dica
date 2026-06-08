@@ -26,6 +26,18 @@
   --border-strong: rgba(15, 17, 23, 0.18);
 }
 
+/* ── Adaptive text / tint tokens ─────────── */
+:root {
+  --muted: rgba(15, 17, 23, 0.42);
+  --muted-2: rgba(15, 17, 23, 0.58);
+  --tint-red: #fdecea;
+  --tint-blue: #dce8f5;
+  --tint-amber: #fff3e0;
+  --tint-green: #d8f3dc;
+  --tint-gold: #fff8ec;
+  --tint-blue2: #e3f2fd;
+}
+
 /* ── Dark theme ──────────────────────────── */
 [data-theme="dark"] {
   --ink: #e8eaf0;
@@ -38,9 +50,23 @@
   --border: rgba(255, 255, 255, 0.08);
   --border-strong: rgba(255, 255, 255, 0.14);
   --red-light: rgba(200, 71, 42, 0.18);
-  --green-light: rgba(27, 79, 138, 0.22);
+  --green-light: rgba(27, 79, 138, 0.28);
   --lime-light: rgba(141, 198, 63, 0.15);
-  --amber-light: rgba(181, 86, 14, 0.18);
+  --amber-light: rgba(181, 86, 14, 0.20);
+  /* Text */
+  --muted: rgba(232, 234, 240, 0.48);
+  --muted-2: rgba(232, 234, 240, 0.65);
+  /* Tints */
+  --tint-red: rgba(200, 71, 42, 0.18);
+  --tint-blue: rgba(27, 79, 138, 0.28);
+  --tint-amber: rgba(181, 86, 14, 0.20);
+  --tint-green: rgba(45, 122, 58, 0.20);
+  --tint-gold: rgba(184, 154, 92, 0.18);
+  --tint-blue2: rgba(21, 101, 192, 0.22);
+  /* Brand accent lighter for text contrast on dark */
+  --green: #5b9fd8;
+  --amber: #e0893a;
+  --accent: #e07060;
 }
 
 body {

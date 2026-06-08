@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import Link from "next/link";
@@ -220,15 +220,15 @@ export default function ClienteDetalleView({ cliente: initial, rol, backHref = "
         display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16,
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <Link href={backHref} style={{ color: "rgba(15,17,23,0.4)", textDecoration: "none", fontSize: 13 }}>
+          <Link href={backHref} style={{ color: "var(--muted)", textDecoration: "none", fontSize: 13 }}>
             ← {backLabel}
           </Link>
-          <span style={{ color: "rgba(15,17,23,0.2)" }}>/</span>
+          <span style={{ color: "var(--muted)" }}>/</span>
           <div>
             <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: "var(--ink)" }}>
               {cliente.nombre}
             </div>
-            <div style={{ fontSize: 12, color: "rgba(15,17,23,0.4)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>
+            <div style={{ fontSize: 12, color: "var(--muted)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>
               Alta: {new Date(cliente.created_at).toLocaleDateString("es-MX")}
             </div>
           </div>
@@ -296,7 +296,7 @@ export default function ClienteDetalleView({ cliente: initial, rol, backHref = "
           {cliente.contratos.length === 0 ? (
             <div style={{
               padding: "48px 20px", textAlign: "center",
-              color: "rgba(15,17,23,0.35)", fontSize: 13,
+              color: "var(--muted)", fontSize: 13,
               fontFamily: "'DM Mono', monospace",
             }}>
               {isAdmin
@@ -330,12 +330,12 @@ export default function ClienteDetalleView({ cliente: initial, rol, backHref = "
                   >
                     <td style={{ padding: "14px 20px" }}>
                       <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>{c.nombre}</div>
-                      <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", color: "rgba(15,17,23,0.35)", marginTop: 2 }}>
+                      <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", color: "var(--muted)", marginTop: 2 }}>
                         {c.id.slice(0, 8)}…
                       </div>
                     </td>
-                    <td style={{ padding: "14px 20px", fontSize: 12, fontFamily: "'DM Mono', monospace", color: "rgba(15,17,23,0.6)" }}>
-                      {c.numero_contrato ?? <span style={{ color: "rgba(15,17,23,0.25)" }}>—</span>}
+                    <td style={{ padding: "14px 20px", fontSize: 12, fontFamily: "'DM Mono', monospace", color: "var(--muted-2)" }}>
+                      {c.numero_contrato ?? <span style={{ color: "var(--muted)" }}>—</span>}
                     </td>
                     <td style={{ padding: "14px 20px" }}>
                       {c.calle ? (
@@ -343,19 +343,19 @@ export default function ClienteDetalleView({ cliente: initial, rol, backHref = "
                           <div style={{ fontSize: 12, color: "var(--ink)" }}>
                             {c.calle} {c.numero_exterior}{c.numero_interior ? ` Int. ${c.numero_interior}` : ""}
                           </div>
-                          <div style={{ fontSize: 11, color: "rgba(15,17,23,0.45)", marginTop: 2 }}>
+                          <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 2 }}>
                             {[c.colonia, c.municipio, c.estado_republica].filter(Boolean).join(", ")}
                             {c.cp ? ` CP ${c.cp}` : ""}
                           </div>
                         </div>
                       ) : (
-                        <span style={{ fontSize: 12, color: "rgba(15,17,23,0.25)", fontFamily: "'DM Mono', monospace" }}>Sin dirección</span>
+                        <span style={{ fontSize: 12, color: "var(--muted)", fontFamily: "'DM Mono', monospace" }}>Sin dirección</span>
                       )}
                     </td>
-                    <td style={{ padding: "14px 20px", fontSize: 12, fontFamily: "'DM Mono', monospace", color: "rgba(15,17,23,0.5)" }}>
+                    <td style={{ padding: "14px 20px", fontSize: 12, fontFamily: "'DM Mono', monospace", color: "var(--muted-2)" }}>
                       <div>{new Date(c.fecha_inicio + "T12:00:00").toLocaleDateString("es-MX")}</div>
                       {c.fecha_fin && (
-                        <div style={{ color: "rgba(15,17,23,0.35)" }}>
+                        <div style={{ color: "var(--muted)" }}>
                           hasta {new Date(c.fecha_fin + "T12:00:00").toLocaleDateString("es-MX")}
                         </div>
                       )}
@@ -432,7 +432,7 @@ export default function ClienteDetalleView({ cliente: initial, rol, backHref = "
               <div style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)" }}>
                 {modal === "crear" ? "Nuevo contrato" : "Editar contrato"}
               </div>
-              <button onClick={cerrarModal} style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(15,17,23,0.4)", padding: 4 }}>
+              <button onClick={cerrarModal} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", padding: 4 }}>
                 <XIcon />
               </button>
             </div>
@@ -496,7 +496,7 @@ export default function ClienteDetalleView({ cliente: initial, rol, backHref = "
                 {/* Separador dirección */}
                 <div style={{
                   fontSize: 10, fontFamily: "'DM Mono', monospace", letterSpacing: "0.1em",
-                  textTransform: "uppercase", color: "rgba(15,17,23,0.35)",
+                  textTransform: "uppercase", color: "var(--muted)",
                   borderTop: "1px solid var(--border)", paddingTop: 12,
                 }}>
                   Dirección de servicio
@@ -624,7 +624,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       <label style={{
         display: "block", fontSize: 11, fontWeight: 600,
         letterSpacing: "0.08em", textTransform: "uppercase",
-        color: "rgba(15,17,23,0.5)", marginBottom: 6,
+        color: "var(--muted-2)", marginBottom: 6,
         fontFamily: "'DM Mono', monospace",
       }}>
         {label}
@@ -652,7 +652,7 @@ function StatusBadge({ activo }: { activo: boolean }) {
 function EstadoBadge({ estado }: { estado: ContratoEstado }) {
   const map: Record<ContratoEstado, { bg: string; color: string; label: string }> = {
     vigente:   { bg: "var(--green-light)",  color: "var(--green)",  label: "Vigente" },
-    vencido:   { bg: "var(--surface-2)",    color: "rgba(15,17,23,0.45)", label: "Vencido" },
+    vencido:   { bg: "var(--surface-2)",    color: "var(--muted)", label: "Vencido" },
     cancelado: { bg: "var(--red-light)",    color: "var(--accent)", label: "Cancelado" },
   };
   const s = map[estado];
@@ -675,7 +675,7 @@ function StatCard({ label, value, accent }: { label: string; value: number; acce
       padding: 20, boxShadow: "0 1px 3px rgba(15,17,23,0.08)",
       borderTop: `3px solid ${accent}`,
     }}>
-      <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(15,17,23,0.4)", marginBottom: 8 }}>
+      <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--muted)", marginBottom: 8 }}>
         {label}
       </div>
       <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 36, color: "var(--ink)", lineHeight: 1 }}>
@@ -691,7 +691,7 @@ function Th({ children }: { children?: React.ReactNode }) {
       padding: "10px 20px", textAlign: "left",
       fontSize: 10, fontFamily: "'DM Mono', monospace",
       letterSpacing: "0.08em", textTransform: "uppercase",
-      color: "rgba(15,17,23,0.4)", borderBottom: "1px solid var(--border)",
+      color: "var(--muted)", borderBottom: "1px solid var(--border)",
     }}>
       {children}
     </th>

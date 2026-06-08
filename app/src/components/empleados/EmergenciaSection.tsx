@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect, useRef } from "react";
 import {
@@ -69,7 +69,7 @@ const labelStyle: React.CSSProperties = {
   display: "block",
   fontSize: 11,
   fontWeight: 600,
-  color: "rgba(15,17,23,0.45)",
+  color: "var(--muted)",
   textTransform: "uppercase",
   letterSpacing: "0.05em",
   marginBottom: 6,
@@ -209,13 +209,13 @@ function ContactoCard({ orden, contacto, empleadoId, onSaved, onDeleted }: Conta
             { l: "Tel. alternativo", v: contacto.telefono_alt ?? "—" },
           ].map(({ l, v }) => (
             <div key={l}>
-              <div style={{ fontSize: 11, color: "rgba(15,17,23,0.4)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>{l}</div>
+              <div style={{ fontSize: 11, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>{l}</div>
               <div style={{ fontSize: 14, color: "var(--ink)" }}>{v}</div>
             </div>
           ))}
         </div>
       ) : (
-        <p style={{ color: "rgba(15,17,23,0.35)", fontSize: 13, margin: 0 }}>Sin contacto registrado</p>
+        <p style={{ color: "var(--muted)", fontSize: 13, margin: 0 }}>Sin contacto registrado</p>
       )}
     </div>
   );
@@ -388,7 +388,7 @@ function IncapacidadesPanel({ empleadoId, inicial }: { empleadoId: string; inici
       <input ref={tableFileRef} type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={handleTableFileChange} style={{ display: "none" }} />
 
       {lista.length === 0 && !showForm && (
-        <p style={{ color: "rgba(15,17,23,0.35)", fontSize: 13, margin: "0 0 14px" }}>Sin incapacidades registradas.</p>
+        <p style={{ color: "var(--muted)", fontSize: 13, margin: "0 0 14px" }}>Sin incapacidades registradas.</p>
       )}
 
       {lista.length > 0 && (
@@ -397,7 +397,7 @@ function IncapacidadesPanel({ empleadoId, inicial }: { empleadoId: string; inici
             <thead>
               <tr style={{ background: "var(--surface)" }}>
                 {["Folio", "Tipo", "Motivo", "Inicio", "Fin", "Días", "Doc.", ""].map(h => (
-                  <th key={h} style={{ padding: "9px 12px", textAlign: "left", color: "rgba(15,17,23,0.45)", fontWeight: 600, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em", borderBottom: "1px solid var(--border)" }}>
+                  <th key={h} style={{ padding: "9px 12px", textAlign: "left", color: "var(--muted)", fontWeight: 600, fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em", borderBottom: "1px solid var(--border)" }}>
                     {h}
                   </th>
                 ))}
@@ -418,7 +418,7 @@ function IncapacidadesPanel({ empleadoId, inicial }: { empleadoId: string; inici
                         Ver
                       </button>
                     ) : uploadingId === inc.id ? (
-                      <span style={{ color: "rgba(15,17,23,0.35)", fontSize: 12 }}>Subiendo…</span>
+                      <span style={{ color: "var(--muted)", fontSize: 12 }}>Subiendo…</span>
                     ) : (
                       <button onClick={() => handleTableFileClick(inc.id)} style={{ background: "none", border: "none", color: "#1677ff", fontSize: 12, cursor: "pointer", padding: 0, textDecoration: "underline" }}>
                         + Doc
@@ -473,7 +473,7 @@ function IncapacidadesPanel({ empleadoId, inicial }: { empleadoId: string; inici
                   <span style={{ fontSize: 13, color: archivo ? "var(--green)" : "rgba(15,17,23,0.5)", fontWeight: archivo ? 600 : 400 }}>
                     {archivo ? archivo.name : "Haz clic para seleccionar archivo"}
                   </span>
-                  {!archivo && <span style={{ fontSize: 11, color: "rgba(15,17,23,0.35)" }}>PDF, JPG o PNG · máx. 10 MB · opcional</span>}
+                  {!archivo && <span style={{ fontSize: 11, color: "var(--muted)" }}>PDF, JPG o PNG · máx. 10 MB · opcional</span>}
                   {archivo && (
                     <button
                       type="button"
@@ -534,7 +534,7 @@ export default function EmergenciaSection({ empleadoId }: { empleadoId: string }
     return (
       <div style={{ ...cardStyle }}>
         <div style={cardHeaderStyle}><span style={{ fontWeight: 600, fontSize: 14 }}>Emergencia</span></div>
-        <div style={{ ...cardBodyStyle, color: "rgba(15,17,23,0.35)", fontSize: 13 }}>Cargando…</div>
+        <div style={{ ...cardBodyStyle, color: "var(--muted)", fontSize: 13 }}>Cargando…</div>
       </div>
     );
   }
@@ -545,7 +545,7 @@ export default function EmergenciaSection({ empleadoId }: { empleadoId: string }
       <div style={cardStyle}>
         <div style={cardHeaderStyle}>
           <span style={{ fontWeight: 600, fontSize: 14 }}>Contactos de emergencia</span>
-          <span style={{ fontSize: 12, color: "rgba(15,17,23,0.4)" }}>Máx. 2 contactos</span>
+          <span style={{ fontSize: 12, color: "var(--muted)" }}>Máx. 2 contactos</span>
         </div>
         <div style={cardBodyStyle}>
           {contactos.map((c, i) => (

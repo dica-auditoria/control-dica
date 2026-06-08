@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import UploadZone from "./UploadZone";
@@ -44,7 +44,7 @@ export default function ArchivosView({ archivos: inicial, entidadId, rol }: Arch
       }}>
         <div>
           <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: "var(--ink)" }}>Archivos</div>
-          <div style={{ fontSize: 12, color: "rgba(15,17,23,0.4)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>
+          <div style={{ fontSize: 12, color: "var(--muted)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>
             {archivos.length} documento{archivos.length !== 1 ? "s" : ""} en custodia
           </div>
         </div>
@@ -91,7 +91,7 @@ export default function ArchivosView({ archivos: inicial, entidadId, rol }: Arch
                 <tr>
                   <td colSpan={isAdmin ? 7 : 5} style={{
                     padding: "40px 20px", textAlign: "center",
-                    color: "rgba(15,17,23,0.35)", fontSize: 13,
+                    color: "var(--muted)", fontSize: 13,
                     fontFamily: "'DM Mono', monospace",
                   }}>
                     No hay archivos registrados
@@ -106,25 +106,25 @@ export default function ArchivosView({ archivos: inicial, entidadId, rol }: Arch
                     </div>
                   </td>
                   {isAdmin && (
-                    <td style={{ padding: "12px 20px", fontSize: 12, color: "rgba(15,17,23,0.55)" }}>
+                    <td style={{ padding: "12px 20px", fontSize: 12, color: "var(--muted-2)" }}>
                       {f.entidad_nombre ?? "—"}
                     </td>
                   )}
                   {isAdmin && (
-                    <td style={{ padding: "12px 20px", fontSize: 12, color: "rgba(15,17,23,0.55)" }}>
+                    <td style={{ padding: "12px 20px", fontSize: 12, color: "var(--muted-2)" }}>
                       {f.subido_por_nombre ?? "—"}
                     </td>
                   )}
-                  <td style={{ padding: "12px 20px", fontSize: 12, fontFamily: "'DM Mono', monospace", color: "rgba(15,17,23,0.45)" }}>
+                  <td style={{ padding: "12px 20px", fontSize: 12, fontFamily: "'DM Mono', monospace", color: "var(--muted)" }}>
                     {new Date(f.created_at).toLocaleDateString("es-MX")}
                   </td>
-                  <td style={{ padding: "12px 20px", fontSize: 12, fontFamily: "'DM Mono', monospace", color: "rgba(15,17,23,0.45)" }}>
+                  <td style={{ padding: "12px 20px", fontSize: 12, fontFamily: "'DM Mono', monospace", color: "var(--muted)" }}>
                     {formatBytes(f.size_bytes)}
                   </td>
                   <td style={{ padding: "12px 20px" }}>
                     <span style={{
                       fontSize: 11, fontFamily: "'DM Mono', monospace",
-                      color: "rgba(15,17,23,0.4)", letterSpacing: "0.02em",
+                      color: "var(--muted)", letterSpacing: "0.02em",
                     }} title={f.hash_sha256}>
                       {f.hash_sha256.slice(0, 8)}…{f.hash_sha256.slice(-8)}
                     </span>
@@ -163,13 +163,13 @@ export default function ArchivosView({ archivos: inicial, entidadId, rol }: Arch
             }}>
               <div>
                 <div style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)" }}>Subir archivo</div>
-                <div style={{ fontSize: 11, color: "rgba(15,17,23,0.4)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>
+                <div style={{ fontSize: 11, color: "var(--muted)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>
                   Hash SHA-256 calculado en el navegador
                 </div>
               </div>
               <button
                 onClick={() => setModalOpen(false)}
-                style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(15,17,23,0.4)", padding: 4 }}
+                style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", padding: 4 }}
               >
                 <XIcon />
               </button>
@@ -190,7 +190,7 @@ function Th({ children }: { children: React.ReactNode }) {
       padding: "10px 20px", textAlign: "left",
       fontSize: 10, fontFamily: "'DM Mono', monospace",
       letterSpacing: "0.08em", textTransform: "uppercase",
-      color: "rgba(15,17,23,0.4)",
+      color: "var(--muted)",
       borderBottom: "1px solid var(--border)",
     }}>
       {children}
@@ -208,7 +208,7 @@ function ExtBadge({ tipo }: { tipo: string }) {
     doc:  { bg: "#e3f2fd", color: "#1565c0" },
     csv:  { bg: "#f3e5f5", color: "#6a1b9a" },
   };
-  const s = map[tipo.toLowerCase()] ?? { bg: "var(--surface-2)", color: "rgba(15,17,23,0.5)" };
+  const s = map[tipo.toLowerCase()] ?? { bg: "var(--surface-2)", color: "var(--muted-2)" };
   return (
     <span style={{
       ...s, fontFamily: "'DM Mono', monospace", fontSize: 9,

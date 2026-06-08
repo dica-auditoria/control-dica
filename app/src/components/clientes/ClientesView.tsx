@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 
@@ -31,13 +31,13 @@ export default function ClientesView({ clientes }: ClientesViewProps) {
           display: "flex", alignItems: "center", justifyContent: "space-between",
           marginBottom: 20,
         }}>
-          <div style={{ fontSize: 12, color: "rgba(15,17,23,0.4)", fontFamily: "'DM Mono', monospace" }}>
+          <div style={{ fontSize: 12, color: "var(--muted)", fontFamily: "'DM Mono', monospace" }}>
             {activos} activo{activos !== 1 ? "s" : ""} · {clientes.length} empresa{clientes.length !== 1 ? "s" : ""}
           </div>
           <Link
             href="/dashboard/directorio"
             style={{
-              fontSize: 12, color: "rgba(15,17,23,0.5)", textDecoration: "none",
+              fontSize: 12, color: "var(--muted-2)", textDecoration: "none",
               display: "flex", alignItems: "center", gap: 4,
               fontFamily: "'DM Sans', sans-serif",
             }}
@@ -56,7 +56,7 @@ export default function ClientesView({ clientes }: ClientesViewProps) {
         {clientes.length === 0 ? (
           <div style={{
             padding: "64px 20px", textAlign: "center",
-            color: "rgba(15,17,23,0.35)", fontSize: 13,
+            color: "var(--muted)", fontSize: 13,
             fontFamily: "'DM Mono', monospace",
           }}>
             No hay clientes registrados —{" "}
@@ -104,7 +104,7 @@ function ClienteCard({ cliente: c }: { cliente: ClienteListItem }) {
             }}>
               {c.nombre}
             </div>
-            <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", color: "rgba(15,17,23,0.4)", marginTop: 2 }}>
+            <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", color: "var(--muted)", marginTop: 2 }}>
               Alta: {new Date(c.created_at).toLocaleDateString("es-MX")}
             </div>
           </div>
@@ -152,7 +152,7 @@ function Metric({ label, value, color }: { label: string; value: number; color?:
       <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: color ?? "var(--ink)", lineHeight: 1 }}>
         {value}
       </div>
-      <div style={{ fontSize: 9, fontFamily: "'DM Mono', monospace", color: "rgba(15,17,23,0.4)", textTransform: "uppercase", marginTop: 2 }}>
+      <div style={{ fontSize: 9, fontFamily: "'DM Mono', monospace", color: "var(--muted)", textTransform: "uppercase", marginTop: 2 }}>
         {label}
       </div>
     </div>
@@ -166,7 +166,7 @@ function StatCard({ label, value, accent }: { label: string; value: number; acce
       padding: 20, boxShadow: "0 1px 3px rgba(15,17,23,0.08)",
       borderTop: `3px solid ${accent}`,
     }}>
-      <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(15,17,23,0.4)", marginBottom: 8 }}>
+      <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--muted)", marginBottom: 8 }}>
         {label}
       </div>
       <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 36, color: "var(--ink)", lineHeight: 1 }}>

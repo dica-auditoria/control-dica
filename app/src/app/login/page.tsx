@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
@@ -99,7 +99,7 @@ export default function LoginPage() {
             color: "var(--ink)",
             marginBottom: 6,
           }}>Iniciar sesión</h2>
-          <p style={{ fontSize: 14, color: "rgba(15,17,23,0.45)", marginBottom: 36 }}>
+          <p style={{ fontSize: 14, color: "var(--muted)", marginBottom: 36 }}>
             Ingresa con tus credenciales asignadas.
           </p>
 
@@ -108,7 +108,7 @@ export default function LoginPage() {
               <label style={{
                 display: "block", fontSize: 11, fontWeight: 600,
                 letterSpacing: "0.08em", textTransform: "uppercase",
-                color: "rgba(15,17,23,0.5)", marginBottom: 6,
+                color: "var(--muted-2)", marginBottom: 6,
                 fontFamily: "'DM Mono', monospace",
               }}>Correo electrónico</label>
               <input
@@ -132,7 +132,7 @@ export default function LoginPage() {
               <label style={{
                 display: "block", fontSize: 11, fontWeight: 600,
                 letterSpacing: "0.08em", textTransform: "uppercase",
-                color: "rgba(15,17,23,0.5)", marginBottom: 6,
+                color: "var(--muted-2)", marginBottom: 6,
                 fontFamily: "'DM Mono', monospace",
               }}>Contraseña</label>
               <input

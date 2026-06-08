@@ -1,7 +1,7 @@
 const STATUS_STYLES: Record<string, { bg: string; color: string; label: string }> = {
   activo: { bg: "var(--green-light)", color: "var(--green)", label: "Activo" },
   pendiente: { bg: "var(--amber-light)", color: "var(--amber)", label: "Pendiente" },
-  inactivo: { bg: "var(--surface-2)", color: "rgba(15,17,23,0.5)", label: "Inactivo" },
+  inactivo: { bg: "var(--surface-2)", color: "var(--muted-2)", label: "Inactivo" },
 };
 
 export default function StatusBadge({ estado }: { estado: string }) {

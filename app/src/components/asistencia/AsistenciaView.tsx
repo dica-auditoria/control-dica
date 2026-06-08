@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useTransition } from "react";
 import { registrarAsistenciaAction, fetchAsistenciaAction, fetchReporteRangoAction, type ReporteEmpleado } from "@/app/actions/asistencia";
@@ -21,7 +21,7 @@ const STATUS_LABEL: Record<string, string> = { a_tiempo: "A Tiempo", tardanza: "
 const STATUS_COLOR: Record<string, { bg: string; color: string }> = {
   a_tiempo:      { bg: "rgba(34,197,94,0.12)", color: "#16a34a" },
   tardanza:      { bg: "rgba(234,179,8,0.15)", color: "#a16207" },
-  no_registrado: { bg: "rgba(15,17,23,0.06)",  color: "rgba(15,17,23,0.35)" },
+  no_registrado: { bg: "rgba(15,17,23,0.06)",  color: "var(--muted)" },
 };
 
 function exportCSV(empleados: ReporteEmpleado[], fechas: string[], sel: Set<string>, horaEntrada: string) {
@@ -58,7 +58,7 @@ export default function AsistenciaView({ registros: inicial, empleados, oficinas
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
           <div>
             <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: "var(--ink)", margin: 0 }}>Asistencia</h1>
-            <p style={{ fontSize: 13, color: "rgba(15,17,23,0.45)", marginTop: 4 }}>
+            <p style={{ fontSize: 13, color: "var(--muted)", marginTop: 4 }}>
               Control de entradas y salidas · Reportes con geofencing
             </p>
           </div>
@@ -166,14 +166,14 @@ function TabHoy({ registros: inicial, empleados, oficinas, fechaInicial }: Props
           <option value="entrada">Solo entradas</option>
           <option value="salida">Solo salidas</option>
         </select>
-        <span style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "rgba(15,17,23,0.4)" }}>{lista.length} reg.</span>
+        <span style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "var(--muted)" }}>{lista.length} reg.</span>
         <button onClick={() => setModalOpen(true)} style={{ ...btnP, marginLeft: "auto" }}>+ Registrar entrada / salida</button>
       </div>
 
       {/* Table */}
       <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden", boxShadow: "0 1px 3px rgba(15,17,23,0.06)" }}>
         {lista.length === 0 ? (
-          <div style={{ padding: 48, textAlign: "center", color: "rgba(15,17,23,0.35)", fontFamily: "'DM Mono', monospace", fontSize: 13 }}>Sin registros</div>
+          <div style={{ padding: 48, textAlign: "center", color: "var(--muted)", fontFamily: "'DM Mono', monospace", fontSize: 13 }}>Sin registros</div>
         ) : (
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
@@ -186,21 +186,21 @@ function TabHoy({ registros: inicial, empleados, oficinas, fechaInicial }: Props
                 <tr key={r.id} style={{ borderBottom: "1px solid var(--border)" }}>
                   <td style={tdSt}>
                     <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>{r.empleado_nombre}</div>
-                    {r.empleado_codigo && <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", color: "rgba(15,17,23,0.4)" }}>{r.empleado_codigo}</div>}
+                    {r.empleado_codigo && <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", color: "var(--muted)" }}>{r.empleado_codigo}</div>}
                   </td>
                   <td style={tdSt}>
                     <span style={{ padding: "3px 10px", borderRadius: 100, fontSize: 11, fontWeight: 600, background: r.tipo === "entrada" ? "rgba(45,106,79,0.1)" : "rgba(15,17,23,0.06)", color: r.tipo === "entrada" ? "var(--green)" : "var(--ink-2)" }}>
                       {r.tipo === "entrada" ? "↗ Entrada" : "↙ Salida"}
                     </span>
                   </td>
-                  <td style={{ ...tdSt, fontSize: 12, color: "rgba(15,17,23,0.6)" }}>{r.ubicacion_nombre ?? "—"}</td>
+                  <td style={{ ...tdSt, fontSize: 12, color: "var(--muted-2)" }}>{r.ubicacion_nombre ?? "—"}</td>
                   <td style={{ ...tdSt, fontFamily: "'DM Mono', monospace", fontSize: 12 }}>{r.distancia_metros != null ? `${r.distancia_metros.toFixed(0)} m` : "—"}</td>
                   <td style={tdSt}>
-                    {r.dentro_radio === null ? <span style={{ fontSize: 11, color: "rgba(15,17,23,0.35)" }}>Sin GPS</span>
+                    {r.dentro_radio === null ? <span style={{ fontSize: 11, color: "var(--muted)" }}>Sin GPS</span>
                       : r.dentro_radio ? <span style={{ fontSize: 11, fontWeight: 600, color: "var(--green)" }}>✓ Dentro</span>
                       : <span style={{ fontSize: 11, fontWeight: 600, color: "var(--accent)" }}>⚠ Fuera</span>}
                   </td>
-                  <td style={{ ...tdSt, fontFamily: "'DM Mono', monospace", fontSize: 11, color: "rgba(15,17,23,0.5)" }}>
+                  <td style={{ ...tdSt, fontFamily: "'DM Mono', monospace", fontSize: 11, color: "var(--muted-2)" }}>
                     {new Date(r.created_at).toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
                   </td>
                 </tr>
@@ -217,7 +217,7 @@ function TabHoy({ registros: inicial, empleados, oficinas, fechaInicial }: Props
           <div style={{ background: "var(--card)", borderRadius: 8, width: "100%", maxWidth: 460, boxShadow: "0 8px 32px rgba(15,17,23,0.18)", overflow: "hidden" }}>
             <div style={{ padding: "16px 22px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <h2 style={{ margin: 0, fontSize: 15, fontWeight: 600 }}>Registrar asistencia</h2>
-              <button onClick={() => setModalOpen(false)} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "rgba(15,17,23,0.4)" }}>×</button>
+              <button onClick={() => setModalOpen(false)} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "var(--muted)" }}>×</button>
             </div>
             <div style={{ padding: "18px 22px", display: "flex", flexDirection: "column", gap: 14 }}>
               {formError && <div style={{ padding: 10, background: "var(--red-light)", color: "var(--accent)", borderRadius: 4, fontSize: 12 }}>{formError}</div>}
@@ -358,7 +358,7 @@ function TabReportes() {
                 <span style={{ color: STATUS_COLOR[k].color, fontWeight: 600 }}>{v}</span>
               </div>
             ))}
-            {sel.size > 0 && <span style={{ fontSize: 11, color: "rgba(15,17,23,0.45)", marginLeft: "auto" }}>{sel.size} marcado{sel.size !== 1 ? "s" : ""}</span>}
+            {sel.size > 0 && <span style={{ fontSize: 11, color: "var(--muted)", marginLeft: "auto" }}>{sel.size} marcado{sel.size !== 1 ? "s" : ""}</span>}
           </div>
 
           {/* Table */}
@@ -386,9 +386,9 @@ function TabReportes() {
                     <td style={{ ...tdSt, textAlign: "center" }}><input type="checkbox" checked={sel.has(e.id)} onChange={() => toggleSel(e.id)} /></td>
                     <td style={tdSt}>
                       <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", whiteSpace: "nowrap" }}>{e.nombre}</div>
-                      {e.codigo && <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", color: "rgba(15,17,23,0.4)" }}>{e.codigo}</div>}
+                      {e.codigo && <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", color: "var(--muted)" }}>{e.codigo}</div>}
                     </td>
-                    <td style={{ ...tdSt, fontSize: 11, color: "rgba(15,17,23,0.55)", whiteSpace: "nowrap" }}>{e.departamento}</td>
+                    <td style={{ ...tdSt, fontSize: 11, color: "var(--muted-2)", whiteSpace: "nowrap" }}>{e.departamento}</td>
                     {fechas.map(f => {
                       const d = e.dias[f]; const s = d?.status ?? "no_registrado"; const c = STATUS_COLOR[s];
                       const hora = d?.entrada ? new Date(d.entrada).toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" }) : "";
@@ -410,9 +410,9 @@ function TabReportes() {
                 ))}
               </tbody>
             </table>
-            {data.length === 0 && <div style={{ padding: 48, textAlign: "center", color: "rgba(15,17,23,0.35)", fontFamily: "'DM Mono', monospace", fontSize: 13 }}>Sin datos para el período</div>}
+            {data.length === 0 && <div style={{ padding: 48, textAlign: "center", color: "var(--muted)", fontFamily: "'DM Mono', monospace", fontSize: 13 }}>Sin datos para el período</div>}
           </div>
-          <div style={{ marginTop: 8, fontSize: 11, color: "rgba(15,17,23,0.35)", fontFamily: "'DM Mono', monospace" }}>
+          <div style={{ marginTop: 8, fontSize: 11, color: "var(--muted)", fontFamily: "'DM Mono', monospace" }}>
             Tardanza = check-in después de las {horaEntrada} · Pasa el cursor sobre una celda para ver la hora de entrada
           </div>
         </>
@@ -425,14 +425,14 @@ function TabReportes() {
 function SC({ label, value, color, sub }: { label: string; value: number; color: string; sub?: string }) {
   return (
     <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, padding: "14px 18px", boxShadow: "0 1px 3px rgba(15,17,23,0.04)" }}>
-      <div style={{ fontSize: 11, fontWeight: 600, color: "rgba(15,17,23,0.45)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>{label}</div>
+      <div style={{ fontSize: 11, fontWeight: 600, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 8 }}>{label}</div>
       <div style={{ fontSize: 30, fontWeight: 700, color, fontFamily: "'DM Mono', monospace" }}>{value}</div>
-      {sub && <div style={{ fontSize: 11, color: "rgba(15,17,23,0.4)", marginTop: 4 }}>{sub}</div>}
+      {sub && <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 4 }}>{sub}</div>}
     </div>
   );
 }
 function Lbl({ children }: { children: React.ReactNode }) {
-  return <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "rgba(15,17,23,0.5)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6 }}>{children}</label>;
+  return <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "var(--muted-2)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6 }}>{children}</label>;
 }
 
 // ─── Shared styles ────────────────────────────────────────────────────────────
@@ -440,5 +440,5 @@ const fSt: React.CSSProperties = { padding: "8px 12px", fontSize: 13, border: "1
 const iSt: React.CSSProperties = { ...fSt, width: "100%", boxSizing: "border-box" };
 const btnP: React.CSSProperties = { padding: "10px 16px", background: "var(--accent)", color: "white", border: "none", borderRadius: 4, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" };
 const btnO: React.CSSProperties = { padding: "10px 16px", background: "var(--card)", color: "var(--ink)", border: "1.5px solid var(--border-strong)", borderRadius: 4, fontSize: 13, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" };
-const thSt: React.CSSProperties = { padding: "10px 12px", textAlign: "left", fontSize: 10, fontFamily: "'DM Mono', monospace", letterSpacing: "0.07em", textTransform: "uppercase", color: "rgba(15,17,23,0.4)", borderBottom: "1px solid var(--border)", whiteSpace: "nowrap" };
+const thSt: React.CSSProperties = { padding: "10px 12px", textAlign: "left", fontSize: 10, fontFamily: "'DM Mono', monospace", letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--muted)", borderBottom: "1px solid var(--border)", whiteSpace: "nowrap" };
 const tdSt: React.CSSProperties = { padding: "11px 12px" };

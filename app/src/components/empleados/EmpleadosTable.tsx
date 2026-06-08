@@ -11,7 +11,7 @@ export default function EmpleadosTable({ empleados, onEliminar }: { empleados: E
       <div style={{
         padding: 48,
         textAlign: "center",
-        color: "rgba(15,17,23,0.35)",
+        color: "var(--muted)",
         fontFamily: "'DM Mono', monospace",
         fontSize: 13,
       }}>
@@ -49,7 +49,7 @@ export default function EmpleadosTable({ empleados, onEliminar }: { empleados: E
                   <div style={{
                     fontSize: 11,
                     fontFamily: "'DM Mono', monospace",
-                    color: "rgba(15,17,23,0.45)",
+                    color: "var(--muted)",
                   }}>
                     {e.email_institucional}
                   </div>
@@ -63,7 +63,7 @@ export default function EmpleadosTable({ empleados, onEliminar }: { empleados: E
                 borderRadius: 100,
                 fontSize: 11,
                 background: "var(--surface-2)",
-                color: "rgba(15,17,23,0.6)",
+                color: "var(--muted-2)",
               }}>
                 {e.departamento}
               </span>
@@ -162,7 +162,7 @@ const thStyle: React.CSSProperties = {
   fontFamily: "'DM Mono', monospace",
   letterSpacing: "0.08em",
   textTransform: "uppercase",
-  color: "rgba(15,17,23,0.4)",
+  color: "var(--muted)",
   borderBottom: "1px solid var(--border)",
 };
 

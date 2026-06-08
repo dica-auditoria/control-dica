@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { crearSolicitudAction } from "@/app/actions/solicitudes";
@@ -74,7 +74,7 @@ export default function ClienteArchivosTable({ archivos: inicial }: { archivos: 
                   padding: "10px 20px", textAlign: "left",
                   fontSize: 10, fontFamily: "'DM Mono', monospace",
                   letterSpacing: "0.08em", textTransform: "uppercase",
-                  color: "rgba(15,17,23,0.4)", borderBottom: "1px solid var(--border)",
+                  color: "var(--muted)", borderBottom: "1px solid var(--border)",
                 }}>{h}</th>
               ))}
             </tr>
@@ -84,7 +84,7 @@ export default function ClienteArchivosTable({ archivos: inicial }: { archivos: 
               <tr>
                 <td colSpan={5} style={{
                   padding: "40px 20px", textAlign: "center",
-                  color: "rgba(15,17,23,0.35)", fontSize: 13,
+                  color: "var(--muted)", fontSize: 13,
                   fontFamily: "'DM Mono', monospace",
                 }}>
                   No hay archivos registrados
@@ -98,10 +98,10 @@ export default function ClienteArchivosTable({ archivos: inicial }: { archivos: 
                     <span style={{ fontSize: 13, color: "var(--ink)" }}>{f.nombre}</span>
                   </div>
                 </td>
-                <td style={{ padding: "12px 20px", fontSize: 12, fontFamily: "'DM Mono', monospace", color: "rgba(15,17,23,0.45)" }}>
+                <td style={{ padding: "12px 20px", fontSize: 12, fontFamily: "'DM Mono', monospace", color: "var(--muted)" }}>
                   {new Date(f.created_at).toLocaleDateString("es-MX")}
                 </td>
-                <td style={{ padding: "12px 20px", fontSize: 12, fontFamily: "'DM Mono', monospace", color: "rgba(15,17,23,0.45)" }}>
+                <td style={{ padding: "12px 20px", fontSize: 12, fontFamily: "'DM Mono', monospace", color: "var(--muted)" }}>
                   {formatBytes(f.size_bytes)}
                 </td>
                 <td style={{ padding: "12px 20px" }}>
@@ -158,11 +158,11 @@ export default function ClienteArchivosTable({ archivos: inicial }: { archivos: 
                 <div style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)" }}>
                   Solicitar eliminación
                 </div>
-                <div style={{ fontSize: 12, color: "rgba(15,17,23,0.45)", marginTop: 3 }}>
+                <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 3 }}>
                   {archivoSeleccionado.nombre}
                 </div>
               </div>
-              <button onClick={cerrarModal} style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(15,17,23,0.4)", padding: 4 }}>
+              <button onClick={cerrarModal} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", padding: 4 }}>
                 <XIcon />
               </button>
             </div>
@@ -183,7 +183,7 @@ export default function ClienteArchivosTable({ archivos: inicial }: { archivos: 
                 <label style={{
                   display: "block", fontSize: 11, fontWeight: 600,
                   letterSpacing: "0.08em", textTransform: "uppercase",
-                  color: "rgba(15,17,23,0.5)", marginBottom: 8,
+                  color: "var(--muted-2)", marginBottom: 8,
                   fontFamily: "'DM Mono', monospace",
                 }}>
                   Motivo de la solicitud
@@ -204,7 +204,7 @@ export default function ClienteArchivosTable({ archivos: inicial }: { archivos: 
                     boxSizing: "border-box",
                   }}
                 />
-                <div style={{ fontSize: 11, color: "rgba(15,17,23,0.35)", marginTop: 4, fontFamily: "'DM Mono', monospace" }}>
+                <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 4, fontFamily: "'DM Mono', monospace" }}>
                   {motivo.length} caracteres (mín. 10)
                 </div>
 
@@ -259,7 +259,7 @@ function ExtBadge({ tipo }: { tipo: string }) {
     docx: { bg: "#e3f2fd", color: "#1565c0" },
     csv:  { bg: "#f3e5f5", color: "#6a1b9a" },
   };
-  const s = map[tipo.toLowerCase()] ?? { bg: "var(--surface-2)", color: "rgba(15,17,23,0.5)" };
+  const s = map[tipo.toLowerCase()] ?? { bg: "var(--surface-2)", color: "var(--muted-2)" };
   return (
     <span style={{ ...s, fontFamily: "'DM Mono', monospace", fontSize: 9, padding: "2px 5px", borderRadius: 3, textTransform: "uppercase", letterSpacing: "0.06em", fontWeight: 600, flexShrink: 0 }}>
       {tipo.toLowerCase()}

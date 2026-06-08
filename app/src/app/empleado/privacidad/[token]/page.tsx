@@ -21,7 +21,7 @@ export default async function PrivacidadEmpleadoPage({
           fontSize: 11,
           letterSpacing: "0.08em",
           textTransform: "uppercase",
-          color: "rgba(15,17,23,0.4)",
+          color: "var(--muted)",
         }}>
           Control · DICA México
         </div>

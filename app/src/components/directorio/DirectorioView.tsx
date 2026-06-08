@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
@@ -179,7 +179,7 @@ export default function DirectorioView({ oficinas, entidades, empresas: initialE
           <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: "var(--ink)", margin: 0 }}>
             Directorio de Direcciones
           </h1>
-          <p style={{ fontSize: 13, color: "rgba(15,17,23,0.45)", marginTop: 4 }}>
+          <p style={{ fontSize: 13, color: "var(--muted)", marginTop: 4 }}>
             Oficinas DICA · Empresas y contratos
           </p>
         </div>
@@ -225,7 +225,7 @@ export default function DirectorioView({ oficinas, entidades, empresas: initialE
         {/* Tab Empresas */}
         {tab === "empresas" && (
           empresas.length === 0 ? (
-            <div style={{ padding: 64, textAlign: "center", color: "rgba(15,17,23,0.35)", fontFamily: "'DM Mono', monospace", fontSize: 13 }}>
+            <div style={{ padding: 64, textAlign: "center", color: "var(--muted)", fontFamily: "'DM Mono', monospace", fontSize: 13 }}>
               No hay empresas registradas
               {puedeEditar && (
                 <div style={{ marginTop: 12 }}>
@@ -247,7 +247,7 @@ export default function DirectorioView({ oficinas, entidades, empresas: initialE
         {/* Tab Ubicaciones */}
         {tab !== "empresas" && (
           lista.length === 0 ? (
-            <div style={{ padding: 64, textAlign: "center", color: "rgba(15,17,23,0.35)", fontFamily: "'DM Mono', monospace", fontSize: 13 }}>
+            <div style={{ padding: 64, textAlign: "center", color: "var(--muted)", fontFamily: "'DM Mono', monospace", fontSize: 13 }}>
               No hay registros
               {puedeEditar && <div style={{ marginTop: 12 }}><button onClick={abrirNuevo} style={{ ...btnPrimary, fontSize: 13 }}>+ Agregar primera</button></div>}
             </div>
@@ -270,7 +270,7 @@ export default function DirectorioView({ oficinas, entidades, empresas: initialE
           <div style={{ background: "var(--card)", borderRadius: 8, width: "100%", maxWidth: 420, boxShadow: "0 8px 32px rgba(15,17,23,0.18)" }}>
             <div style={{ padding: "18px 24px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <h2 style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>Nueva empresa</h2>
-              <button onClick={() => setModalEmpresaOpen(false)} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "rgba(15,17,23,0.4)", lineHeight: 1 }}>×</button>
+              <button onClick={() => setModalEmpresaOpen(false)} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "var(--muted)", lineHeight: 1 }}>×</button>
             </div>
             <form onSubmit={handleCrearEmpresa}>
               <div style={{ padding: "20px 24px", display: "flex", flexDirection: "column", gap: 16 }}>
@@ -309,7 +309,7 @@ export default function DirectorioView({ oficinas, entidades, empresas: initialE
               <h2 style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>
                 {editando ? "Editar oficina" : "Nueva oficina"}
               </h2>
-              <button onClick={() => setModalOpen(false)} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "rgba(15,17,23,0.4)", lineHeight: 1 }}>×</button>
+              <button onClick={() => setModalOpen(false)} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "var(--muted)", lineHeight: 1 }}>×</button>
             </div>
 
             <div style={{ padding: "20px 24px", display: "flex", flexDirection: "column", gap: 20 }}>
@@ -382,14 +382,14 @@ export default function DirectorioView({ oficinas, entidades, empresas: initialE
                           value={form.radio_metros ?? 50}
                           onChange={e => set("radio_metros", parseInt(e.target.value) || 50)}
                         />
-                        <span style={{ fontSize: 12, color: "rgba(15,17,23,0.5)" }}>m</span>
+                        <span style={{ fontSize: 12, color: "var(--muted-2)" }}>m</span>
                         <div style={{ flex: 1, height: 6, background: "var(--surface-2)", borderRadius: 999, overflow: "hidden", maxWidth: 200 }}>
                           <div style={{ height: "100%", width: `${Math.min(100, ((form.radio_metros ?? 50) / 500) * 100)}%`, background: "var(--green)", borderRadius: 999, transition: "width 0.2s" }} />
                         </div>
                       </div>
                     </F>
                   </div>
-                  <div style={{ fontSize: 11, color: "rgba(15,17,23,0.4)", marginTop: 6 }}>
+                  <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 6 }}>
                     Los empleados deberán estar dentro de este radio para que su check-in sea válido.
                   </div>
                 </div>
@@ -461,7 +461,7 @@ function EmpresaCard({ empresa }: { empresa: EmpresaDirectorioItem }) {
             <div style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
               {empresa.nombre}
             </div>
-            <div style={{ fontSize: 11, color: "rgba(15,17,23,0.4)", marginTop: 2, fontFamily: "'DM Mono', monospace" }}>
+            <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 2, fontFamily: "'DM Mono', monospace" }}>
               Alta: {new Date(empresa.created_at).toLocaleDateString("es-MX")}
             </div>
           </div>
@@ -479,11 +479,11 @@ function EmpresaCard({ empresa }: { empresa: EmpresaDirectorioItem }) {
       <div style={{ padding: "12px 16px", display: "flex", gap: 16 }}>
         <div style={{ textAlign: "center" }}>
           <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 24, color: "var(--ink)", lineHeight: 1 }}>{empresa.totalContratos}</div>
-          <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", color: "rgba(15,17,23,0.4)", textTransform: "uppercase", marginTop: 2 }}>Contratos</div>
+          <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", color: "var(--muted)", textTransform: "uppercase", marginTop: 2 }}>Contratos</div>
         </div>
         <div style={{ textAlign: "center" }}>
           <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 24, color: "var(--green)", lineHeight: 1 }}>{empresa.contratosVigentes}</div>
-          <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", color: "rgba(15,17,23,0.4)", textTransform: "uppercase", marginTop: 2 }}>Vigentes</div>
+          <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", color: "var(--muted)", textTransform: "uppercase", marginTop: 2 }}>Vigentes</div>
         </div>
       </div>
 
@@ -528,7 +528,7 @@ function UbicacionCard({ ubicacion: u, puedeEditar, onEditar, onToggle, onElimin
           <div style={{ minWidth: 0 }}>
             <div style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{u.nombre}</div>
             {u.tipo === "zona_cliente" && u.entidad_nombre && (
-              <div style={{ fontSize: 11, color: "rgba(15,17,23,0.45)", marginTop: 2 }}>{u.entidad_nombre}</div>
+              <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 2 }}>{u.entidad_nombre}</div>
             )}
           </div>
         </div>
@@ -546,7 +546,7 @@ function UbicacionCard({ ubicacion: u, puedeEditar, onEditar, onToggle, onElimin
         {u.tipo === "oficina" && (
           <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 2 }}>
             <span style={{ fontSize: 14 }}>📡</span>
-            <span style={{ fontSize: 12, color: "rgba(15,17,23,0.55)" }}>
+            <span style={{ fontSize: 12, color: "var(--muted-2)" }}>
               Radio de asistencia:
             </span>
             <span style={{ fontSize: 12, fontFamily: "'DM Mono', monospace", fontWeight: 600, color: "var(--green)" }}>
@@ -560,7 +560,7 @@ function UbicacionCard({ ubicacion: u, puedeEditar, onEditar, onToggle, onElimin
         {u.telefono && <Row icon="📞" text={u.telefono} mono />}
         {u.contacto_nombre && <Row icon="👤" text={u.contacto_nombre + (u.contacto_email ? ` · ${u.contacto_email}` : "")} />}
         {u.notas && (
-          <div style={{ marginTop: 4, padding: "8px 10px", background: "var(--surface)", borderRadius: 4, fontSize: 12, color: "rgba(15,17,23,0.55)", fontStyle: "italic" }}>
+          <div style={{ marginTop: 4, padding: "8px 10px", background: "var(--surface)", borderRadius: 4, fontSize: 12, color: "var(--muted-2)", fontStyle: "italic" }}>
             {u.notas}
           </div>
         )}
@@ -583,7 +583,7 @@ function Row({ icon, text, mono }: { icon: string; text: string; mono?: boolean 
   return (
     <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
       <span style={{ fontSize: 13, flexShrink: 0 }}>{icon}</span>
-      <span style={{ fontSize: 12, color: "rgba(15,17,23,0.6)", fontFamily: mono ? "'DM Mono', monospace" : undefined, lineHeight: 1.5 }}>{text}</span>
+      <span style={{ fontSize: 12, color: "var(--muted-2)", fontFamily: mono ? "'DM Mono', monospace" : undefined, lineHeight: 1.5 }}>{text}</span>
     </div>
   );
 }
@@ -599,7 +599,7 @@ function CoordBadge({ label, value }: { label: string; value: string }) {
 function F({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
   return (
     <div>
-      <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "rgba(15,17,23,0.55)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6 }}>
+      <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "var(--muted-2)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6 }}>
         {label}{required && <span style={{ color: "var(--accent)", marginLeft: 2 }}>*</span>}
       </label>
       {children}
@@ -609,7 +609,7 @@ function F({ label, required, children }: { label: string; required?: boolean; c
 
 // -------- Styles --------
 const iStyle: React.CSSProperties = { width: "100%", padding: "9px 12px", fontSize: 13, border: "1.5px solid var(--border-strong)", borderRadius: 4, fontFamily: "'DM Sans', sans-serif", color: "var(--ink)", background: "var(--card)", outline: "none", boxSizing: "border-box" };
-const sectionLabel: React.CSSProperties = { fontSize: 11, fontWeight: 600, color: "rgba(15,17,23,0.4)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 10 };
+const sectionLabel: React.CSSProperties = { fontSize: 11, fontWeight: 600, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 10 };
 const btnPrimary: React.CSSProperties = { padding: "10px 18px", background: "var(--accent)", color: "white", border: "none", borderRadius: 4, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" };
 const btnOutline: React.CSSProperties = { padding: "10px 18px", background: "var(--card)", color: "var(--ink)", border: "1.5px solid var(--border-strong)", borderRadius: 4, fontSize: 13, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" };
-const btnSmall: React.CSSProperties = { padding: "5px 12px", background: "var(--card)", color: "rgba(15,17,23,0.6)", border: "1px solid var(--border-strong)", borderRadius: 4, fontSize: 12, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" };
+const btnSmall: React.CSSProperties = { padding: "5px 12px", background: "var(--card)", color: "var(--muted-2)", border: "1px solid var(--border-strong)", borderRadius: 4, fontSize: 12, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" };

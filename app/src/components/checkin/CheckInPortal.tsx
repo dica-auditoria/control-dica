@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect, useRef, useTransition } from "react";
 import {
@@ -163,10 +163,10 @@ export default function CheckInPortal() {
             🛡
           </div>
           <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: "var(--ink)", marginBottom: 6 }}>Control DICA</div>
-          <div style={{ fontSize: 13, color: "rgba(15,17,23,0.45)", marginBottom: 32 }}>Registro de asistencia</div>
+          <div style={{ fontSize: 13, color: "var(--muted)", marginBottom: 32 }}>Registro de asistencia</div>
 
           <div style={{ textAlign: "left", marginBottom: 16 }}>
-            <label style={{ fontSize: 11, fontWeight: 600, color: "rgba(15,17,23,0.5)", textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: 8 }}>
+            <label style={{ fontSize: 11, fontWeight: 600, color: "var(--muted-2)", textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: 8 }}>
               Código de empleado o email
             </label>
             <input
@@ -187,7 +187,7 @@ export default function CheckInPortal() {
             {isPending ? "Buscando…" : "Continuar →"}
           </button>
         </div>
-        <div style={{ marginTop: 20, fontSize: 11, color: "rgba(15,17,23,0.3)", fontFamily: "'DM Mono', monospace" }}>
+        <div style={{ marginTop: 20, fontSize: 11, color: "var(--muted)", fontFamily: "'DM Mono', monospace" }}>
           {now.toLocaleDateString("es-MX", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
         </div>
       </div>
@@ -211,7 +211,7 @@ export default function CheckInPortal() {
             {geoState === "loading" ? (
               <>
                 <div style={{ fontSize: 32 }}>📡</div>
-                <div style={{ fontSize: 13, color: "rgba(15,17,23,0.5)" }}>Obteniendo ubicación…</div>
+                <div style={{ fontSize: 13, color: "var(--muted-2)" }}>Obteniendo ubicación…</div>
               </>
             ) : geoState === "error" ? (
               <>
@@ -221,7 +221,7 @@ export default function CheckInPortal() {
             ) : (
               <>
                 <div style={{ fontSize: 32 }}>📍</div>
-                <div style={{ fontSize: 13, color: "rgba(15,17,23,0.5)" }}>Activando GPS…</div>
+                <div style={{ fontSize: 13, color: "var(--muted-2)" }}>Activando GPS…</div>
               </>
             )}
           </div>
@@ -232,10 +232,10 @@ export default function CheckInPortal() {
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <div>
               <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>{empleado?.nombre}</div>
-              <div style={{ fontSize: 11, color: "rgba(15,17,23,0.45)" }}>{empleado?.departamento} {empleado?.codigo ? `· ${empleado.codigo}` : ""}</div>
+              <div style={{ fontSize: 11, color: "var(--muted)" }}>{empleado?.departamento} {empleado?.codigo ? `· ${empleado.codigo}` : ""}</div>
             </div>
             <button onClick={() => { setStage("search"); setQuery(""); setCoords(null); setGeoState("idle"); setResumen(null); setStage("search"); }}
-              style={{ background: "none", border: "none", fontSize: 18, cursor: "pointer", color: "rgba(15,17,23,0.4)" }}>×</button>
+              style={{ background: "none", border: "none", fontSize: 18, cursor: "pointer", color: "var(--muted)" }}>×</button>
           </div>
         </div>
 
@@ -285,7 +285,7 @@ export default function CheckInPortal() {
         <div style={{ fontSize: 52, fontWeight: 700, color: "var(--ink)", fontFamily: "'DM Mono', monospace", lineHeight: 1 }}>
           {now.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" })}
         </div>
-        <div style={{ fontSize: 13, color: "rgba(15,17,23,0.45)", marginTop: 6, marginBottom: 32 }}>
+        <div style={{ fontSize: 13, color: "var(--muted)", marginTop: 6, marginBottom: 32 }}>
           {now.toLocaleDateString("es-MX", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
         </div>
 
@@ -304,7 +304,7 @@ export default function CheckInPortal() {
         )}
       </div>
 
-      <div style={{ marginTop: "auto", padding: "16px 0", textAlign: "center", fontSize: 11, color: "rgba(15,17,23,0.3)", fontFamily: "'DM Mono', monospace" }}>
+      <div style={{ marginTop: "auto", padding: "16px 0", textAlign: "center", fontSize: 11, color: "var(--muted)", fontFamily: "'DM Mono', monospace" }}>
         {empleado?.nombre} · DICA México
       </div>
     </div>
@@ -316,7 +316,7 @@ function SummaryItem({ icon, label, value }: { icon: string; label: string; valu
     <div style={{ textAlign: "center" }}>
       <div style={{ fontSize: 20, marginBottom: 4 }}>{icon}</div>
       <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)", fontFamily: "'DM Mono', monospace" }}>{value}</div>
-      <div style={{ fontSize: 11, color: "rgba(15,17,23,0.4)", marginTop: 2 }}>{label}</div>
+      <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 2 }}>{label}</div>
     </div>
   );
 }

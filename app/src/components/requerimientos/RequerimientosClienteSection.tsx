@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -68,7 +68,7 @@ export default function RequerimientosClienteSection({ requerimientos, entidadId
 
         {completados.length > 0 && (
           <details style={{ marginTop: 4 }}>
-            <summary style={{ cursor: "pointer", fontSize: 12, fontFamily: "'DM Mono', monospace", color: "rgba(15,17,23,0.4)", listStyle: "none", userSelect: "none", padding: "4px 0" }}>
+            <summary style={{ cursor: "pointer", fontSize: 12, fontFamily: "'DM Mono', monospace", color: "var(--muted)", listStyle: "none", userSelect: "none", padding: "4px 0" }}>
               ▸ {completados.length} requerimiento{completados.length !== 1 ? "s" : ""} completado{completados.length !== 1 ? "s" : ""}
             </summary>
             <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 8 }}>
@@ -130,8 +130,8 @@ function RequerimientoCard({ req, entidadId, isOpen, onToggle, onRefresh }: {
               <div style={{ width: 120, height: 5, borderRadius: 3, background: "var(--surface-2)", overflow: "hidden" }}>
                 <div style={{ width: `${pct}%`, height: "100%", background: req.estado === "completado" ? "#2D6A4F" : pct === 100 ? "#2D6A4F" : "var(--accent)", borderRadius: 3, transition: "width 0.3s" }} />
               </div>
-              {itemsTotal > 0 && <span style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "rgba(15,17,23,0.45)" }}>{itemsDone}/{itemsTotal} confirmados</span>}
-              {req.archivos_count > 0 && <span style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "rgba(15,17,23,0.45)" }}>· {req.archivos_count} archivo{req.archivos_count !== 1 ? "s" : ""} subido{req.archivos_count !== 1 ? "s" : ""}</span>}
+              {itemsTotal > 0 && <span style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "var(--muted)" }}>{itemsDone}/{itemsTotal} confirmados</span>}
+              {req.archivos_count > 0 && <span style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "var(--muted)" }}>· {req.archivos_count} archivo{req.archivos_count !== 1 ? "s" : ""} subido{req.archivos_count !== 1 ? "s" : ""}</span>}
             </div>
           )}
         </div>
@@ -145,12 +145,12 @@ function RequerimientoCard({ req, entidadId, isOpen, onToggle, onRefresh }: {
               <div style={{ fontSize: 13, fontWeight: 600, color: req.estado === "vencido" ? "var(--accent)" : dias <= 3 ? "#B8860B" : "rgba(15,17,23,0.7)" }}>
                 {dias < 0 ? `Venció hace ${Math.abs(dias)}d` : dias === 0 ? "Vence hoy" : `${dias}d`}
               </div>
-              <div style={{ fontSize: 11, color: "rgba(15,17,23,0.35)", fontFamily: "'DM Mono', monospace" }}>{formatFecha(req.fecha_limite)}</div>
+              <div style={{ fontSize: 11, color: "var(--muted)", fontFamily: "'DM Mono', monospace" }}>{formatFecha(req.fecha_limite)}</div>
             </>
           )}
         </div>
 
-        <span style={{ color: "rgba(15,17,23,0.25)", flexShrink: 0, transform: isOpen ? "rotate(90deg)" : "none", transition: "transform 0.15s", display: "inline-flex" }}>
+        <span style={{ color: "var(--muted)", flexShrink: 0, transform: isOpen ? "rotate(90deg)" : "none", transition: "transform 0.15s", display: "inline-flex" }}>
           <ChevronIcon />
         </span>
       </div>
@@ -159,7 +159,7 @@ function RequerimientoCard({ req, entidadId, isOpen, onToggle, onRefresh }: {
       {isOpen && (
         <div style={{ borderTop: "1px solid var(--border)", padding: "16px 18px", display: "flex", flexDirection: "column", gap: 16 }}>
           {req.descripcion && (
-            <p style={{ margin: 0, fontSize: 13, color: "rgba(15,17,23,0.55)", lineHeight: 1.5 }}>{req.descripcion}</p>
+            <p style={{ margin: 0, fontSize: 13, color: "var(--muted-2)", lineHeight: 1.5 }}>{req.descripcion}</p>
           )}
 
           {/* Vencido notice */}
@@ -179,7 +179,7 @@ function RequerimientoCard({ req, entidadId, isOpen, onToggle, onRefresh }: {
           {/* Items list */}
           {req.items.length > 0 && (
             <div>
-              <div style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(15,17,23,0.35)", marginBottom: 8 }}>
+              <div style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--muted)", marginBottom: 8 }}>
                 Documentos solicitados
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
@@ -190,7 +190,7 @@ function RequerimientoCard({ req, entidadId, isOpen, onToggle, onRefresh }: {
                     </div>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: 13, color: "var(--ink)", fontWeight: item.completado ? 400 : 500, textDecoration: item.completado ? "line-through" : "none", opacity: item.completado ? 0.55 : 1 }}>{item.nombre}</div>
-                      {item.descripcion && <div style={{ fontSize: 11, color: "rgba(15,17,23,0.4)", marginTop: 2 }}>{item.descripcion}</div>}
+                      {item.descripcion && <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 2 }}>{item.descripcion}</div>}
                     </div>
                     {item.obligatorio && !item.completado && (
                       <span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 3, background: "rgba(200,71,42,0.08)", color: "var(--accent)", fontFamily: "'DM Mono', monospace", fontWeight: 700, flexShrink: 0 }}>obligatorio</span>
@@ -204,7 +204,7 @@ function RequerimientoCard({ req, entidadId, isOpen, onToggle, onRefresh }: {
           {/* Upload zone */}
           {canUpload && (
             <div>
-              <div style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(15,17,23,0.35)", marginBottom: 8 }}>
+              <div style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--muted)", marginBottom: 8 }}>
                 Subir documentos
               </div>
               {uploadOpen ? (
@@ -217,13 +217,13 @@ function RequerimientoCard({ req, entidadId, isOpen, onToggle, onRefresh }: {
                     onDone={() => { setUploadOpen(false); onRefresh(); }}
                   />
                   <button onClick={() => setUploadOpen(false)}
-                    style={{ marginTop: 8, fontSize: 12, color: "rgba(15,17,23,0.45)", background: "none", border: "none", cursor: "pointer" }}>
+                    style={{ marginTop: 8, fontSize: 12, color: "var(--muted)", background: "none", border: "none", cursor: "pointer" }}>
                     Cerrar
                   </button>
                 </div>
               ) : (
                 <button onClick={() => setUploadOpen(true)}
-                  style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "9px 16px", background: "var(--surface)", border: "1.5px dashed var(--border-strong)", borderRadius: 6, cursor: "pointer", fontSize: 13, color: "rgba(15,17,23,0.6)", fontFamily: "'DM Sans', sans-serif" }}>
+                  style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "9px 16px", background: "var(--surface)", border: "1.5px dashed var(--border-strong)", borderRadius: 6, cursor: "pointer", fontSize: 13, color: "var(--muted-2)", fontFamily: "'DM Sans', sans-serif" }}>
                   <UploadIcon /> Seleccionar archivos para subir
                 </button>
               )}
@@ -235,7 +235,7 @@ function RequerimientoCard({ req, entidadId, isOpen, onToggle, onRefresh }: {
             <div>
               {confirmando ? (
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ fontSize: 13, color: "rgba(15,17,23,0.6)" }}>¿Ya subiste todos los documentos solicitados?</span>
+                  <span style={{ fontSize: 13, color: "var(--muted-2)" }}>¿Ya subiste todos los documentos solicitados?</span>
                   <button onClick={handleConfirmar} disabled={confirming}
                     style={{ padding: "7px 14px", background: "#1565C0", color: "white", border: "none", borderRadius: 4, cursor: confirming ? "not-allowed" : "pointer", fontSize: 12, fontWeight: 600, opacity: confirming ? 0.7 : 1 }}>
                     {confirming ? "Enviando…" : "Sí, enviar para revisión"}

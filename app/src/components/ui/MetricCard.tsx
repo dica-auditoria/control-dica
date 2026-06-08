@@ -6,7 +6,7 @@ interface MetricCardProps {
   bg?: string;
 }
 
-export default function MetricCard({ label, value, meta, accent, bg = "white" }: MetricCardProps) {
+export default function MetricCard({ label, value, meta, accent, bg = "var(--card)" }: MetricCardProps) {
   return (
     <div style={{
       background: bg,
@@ -21,7 +21,7 @@ export default function MetricCard({ label, value, meta, accent, bg = "white" }:
         fontFamily: "'DM Mono', monospace",
         letterSpacing: "0.1em",
         textTransform: "uppercase",
-        color: "rgba(15,17,23,0.4)",
+        color: "var(--muted)",
         marginBottom: 8,
       }}>
         {label}
@@ -35,7 +35,7 @@ export default function MetricCard({ label, value, meta, accent, bg = "white" }:
       }}>
         {value}
       </div>
-      <div style={{ fontSize: 12, color: "rgba(15,17,23,0.45)" }}>{meta}</div>
+      <div style={{ fontSize: 12, color: "var(--muted)" }}>{meta}</div>
     </div>
   );
 }

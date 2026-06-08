@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useRef, useCallback, useId, useEffect } from "react";
 import { calcularSHA256, formatHash } from "@/lib/sha256";
@@ -175,13 +175,13 @@ export default function UploadZone({ entidadId, contratoId, destino = "cliente",
         >
           {!entries.length && (
             <>
-              <div style={{ width: 40, height: 40, background: "var(--surface-2)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px", color: "rgba(15,17,23,0.4)" }}>
+              <div style={{ width: 40, height: 40, background: "var(--surface-2)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px", color: "var(--muted)" }}>
                 <UploadIcon />
               </div>
               <div style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", marginBottom: 4 }}>
                 Arrastra archivos o una carpeta aquí
               </div>
-              <div style={{ fontSize: 12, color: "rgba(15,17,23,0.4)", marginBottom: 14 }}>
+              <div style={{ fontSize: 12, color: "var(--muted)", marginBottom: 14 }}>
                 PDF, Excel, ZIP, Word, CSV, PNG — máx. 50 MB por archivo
               </div>
             </>
@@ -236,12 +236,12 @@ export default function UploadZone({ entidadId, contratoId, destino = "cliente",
           }}>
             <div style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)" }}>
               {entries.length} archivo{entries.length !== 1 ? "s" : ""}
-              {pendientes > 0 && !uploading && <span style={{ color: "rgba(15,17,23,0.45)", fontWeight: 400 }}> · {pendientes} pendiente{pendientes !== 1 ? "s" : ""}</span>}
+              {pendientes > 0 && !uploading && <span style={{ color: "var(--muted)", fontWeight: 400 }}> · {pendientes} pendiente{pendientes !== 1 ? "s" : ""}</span>}
               {listos > 0 && <span style={{ color: "var(--green)", fontWeight: 400 }}> · {listos} listo{listos !== 1 ? "s" : ""}</span>}
               {errores > 0 && <span style={{ color: "var(--accent)", fontWeight: 400 }}> · {errores} error{errores !== 1 ? "es" : ""}</span>}
             </div>
             {!uploading && (
-              <button type="button" onClick={reset} style={{ fontSize: 12, color: "rgba(15,17,23,0.45)", background: "none", border: "none", cursor: "pointer" }}>
+              <button type="button" onClick={reset} style={{ fontSize: 12, color: "var(--muted)", background: "none", border: "none", cursor: "pointer" }}>
                 Limpiar todo
               </button>
             )}
@@ -266,17 +266,17 @@ export default function UploadZone({ entidadId, contratoId, destino = "cliente",
                   <div style={{ fontSize: 13, fontWeight: 500, color: "var(--ink)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                     {entry.file.name}
                   </div>
-                  <div style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "rgba(15,17,23,0.4)", marginTop: 1 }}>
+                  <div style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "var(--muted)", marginTop: 1 }}>
                     {formatBytes(entry.file.size)}
                     {entry.status === "error" && entry.error && (
                       <span style={{ color: "var(--accent)", marginLeft: 8 }}>{entry.error}</span>
                     )}
                     {entry.status === "listo" && entry.hash && (
-                      <span style={{ color: "rgba(15,17,23,0.35)", marginLeft: 8 }}>SHA-256: {formatHash(entry.hash)}</span>
+                      <span style={{ color: "var(--muted)", marginLeft: 8 }}>SHA-256: {formatHash(entry.hash)}</span>
                     )}
-                    {entry.status === "hashing"   && <span style={{ color: "rgba(15,17,23,0.5)", marginLeft: 8 }}>Calculando hash…</span>}
-                    {entry.status === "subiendo"  && <span style={{ color: "rgba(15,17,23,0.5)", marginLeft: 8 }}>Subiendo…</span>}
-                    {entry.status === "guardando" && <span style={{ color: "rgba(15,17,23,0.5)", marginLeft: 8 }}>Guardando…</span>}
+                    {entry.status === "hashing"   && <span style={{ color: "var(--muted-2)", marginLeft: 8 }}>Calculando hash…</span>}
+                    {entry.status === "subiendo"  && <span style={{ color: "var(--muted-2)", marginLeft: 8 }}>Subiendo…</span>}
+                    {entry.status === "guardando" && <span style={{ color: "var(--muted-2)", marginLeft: 8 }}>Guardando…</span>}
                   </div>
                 </div>
 
@@ -284,7 +284,7 @@ export default function UploadZone({ entidadId, contratoId, destino = "cliente",
                 <span style={{
                   fontSize: 9, fontFamily: "'DM Mono', monospace", fontWeight: 700,
                   padding: "2px 6px", borderRadius: 3,
-                  background: "var(--surface-2)", color: "rgba(15,17,23,0.5)",
+                  background: "var(--surface-2)", color: "var(--muted-2)",
                   textTransform: "uppercase", flexShrink: 0,
                 }}>
                   {entry.file.name.split(".").pop()?.slice(0, 4)}
@@ -292,7 +292,7 @@ export default function UploadZone({ entidadId, contratoId, destino = "cliente",
 
                 {/* Botón eliminar (solo si no está en proceso) */}
                 {!["hashing","subiendo","guardando"].includes(entry.status) && !uploading && (
-                  <button type="button" onClick={() => remover(entry.uid)} style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(15,17,23,0.3)", padding: 4, flexShrink: 0 }}>
+                  <button type="button" onClick={() => remover(entry.uid)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", padding: 4, flexShrink: 0 }}>
                     <XSmallIcon />
                   </button>
                 )}
@@ -339,7 +339,7 @@ export default function UploadZone({ entidadId, contratoId, destino = "cliente",
             {uploading ? `Subiendo…` : `Subir ${pendientes} archivo${pendientes !== 1 ? "s" : ""}`}
           </button>
           {!uploading && (
-            <button type="button" onClick={reset} style={{ fontSize: 13, color: "rgba(15,17,23,0.4)", background: "none", border: "none", cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>
+            <button type="button" onClick={reset} style={{ fontSize: 13, color: "var(--muted)", background: "none", border: "none", cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>
               Cancelar
             </button>
           )}

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -151,7 +151,7 @@ export default function EmpleadoAltaForm({ supervisores, ubicaciones }: Props) {
               borderLeft: "none",
               borderRadius: "0 4px 4px 0",
               fontSize: 13,
-              color: "rgba(15,17,23,0.5)",
+              color: "var(--muted-2)",
             }}>
               {DOMINIO_EMAIL}
             </span>
@@ -205,7 +205,7 @@ export default function EmpleadoAltaForm({ supervisores, ubicaciones }: Props) {
         background: "var(--amber-light)",
         borderRadius: 6,
         fontSize: 12,
-        color: "rgba(15,17,23,0.65)",
+        color: "var(--muted-2)",
         marginBottom: 24,
         display: "flex",
         gap: 10,

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { crearUsuarioAction, editarClienteAction, toggleActivoClienteAction, eliminarClienteAction, fetchUserContratosAction, updateUserContratosAction } from "@/app/actions/usuarios";
@@ -211,7 +211,7 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
           <div>
             <div style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)" }}>Accesos de clientes</div>
-            <div style={{ fontSize: 12, fontFamily: "'DM Mono', monospace", color: "rgba(15,17,23,0.4)", marginTop: 2 }}>
+            <div style={{ fontSize: 12, fontFamily: "'DM Mono', monospace", color: "var(--muted)", marginTop: 2 }}>
               {usuarios.length} usuario{usuarios.length !== 1 ? "s" : ""} con acceso al sistema
             </div>
           </div>
@@ -253,7 +253,7 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
                 <tr>
                   <td colSpan={4} style={{
                     padding: "40px 20px", textAlign: "center",
-                    color: "rgba(15,17,23,0.35)", fontSize: 13, fontFamily: "'DM Mono', monospace",
+                    color: "var(--muted)", fontSize: 13, fontFamily: "'DM Mono', monospace",
                   }}>
                     Sin accesos configurados
                   </td>
@@ -274,19 +274,19 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
                         </div>
                         <div>
                           <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>{u.nombre}</div>
-                          <div style={{ fontSize: 11, color: "rgba(15,17,23,0.45)", marginTop: 1 }}>{u.email}</div>
+                          <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 1 }}>{u.email}</div>
                         </div>
                       </div>
                     </td>
                     <td style={{ padding: "14px 20px" }}>
                       {u.entidad_nombre
                         ? <span style={{ fontSize: 13, color: "var(--ink)" }}>{u.entidad_nombre}</span>
-                        : <span style={{ fontSize: 12, color: "rgba(15,17,23,0.3)", fontFamily: "'DM Mono', monospace" }}>—</span>}
+                        : <span style={{ fontSize: 12, color: "var(--muted)", fontFamily: "'DM Mono', monospace" }}>—</span>}
                     </td>
                     <td style={{ padding: "14px 20px" }}>
                       {u.contrato_nombre
                         ? <span style={{ fontSize: 12, color: "var(--ink)" }}>{u.contrato_nombre}</span>
-                        : <span style={{ fontSize: 12, color: "rgba(15,17,23,0.3)", fontFamily: "'DM Mono', monospace" }}>Sin contrato</span>}
+                        : <span style={{ fontSize: 12, color: "var(--muted)", fontFamily: "'DM Mono', monospace" }}>Sin contrato</span>}
                     </td>
                     <td style={{ padding: "14px 20px" }}>
                       <span style={{
@@ -300,7 +300,7 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
                         {u.activo ? "Activo" : "Inactivo"}
                       </span>
                     </td>
-                    <td style={{ padding: "14px 20px", fontSize: 12, fontFamily: "'DM Mono', monospace", color: "rgba(15,17,23,0.4)" }}>
+                    <td style={{ padding: "14px 20px", fontSize: 12, fontFamily: "'DM Mono', monospace", color: "var(--muted)" }}>
                       {new Date(u.created_at).toLocaleDateString("es-MX")}
                     </td>
                     {puedeGestionar && (
@@ -372,11 +372,11 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
             }}>
               <div>
                 <div style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)" }}>Nuevo acceso de cliente</div>
-                <div style={{ fontSize: 12, color: "rgba(15,17,23,0.45)", marginTop: 2 }}>
+                <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 2 }}>
                   Crea credenciales para que el cliente acceda al sistema
                 </div>
               </div>
-              <button onClick={() => setModalOpen(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(15,17,23,0.4)", padding: 4 }}>
+              <button onClick={() => setModalOpen(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", padding: 4 }}>
                 <XIcon />
               </button>
             </div>
@@ -425,7 +425,7 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
                       style={{
                         position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)",
                         background: "none", border: "none", cursor: "pointer",
-                        color: "rgba(15,17,23,0.4)", padding: 0, fontSize: 13,
+                        color: "var(--muted)", padding: 0, fontSize: 13,
                       }}
                     >
                       {showPass ? "Ocultar" : "Ver"}
@@ -451,11 +451,11 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
                     <div>
                       <div style={{
                         fontSize: 10, fontFamily: "'DM Mono', monospace", letterSpacing: "0.1em",
-                        textTransform: "uppercase", color: "rgba(15,17,23,0.35)",
+                        textTransform: "uppercase", color: "var(--muted)",
                       }}>
                         Correos de acceso adicionales
                       </div>
-                      <div style={{ fontSize: 11, color: "rgba(15,17,23,0.4)", marginTop: 2 }}>
+                      <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 2 }}>
                         Cada correo crea su propio login con la misma contraseña
                       </div>
                     </div>
@@ -475,7 +475,7 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
                   </div>
 
                   {emailsAcceso.length === 0 ? (
-                    <div style={{ fontSize: 12, color: "rgba(15,17,23,0.35)", fontFamily: "'DM Mono', monospace", padding: "6px 0" }}>
+                    <div style={{ fontSize: 12, color: "var(--muted)", fontFamily: "'DM Mono', monospace", padding: "6px 0" }}>
                       Sin correos adicionales — usa + para agregar
                     </div>
                   ) : (
@@ -512,7 +512,7 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
                 {/* Separador */}
                 <div style={{
                   fontSize: 10, fontFamily: "'DM Mono', monospace", letterSpacing: "0.1em",
-                  textTransform: "uppercase", color: "rgba(15,17,23,0.35)",
+                  textTransform: "uppercase", color: "var(--muted)",
                   borderTop: "1px solid var(--border)", paddingTop: 10,
                 }}>
                   Acceso
@@ -531,7 +531,7 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
                 {/* Contratos — lista dinámica */}
                 <div>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-                    <label style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(15,17,23,0.5)", fontFamily: "'DM Mono', monospace" }}>
+                    <label style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--muted-2)", fontFamily: "'DM Mono', monospace" }}>
                       Contratos *
                     </label>
                     <button
@@ -544,9 +544,9 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
                     </button>
                   </div>
                   {loadingContratos ? (
-                    <div style={{ fontSize: 12, fontFamily: "'DM Mono', monospace", color: "rgba(15,17,23,0.4)" }}>Cargando…</div>
+                    <div style={{ fontSize: 12, fontFamily: "'DM Mono', monospace", color: "var(--muted)" }}>Cargando…</div>
                   ) : !form.entidad_id ? (
-                    <div style={{ fontSize: 12, color: "rgba(15,17,23,0.35)", fontFamily: "'DM Mono', monospace" }}>Primero selecciona una empresa</div>
+                    <div style={{ fontSize: 12, color: "var(--muted)", fontFamily: "'DM Mono', monospace" }}>Primero selecciona una empresa</div>
                   ) : contratos.length === 0 ? (
                     <div style={{ fontSize: 12, color: "var(--amber)", fontFamily: "'DM Mono', monospace" }}>Sin contratos vigentes en esta empresa</div>
                   ) : (
@@ -613,9 +613,9 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
             <div style={{ padding: "20px 24px 16px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <div>
                 <div style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)" }}>Editar acceso</div>
-                <div style={{ fontSize: 12, color: "rgba(15,17,23,0.45)", marginTop: 2 }}>{editModal.email}</div>
+                <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 2 }}>{editModal.email}</div>
               </div>
-              <button onClick={() => setEditModal(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(15,17,23,0.4)", padding: 4 }}>
+              <button onClick={() => setEditModal(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", padding: 4 }}>
                 <XIcon />
               </button>
             </div>
@@ -646,7 +646,7 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
                 {/* Contratos */}
                 <div style={{ borderTop: "1px solid var(--border)", paddingTop: 12 }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-                    <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(15,17,23,0.35)" }}>
+                    <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--muted)" }}>
                       Contratos asignados
                     </div>
                     <button type="button" onClick={() => setEditContratosIds(prev => [...prev, ""])}
@@ -656,9 +656,9 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
                     </button>
                   </div>
                   {editLoadingContratos ? (
-                    <div style={{ fontSize: 12, fontFamily: "'DM Mono', monospace", color: "rgba(15,17,23,0.4)" }}>Cargando contratos…</div>
+                    <div style={{ fontSize: 12, fontFamily: "'DM Mono', monospace", color: "var(--muted)" }}>Cargando contratos…</div>
                   ) : editContratos.length === 0 ? (
-                    <div style={{ fontSize: 12, color: "rgba(15,17,23,0.35)", fontFamily: "'DM Mono', monospace" }}>Sin contratos vigentes disponibles</div>
+                    <div style={{ fontSize: 12, color: "var(--muted)", fontFamily: "'DM Mono', monospace" }}>Sin contratos vigentes disponibles</div>
                   ) : (
                     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                       {editContratosIds.map((cid, i) => (
@@ -685,7 +685,7 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
                 </div>
 
                 <div style={{ borderTop: "1px solid var(--border)", paddingTop: 12 }}>
-                  <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(15,17,23,0.35)", marginBottom: 12 }}>
+                  <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--muted)", marginBottom: 12 }}>
                     Cambiar contraseña (opcional)
                   </div>
 
@@ -699,7 +699,7 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
                           placeholder="Dejar vacío para no cambiar"
                           style={{ ...iStyle, paddingRight: 40 }}
                         />
-                        <button type="button" onClick={() => setEditShowPass(s => !s)} style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "rgba(15,17,23,0.4)", fontSize: 12, padding: 0 }}>
+                        <button type="button" onClick={() => setEditShowPass(s => !s)} style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--muted)", fontSize: 12, padding: 0 }}>
                           {editShowPass ? "Ocultar" : "Ver"}
                         </button>
                       </div>
@@ -756,7 +756,7 @@ const btnPrimary: React.CSSProperties = {
 };
 
 const btnSmall: React.CSSProperties = {
-  padding: "5px 12px", background: "var(--card)", color: "rgba(15,17,23,0.6)",
+  padding: "5px 12px", background: "var(--card)", color: "var(--muted-2)",
   border: "1px solid var(--border-strong)", borderRadius: 4,
   fontSize: 12, cursor: "pointer", fontFamily: "'DM Sans', sans-serif",
 };
@@ -773,7 +773,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       <label style={{
         display: "block", fontSize: 11, fontWeight: 600,
         letterSpacing: "0.08em", textTransform: "uppercase",
-        color: "rgba(15,17,23,0.5)", marginBottom: 6,
+        color: "var(--muted-2)", marginBottom: 6,
         fontFamily: "'DM Mono', monospace",
       }}>
         {label}
@@ -789,7 +789,7 @@ function Th({ children }: { children?: React.ReactNode }) {
       padding: "10px 20px", textAlign: "left",
       fontSize: 10, fontFamily: "'DM Mono', monospace",
       letterSpacing: "0.08em", textTransform: "uppercase",
-      color: "rgba(15,17,23,0.4)", borderBottom: "1px solid var(--border)",
+      color: "var(--muted)", borderBottom: "1px solid var(--border)",
     }}>
       {children}
     </th>

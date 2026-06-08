@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -69,19 +69,19 @@ export default function ContratoArchivosView({
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, paddingBottom: 14 }}>
           {/* Breadcrumb + título */}
           <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
-            <Link href="/dashboard/directorio" style={{ color: "rgba(15,17,23,0.4)", textDecoration: "none", fontSize: 13, flexShrink: 0 }}>
+            <Link href="/dashboard/directorio" style={{ color: "var(--muted)", textDecoration: "none", fontSize: 13, flexShrink: 0 }}>
               Directorio
             </Link>
-            <span style={{ color: "rgba(15,17,23,0.2)", flexShrink: 0 }}>/</span>
-            <Link href={`/dashboard/directorio/empresa/${entidadId}`} style={{ color: "rgba(15,17,23,0.5)", textDecoration: "none", fontSize: 13, flexShrink: 0 }}>
+            <span style={{ color: "var(--muted)", flexShrink: 0 }}>/</span>
+            <Link href={`/dashboard/directorio/empresa/${entidadId}`} style={{ color: "var(--muted-2)", textDecoration: "none", fontSize: 13, flexShrink: 0 }}>
               {entidadNombre}
             </Link>
-            <span style={{ color: "rgba(15,17,23,0.2)", flexShrink: 0 }}>/</span>
+            <span style={{ color: "var(--muted)", flexShrink: 0 }}>/</span>
             <div style={{ minWidth: 0 }}>
               <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, color: "var(--ink)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                 {contrato.nombre}
               </div>
-              <div style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "rgba(15,17,23,0.4)", marginTop: 2 }}>
+              <div style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "var(--muted)", marginTop: 2 }}>
                 {contrato.numero_contrato && `${contrato.numero_contrato} · `}
                 {archivosCliente.length + archivosEmpleado.length} archivo{archivosCliente.length + archivosEmpleado.length !== 1 ? "s" : ""}
               </div>
@@ -150,7 +150,7 @@ export default function ContratoArchivosView({
             padding: "20px 24px", marginBottom: 20,
             boxShadow: "0 1px 3px rgba(15,17,23,0.06)",
           }}>
-            <div style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(15,17,23,0.4)", marginBottom: 16 }}>
+            <div style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--muted)", marginBottom: 16 }}>
               {tabConfig[tab].uploadLabel}
             </div>
             <UploadZone
@@ -180,7 +180,7 @@ export default function ContratoArchivosView({
             <div style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)" }}>
               Archivos — {tabConfig[tab].label}
             </div>
-            <span style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", padding: "1px 7px", borderRadius: 100, background: "var(--surface-2)", color: "rgba(15,17,23,0.5)" }}>
+            <span style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", padding: "1px 7px", borderRadius: 100, background: "var(--surface-2)", color: "var(--muted-2)" }}>
               {archivos.length}
             </span>
           </div>
@@ -206,7 +206,7 @@ export default function ContratoArchivosView({
 function InfoItem({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(15,17,23,0.4)", marginBottom: 4 }}>
+      <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--muted)", marginBottom: 4 }}>
         {label}
       </div>
       <div style={{ fontSize: 13, color: "var(--ink)" }}>{children}</div>
@@ -217,7 +217,7 @@ function InfoItem({ label, children }: { label: string; children: React.ReactNod
 function EstadoBadge({ estado }: { estado: string }) {
   const map: Record<string, { bg: string; color: string }> = {
     vigente:   { bg: "var(--green-light)",  color: "var(--green)" },
-    vencido:   { bg: "var(--surface-2)",    color: "rgba(15,17,23,0.45)" },
+    vencido:   { bg: "var(--surface-2)",    color: "var(--muted)" },
     cancelado: { bg: "var(--red-light)",    color: "var(--accent)" },
   };
   const s = map[estado] ?? map.vencido;

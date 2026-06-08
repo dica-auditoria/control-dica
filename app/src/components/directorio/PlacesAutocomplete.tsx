@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useRef, useState } from "react";
 import type { PlaceData } from "@/types/directorio";
@@ -152,7 +152,7 @@ export default function PlacesAutocomplete({ onSelect, disabled }: Props) {
       {status === "ready" && (
         <span style={{
           position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)",
-          fontSize: 10, color: "rgba(15,17,23,0.3)", fontFamily: "'DM Mono', monospace",
+          fontSize: 10, color: "var(--muted)", fontFamily: "'DM Mono', monospace",
           pointerEvents: "none",
         }}>
           Maps
