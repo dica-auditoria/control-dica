@@ -470,7 +470,7 @@ function IncapacidadesPanel({ empleadoId, inicial }: { empleadoId: string; inici
                   transition: "border-color 0.15s, background 0.15s",
                 }}>
                   <span style={{ fontSize: 22 }}>{archivo ? "✅" : "📎"}</span>
-                  <span style={{ fontSize: 13, color: archivo ? "var(--green)" : "rgba(15,17,23,0.5)", fontWeight: archivo ? 600 : 400 }}>
+                  <span style={{ fontSize: 13, color: archivo ? "var(--green)" : "var(--muted-2)", fontWeight: archivo ? 600 : 400 }}>
                     {archivo ? archivo.name : "Haz clic para seleccionar archivo"}
                   </span>
                   {!archivo && <span style={{ fontSize: 11, color: "var(--muted)" }}>PDF, JPG o PNG · máx. 10 MB · opcional</span>}

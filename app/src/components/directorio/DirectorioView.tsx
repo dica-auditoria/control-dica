@@ -204,7 +204,7 @@ export default function DirectorioView({ oficinas, entidades, empresas: initialE
                 padding: "10px 20px", border: "none",
                 borderBottom: tab === t ? "2px solid var(--accent)" : "2px solid transparent",
                 background: "none",
-                color: tab === t ? "var(--accent)" : "rgba(15,17,23,0.5)",
+                color: tab === t ? "var(--accent)" : "var(--muted-2)",
                 fontSize: 13, fontWeight: tab === t ? 600 : 400,
                 cursor: "pointer", fontFamily: "'DM Sans', sans-serif", marginBottom: -1,
               }}>
@@ -213,7 +213,7 @@ export default function DirectorioView({ oficinas, entidades, empresas: initialE
                   marginLeft: 8, padding: "1px 7px", borderRadius: 100, fontSize: 10,
                   fontFamily: "'DM Mono', monospace",
                   background: tab === t ? "rgba(200,71,42,0.1)" : "var(--surface-2)",
-                  color: tab === t ? "var(--accent)" : "rgba(15,17,23,0.4)",
+                  color: tab === t ? "var(--accent)" : "var(--muted)",
                 }}>
                   {counts[t]}
                 </span>
@@ -264,7 +264,7 @@ export default function DirectorioView({ oficinas, entidades, empresas: initialE
       {/* Modal nueva empresa */}
       {modalEmpresaOpen && (
         <div
-          style={{ position: "fixed", inset: 0, zIndex: 50, background: "rgba(15,17,23,0.45)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
+          style={{ position: "fixed", inset: 0, zIndex: 50, background: "var(--overlay)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
           onClick={e => { if (e.target === e.currentTarget) setModalEmpresaOpen(false); }}
         >
           <div style={{ background: "var(--card)", borderRadius: 8, width: "100%", maxWidth: 420, boxShadow: "0 8px 32px rgba(15,17,23,0.18)" }}>
@@ -301,7 +301,7 @@ export default function DirectorioView({ oficinas, entidades, empresas: initialE
 
       {/* Modal ubicación */}
       {modalOpen && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 50, background: "rgba(15,17,23,0.45)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
+        <div style={{ position: "fixed", inset: 0, zIndex: 50, background: "var(--overlay)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
           onClick={e => { if (e.target === e.currentTarget) setModalOpen(false); }}>
           <div style={{ background: "var(--card)", borderRadius: 8, width: "100%", maxWidth: 640, maxHeight: "92vh", overflowY: "auto", boxShadow: "0 8px 32px rgba(15,17,23,0.18)" }}>
             {/* Modal header */}
@@ -470,7 +470,7 @@ function EmpresaCard({ empresa }: { empresa: EmpresaDirectorioItem }) {
           padding: "2px 8px", borderRadius: 100, fontSize: 10, fontWeight: 600,
           fontFamily: "'DM Mono', monospace", flexShrink: 0,
           background: empresa.activo ? "rgba(45,106,79,0.1)" : "var(--surface-2)",
-          color: empresa.activo ? "var(--green)" : "rgba(15,17,23,0.4)",
+          color: empresa.activo ? "var(--green)" : "var(--muted)",
         }}>
           {empresa.activo ? "Activa" : "Inactiva"}
         </span>
@@ -532,7 +532,7 @@ function UbicacionCard({ ubicacion: u, puedeEditar, onEditar, onToggle, onElimin
             )}
           </div>
         </div>
-        <span style={{ padding: "2px 8px", borderRadius: 100, fontSize: 10, fontWeight: 600, fontFamily: "'DM Mono', monospace", background: u.activo ? "rgba(45,106,79,0.1)" : "var(--surface-2)", color: u.activo ? "var(--green)" : "rgba(15,17,23,0.4)", flexShrink: 0 }}>
+        <span style={{ padding: "2px 8px", borderRadius: 100, fontSize: 10, fontWeight: 600, fontFamily: "'DM Mono', monospace", background: u.activo ? "rgba(45,106,79,0.1)" : "var(--surface-2)", color: u.activo ? "var(--green)" : "var(--muted)", flexShrink: 0 }}>
           {u.activo ? "Activa" : "Inactiva"}
         </span>
       </div>

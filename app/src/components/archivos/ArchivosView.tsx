@@ -144,7 +144,7 @@ export default function ArchivosView({ archivos: inicial, entidadId, rol }: Arch
         <div
           style={{
             position: "fixed", inset: 0,
-            background: "rgba(15,17,23,0.5)",
+            background: "var(--overlay)",
             display: "flex", alignItems: "center", justifyContent: "center",
             zIndex: 50, padding: 24,
           }}

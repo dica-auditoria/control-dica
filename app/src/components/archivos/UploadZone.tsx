@@ -328,7 +328,7 @@ export default function UploadZone({ entidadId, contratoId, destino = "cliente",
             style={{
               display: "flex", alignItems: "center", gap: 8,
               padding: "10px 20px",
-              background: uploading ? "rgba(15,17,23,0.3)" : "var(--ink)",
+              background: uploading ? "var(--disabled)" : "var(--ink)",
               color: "white", border: "none", borderRadius: 4,
               fontSize: 13, fontWeight: 600,
               cursor: uploading ? "not-allowed" : "pointer",

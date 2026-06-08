@@ -111,7 +111,7 @@ export default function CredencialesSection({ empleadoId }: { empleadoId: string
             padding: "3px 10px", borderRadius: 100, fontSize: 11, fontWeight: 600,
             fontFamily: "'DM Mono', monospace",
             background: cred.portal.tiene_acceso ? "rgba(45,106,79,0.1)" : "var(--surface-2)",
-            color: cred.portal.tiene_acceso ? "var(--green)" : "rgba(15,17,23,0.4)",
+            color: cred.portal.tiene_acceso ? "var(--green)" : "var(--muted)",
           }}>
             {cred.portal.tiene_acceso ? "Con acceso" : "Sin acceso"}
           </span>
@@ -172,7 +172,7 @@ export default function CredencialesSection({ empleadoId }: { empleadoId: string
           <div style={{ padding: "8px 20px 12px" }}>
             {cred.invitaciones.map((inv, i) => (
               <div key={inv.id} style={{ display: "flex", alignItems: "center", gap: 16, padding: "10px 0", borderBottom: i < cred.invitaciones.length - 1 ? "1px solid var(--border)" : "none" }}>
-                <span style={{ padding: "2px 8px", borderRadius: 4, fontSize: 11, fontFamily: "'DM Mono', monospace", fontWeight: 600, background: inv.usada ? "rgba(45,106,79,0.1)" : "var(--surface-2)", color: inv.usada ? "var(--green)" : "rgba(15,17,23,0.45)" }}>
+                <span style={{ padding: "2px 8px", borderRadius: 4, fontSize: 11, fontFamily: "'DM Mono', monospace", fontWeight: 600, background: inv.usada ? "rgba(45,106,79,0.1)" : "var(--surface-2)", color: inv.usada ? "var(--green)" : "var(--muted)" }}>
                   {inv.usada ? "Usada" : "Pendiente"}
                 </span>
                 <span style={{ fontSize: 12, color: "var(--muted-2)", textTransform: "capitalize" }}>{inv.tipo}</span>

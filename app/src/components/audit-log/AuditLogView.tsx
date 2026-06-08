@@ -99,7 +99,7 @@ export default function AuditLogView({ entradas, total }: { entradas: AuditLogIt
                 background: filtro === f.key ? "white" : "transparent",
                 border: "none", borderRadius: 4,
                 fontSize: 11, fontWeight: 500,
-                color: filtro === f.key ? "var(--ink)" : "rgba(15,17,23,0.45)",
+                color: filtro === f.key ? "var(--ink)" : "var(--muted)",
                 cursor: "pointer",
                 fontFamily: "'DM Mono', monospace",
                 boxShadow: filtro === f.key ? "0 1px 3px rgba(15,17,23,0.08)" : "none",

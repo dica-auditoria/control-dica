@@ -224,7 +224,7 @@ export default function EmpleadoAltaForm({ supervisores, ubicaciones }: Props) {
         paddingTop: 16,
         borderTop: "1px solid var(--border)",
       }}>
-        <span style={{ fontSize: 12, color: isValid ? "var(--green)" : "rgba(15,17,23,0.4)" }}>
+        <span style={{ fontSize: 12, color: isValid ? "var(--green)" : "var(--muted)" }}>
           {isValid ? "✓ Todos los campos requeridos completos" : "Complete los campos requeridos"}
         </span>
         <div style={{ display: "flex", gap: 10 }}>
@@ -243,7 +243,7 @@ export default function EmpleadoAltaForm({ supervisores, ubicaciones }: Props) {
             disabled={!isValid || loading}
             style={{
               padding: "10px 20px",
-              background: isValid && !loading ? "var(--green)" : "rgba(15,17,23,0.25)",
+              background: isValid && !loading ? "var(--green)" : "var(--muted)",
               color: "white",
               border: "none",
               borderRadius: 4,

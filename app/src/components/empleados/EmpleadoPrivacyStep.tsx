@@ -146,7 +146,7 @@ export default function EmpleadoPrivacyStep({ token, nombreCompleto, email }: Pr
           onClick={handleContinue}
           style={{
             padding: "12px 24px",
-            background: aceptaAviso && !loading ? "var(--green)" : "rgba(15,17,23,0.2)",
+            background: aceptaAviso && !loading ? "var(--green)" : "var(--muted)",
             color: "white",
             border: "none",
             borderRadius: 4,

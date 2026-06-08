@@ -234,7 +234,7 @@ export default function EmpleadoDetalleView({ empleado: inicial, supervisores = 
                     </div>
                   )}
                   {/* Overlay */}
-                  <div style={{ position: "absolute", inset: 0, background: "rgba(15,17,23,0.45)", display: "flex", alignItems: "center", justifyContent: "center", opacity: fotoUploading ? 1 : 0, transition: "opacity 0.15s" }}
+                  <div style={{ position: "absolute", inset: 0, background: "var(--overlay)", display: "flex", alignItems: "center", justifyContent: "center", opacity: fotoUploading ? 1 : 0, transition: "opacity 0.15s" }}
                     onMouseEnter={e => { if (!fotoUploading) (e.currentTarget as HTMLDivElement).style.opacity = "1"; }}
                     onMouseLeave={e => { if (!fotoUploading) (e.currentTarget as HTMLDivElement).style.opacity = "0"; }}
                   >
@@ -363,7 +363,7 @@ export default function EmpleadoDetalleView({ empleado: inicial, supervisores = 
 
       {/* ── Modal de edición ─────────────────────────────────────────────── */}
       {!soloLectura && editOpen && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 50, background: "rgba(15,17,23,0.45)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
+        <div style={{ position: "fixed", inset: 0, zIndex: 50, background: "var(--overlay)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
           onClick={e => { if (e.target === e.currentTarget) setEditOpen(false); }}>
           <div style={{ background: "var(--card)", borderRadius: 8, width: "100%", maxWidth: 620, maxHeight: "90vh", overflowY: "auto", boxShadow: "0 8px 32px rgba(15,17,23,0.18)" }}>
             <div style={{ padding: "18px 24px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -445,7 +445,7 @@ export default function EmpleadoDetalleView({ empleado: inicial, supervisores = 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function BitacoraEntry({ entry, isLast }: { entry: EmpleadoBitacoraEntry; isLast: boolean }) {
-  const color = ACCION_COLOR[entry.accion] ?? "rgba(15,17,23,0.35)";
+  const color = ACCION_COLOR[entry.accion] ?? "var(--muted)";
   const label = ACCION_LABELS[entry.accion] ?? entry.accion;
   const fecha = new Date(entry.created_at).toLocaleString("es-MX", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
   return (
@@ -682,7 +682,7 @@ function DocumentosSection({
 
       {/* Modal agregar documento */}
       {modalOpen && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 60, background: "rgba(15,17,23,0.45)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
+        <div style={{ position: "fixed", inset: 0, zIndex: 60, background: "var(--overlay)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
           onClick={e => { if (e.target === e.currentTarget) setModalOpen(false); }}>
           <div style={{ background: "var(--card)", borderRadius: 8, width: "100%", maxWidth: 480, boxShadow: "0 8px 32px rgba(15,17,23,0.18)", overflow: "hidden" }}>
             <div style={{ padding: "16px 22px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -716,7 +716,7 @@ function DocumentosSection({
                   transition: "all 0.15s",
                 }}>
                   <span style={{ fontSize: 24 }}>{archivo ? "✅" : "📎"}</span>
-                  <span style={{ fontSize: 13, color: archivo ? "var(--green)" : "rgba(15,17,23,0.5)", fontWeight: archivo ? 600 : 400 }}>
+                  <span style={{ fontSize: 13, color: archivo ? "var(--green)" : "var(--muted-2)", fontWeight: archivo ? 600 : 400 }}>
                     {archivo ? archivo.name : "Haz clic para seleccionar archivo"}
                   </span>
                   {!archivo && <span style={{ fontSize: 11, color: "var(--muted)" }}>PDF, JPG o PNG · máx. 10 MB</span>}
@@ -733,7 +733,7 @@ function DocumentosSection({
                 <button onClick={() => setModalOpen(false)} style={btnOl} disabled={uploading || isPending}>Cancelar</button>
                 <button onClick={handleSubir} disabled={!archivo || uploading || isPending} style={{
                   ...btnGn,
-                  background: !archivo ? "rgba(15,17,23,0.2)" : "var(--green)",
+                  background: !archivo ? "var(--disabled)" : "var(--green)",
                   cursor: !archivo ? "not-allowed" : "pointer",
                 }}>
                   {uploading || isPending ? "Subiendo…" : "Subir documento"}
@@ -931,7 +931,7 @@ function BancariosSection({ empleadoId }: { empleadoId: string }) {
 
       {/* Edit Modal */}
       {editOpen && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 60, background: "rgba(15,17,23,0.45)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
+        <div style={{ position: "fixed", inset: 0, zIndex: 60, background: "var(--overlay)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
           onClick={e => { if (e.target === e.currentTarget) setEditOpen(false); }}>
           <div style={{ background: "var(--card)", borderRadius: 8, width: "100%", maxWidth: 520, boxShadow: "0 8px 32px rgba(15,17,23,0.18)", overflow: "hidden" }}>
             <div style={{ padding: "16px 22px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>

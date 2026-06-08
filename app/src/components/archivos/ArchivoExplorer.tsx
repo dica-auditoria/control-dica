@@ -299,7 +299,7 @@ function ActionBtn({ children, onClick, title, danger }: { children: React.React
   return (
     <button type="button" title={title} onClick={onClick}
       onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
-      style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 26, height: 26, borderRadius: 4, border: "none", cursor: "pointer", background: hov ? (danger ? "rgba(200,71,42,0.1)" : "rgba(15,17,23,0.07)") : "transparent", color: danger ? "var(--accent)" : "rgba(15,17,23,0.5)", transition: "background 0.1s" }}>
+      style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 26, height: 26, borderRadius: 4, border: "none", cursor: "pointer", background: hov ? (danger ? "rgba(200,71,42,0.1)" : "rgba(15,17,23,0.07)") : "transparent", color: danger ? "var(--accent)" : "var(--muted-2)", transition: "background 0.1s" }}>
       {children}
     </button>
   );
@@ -360,7 +360,7 @@ function PreviewModal({ archivo, isAdmin, onClose, onDeleted }: { archivo: Archi
   };
 
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 1000, background: "rgba(15,17,23,0.55)", display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(4px)", padding: 24 }}
+    <div style={{ position: "fixed", inset: 0, zIndex: 1000, background: "var(--overlay)", display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(4px)", padding: 24 }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div style={{ background: "var(--card)", borderRadius: 10, width: "100%", maxWidth: 960, maxHeight: "90vh", display: "flex", flexDirection: "column", boxShadow: "0 24px 64px rgba(15,17,23,0.25)", overflow: "hidden" }}>
         {/* Header */}
@@ -460,7 +460,7 @@ function MoveModal({ archivo, folderPaths, onClose, onMoved }: { archivo: Archiv
   const all = ["", ...folderPaths];
 
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 1100, background: "rgba(15,17,23,0.55)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}
+    <div style={{ position: "fixed", inset: 0, zIndex: 1100, background: "var(--overlay)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div style={{ background: "var(--card)", borderRadius: 10, width: "100%", maxWidth: 400, boxShadow: "0 24px 64px rgba(15,17,23,0.25)", overflow: "hidden" }}>
         <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", background: "var(--surface)" }}>
@@ -648,7 +648,7 @@ export default function ArchivoExplorer({ archivos, emptyMsg, isAdmin = false, e
             const active = tiposFiltro.has(tipo);
             return (
               <button key={tipo} onClick={() => setTiposFiltro(prev => { const next = new Set(prev); if (active) next.delete(tipo); else next.add(tipo); return next; })}
-                style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", fontWeight: 700, padding: "3px 9px", borderRadius: 100, border: "1.5px solid", textTransform: "uppercase", cursor: "pointer", borderColor: active ? "var(--accent)" : "var(--border)", background: active ? "rgba(200,71,42,0.08)" : "white", color: active ? "var(--accent)" : "rgba(15,17,23,0.45)", transition: "all 0.1s" }}>
+                style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", fontWeight: 700, padding: "3px 9px", borderRadius: 100, border: "1.5px solid", textTransform: "uppercase", cursor: "pointer", borderColor: active ? "var(--accent)" : "var(--border)", background: active ? "rgba(200,71,42,0.08)" : "white", color: active ? "var(--accent)" : "var(--muted)", transition: "all 0.1s" }}>
                 {tipo}
               </button>
             );
@@ -754,7 +754,7 @@ function NuevaCarpetaModal({ parentPath, entidadId, contratoId, destino, onClose
   };
 
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 1100, background: "rgba(15,17,23,0.55)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}
+    <div style={{ position: "fixed", inset: 0, zIndex: 1100, background: "var(--overlay)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div style={{ background: "var(--card)", borderRadius: 10, width: "100%", maxWidth: 380, boxShadow: "0 24px 64px rgba(15,17,23,0.25)", overflow: "hidden" }}>
         <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", background: "var(--surface)", display: "flex", alignItems: "center", gap: 10 }}>
@@ -827,7 +827,7 @@ function ImageThumb({ archivo }: { archivo: ArchivoContratoItem }) {
 function SortableTh({ col, sort, onSort, children, style }: { col: SortCol; sort: SortState | null; onSort: (c: SortCol) => void; children: React.ReactNode; style?: React.CSSProperties }) {
   const active = sort?.col === col;
   return (
-    <th onClick={() => onSort(col)} style={{ padding: "9px 20px", textAlign: "left", fontSize: 10, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", textTransform: "uppercase", color: active ? "var(--accent)" : "rgba(15,17,23,0.4)", borderBottom: "1px solid var(--border)", cursor: "pointer", userSelect: "none", whiteSpace: "nowrap", ...style }}>
+    <th onClick={() => onSort(col)} style={{ padding: "9px 20px", textAlign: "left", fontSize: 10, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", textTransform: "uppercase", color: active ? "var(--accent)" : "var(--muted)", borderBottom: "1px solid var(--border)", cursor: "pointer", userSelect: "none", whiteSpace: "nowrap", ...style }}>
       {children}
       {active && <span style={{ marginLeft: 4 }}>{sort!.dir === "asc" ? "↑" : "↓"}</span>}
     </th>

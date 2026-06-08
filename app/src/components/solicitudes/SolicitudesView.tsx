@@ -93,7 +93,7 @@ export default function SolicitudesView({ solicitudes: inicial }: { solicitudes:
                 border: "none",
                 borderRadius: 4,
                 fontSize: 12, fontWeight: 500,
-                color: filtro === f ? "var(--ink)" : "rgba(15,17,23,0.45)",
+                color: filtro === f ? "var(--ink)" : "var(--muted)",
                 cursor: "pointer",
                 fontFamily: "'DM Sans', sans-serif",
                 boxShadow: filtro === f ? "0 1px 3px rgba(15,17,23,0.08)" : "none",

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import ClientesView from "./ClientesView";
@@ -44,7 +44,7 @@ export default function ClientesPageTabs({ clientes, usuarios, entidades, rol }:
                   padding: "8px 18px", border: "none",
                   borderBottom: tab === t.id ? "2px solid var(--accent)" : "2px solid transparent",
                   background: "none",
-                  color: tab === t.id ? "var(--accent)" : "rgba(15,17,23,0.5)",
+                  color: tab === t.id ? "var(--accent)" : "var(--muted-2)",
                   fontSize: 13, fontWeight: tab === t.id ? 600 : 400,
                   cursor: "pointer", fontFamily: "'DM Sans', sans-serif",
                   marginBottom: -1, display: "flex", alignItems: "center", gap: 8,
@@ -55,7 +55,7 @@ export default function ClientesPageTabs({ clientes, usuarios, entidades, rol }:
                   fontSize: 10, fontFamily: "'DM Mono', monospace",
                   padding: "1px 6px", borderRadius: 100,
                   background: tab === t.id ? "rgba(200,71,42,0.1)" : "var(--surface-2)",
-                  color: tab === t.id ? "var(--accent)" : "rgba(15,17,23,0.4)",
+                  color: tab === t.id ? "var(--accent)" : "var(--muted)",
                 }}>
                   {t.count}
                 </span>

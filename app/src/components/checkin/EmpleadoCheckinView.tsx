@@ -266,7 +266,7 @@ export default function EmpleadoCheckinView({
   };
 
   const btnBg = isPending
-    ? "rgba(15,17,23,0.2)"
+    ? "var(--muted)"
     : flash
       ? (flash.dentroRadio === false ? "#f97316" : "#22c55e")
       : isEntrada ? "#1677ff" : "#f97316";

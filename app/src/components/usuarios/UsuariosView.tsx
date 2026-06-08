@@ -141,7 +141,7 @@ export default function UsuariosView({
               <button key={f} onClick={() => setFiltro(f)} style={{
                 padding: "5px 12px", background: filtro === f ? "white" : "transparent",
                 border: "none", borderRadius: 4, fontSize: 12, fontWeight: 500,
-                color: filtro === f ? "var(--ink)" : "rgba(15,17,23,0.45)",
+                color: filtro === f ? "var(--ink)" : "var(--muted)",
                 cursor: "pointer", fontFamily: "'DM Sans', sans-serif",
                 boxShadow: filtro === f ? "0 1px 3px rgba(15,17,23,0.08)" : "none",
                 textTransform: "capitalize",
@@ -272,7 +272,7 @@ export default function UsuariosView({
                           onClick={() => isSuperadmin && !isBusy && setEditingEntidad(u.id)}
                           title={isSuperadmin ? "Click para cambiar entidad" : undefined}
                           style={{
-                            fontSize: 12, color: u.entidad_nombre ? "rgba(15,17,23,0.6)" : "rgba(15,17,23,0.3)",
+                            fontSize: 12, color: u.entidad_nombre ? "var(--muted-2)" : "var(--muted)",
                             cursor: isSuperadmin ? "pointer" : "default",
                             display: "flex", alignItems: "center", gap: 4,
                           }}
@@ -299,7 +299,7 @@ export default function UsuariosView({
       {modalOpen && (
         <div
           style={{
-            position: "fixed", inset: 0, background: "rgba(15,17,23,0.5)",
+            position: "fixed", inset: 0, background: "var(--overlay)",
             display: "flex", alignItems: "center", justifyContent: "center",
             zIndex: 50, padding: 24,
           }}
@@ -375,7 +375,7 @@ export default function UsuariosView({
                 }}>Cancelar</button>
                 <button type="submit" disabled={submitting} style={{
                   padding: "8px 20px",
-                  background: submitting ? "rgba(15,17,23,0.3)" : "var(--ink)",
+                  background: submitting ? "var(--disabled)" : "var(--ink)",
                   color: "white", border: "none", borderRadius: 4,
                   fontSize: 13, fontWeight: 600, cursor: submitting ? "not-allowed" : "pointer",
                   fontFamily: "'DM Sans', sans-serif",

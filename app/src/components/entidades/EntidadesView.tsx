@@ -196,9 +196,9 @@ export default function EntidadesView({ entidades: inicial, rol }: EntidadesView
                       padding: "3px 8px", borderRadius: 100,
                       fontSize: 11, fontWeight: 600, fontFamily: "'DM Mono', monospace",
                       background: e.activo ? "var(--green-light)" : "var(--surface-2)",
-                      color: e.activo ? "var(--green)" : "rgba(15,17,23,0.45)",
+                      color: e.activo ? "var(--green)" : "var(--muted)",
                     }}>
-                      <span style={{ width: 5, height: 5, borderRadius: "50%", background: e.activo ? "var(--green)" : "rgba(15,17,23,0.3)" }} />
+                      <span style={{ width: 5, height: 5, borderRadius: "50%", background: e.activo ? "var(--green)" : "var(--muted)" }} />
                       {e.activo ? "Activa" : "Inactiva"}
                     </span>
                   </td>
@@ -238,7 +238,7 @@ export default function EntidadesView({ entidades: inicial, rol }: EntidadesView
         <div
           style={{
             position: "fixed", inset: 0,
-            background: "rgba(15,17,23,0.5)",
+            background: "var(--overlay)",
             display: "flex", alignItems: "center", justifyContent: "center",
             zIndex: 50, padding: 24,
           }}
@@ -314,7 +314,7 @@ export default function EntidadesView({ entidades: inicial, rol }: EntidadesView
                 </button>
                 <button type="submit" disabled={submitting} style={{
                   padding: "8px 20px",
-                  background: submitting ? "rgba(15,17,23,0.3)" : "var(--ink)",
+                  background: submitting ? "var(--disabled)" : "var(--ink)",
                   color: "white", border: "none", borderRadius: 4,
                   fontSize: 13, fontWeight: 600,
                   cursor: submitting ? "not-allowed" : "pointer",

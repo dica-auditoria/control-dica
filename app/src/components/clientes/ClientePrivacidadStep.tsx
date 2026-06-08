@@ -169,7 +169,7 @@ export default function ClientePrivacidadStep({ nombre, email }: Props) {
           style={{
             padding: "12px 28px",
             background: acepta && !isPending ? "var(--green)" : "rgba(15,17,23,0.15)",
-            color: acepta && !isPending ? "white" : "rgba(15,17,23,0.35)",
+            color: acepta && !isPending ? "white" : "var(--muted)",
             border: "none", borderRadius: 4,
             fontSize: 14, fontWeight: 600,
             cursor: acepta && !isPending ? "pointer" : "not-allowed",

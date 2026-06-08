@@ -207,8 +207,8 @@ export default function ReportesView() {
                         );
                       })}
                       <td style={{ ...tdSt, textAlign: "center", fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#16a34a", fontWeight: 700 }}>{e.presentes}</td>
-                      <td style={{ ...tdSt, textAlign: "center", fontFamily: "'DM Mono', monospace", fontSize: 12, color: e.tardanzas > 0 ? "#a16207" : "rgba(15,17,23,0.3)", fontWeight: 700 }}>{e.tardanzas}</td>
-                      <td style={{ ...tdSt, textAlign: "center", fontFamily: "'DM Mono', monospace", fontSize: 12, color: e.ausentes > 0 ? "var(--accent)" : "rgba(15,17,23,0.3)", fontWeight: 700 }}>{e.ausentes}</td>
+                      <td style={{ ...tdSt, textAlign: "center", fontFamily: "'DM Mono', monospace", fontSize: 12, color: e.tardanzas > 0 ? "#a16207" : "var(--muted)", fontWeight: 700 }}>{e.tardanzas}</td>
+                      <td style={{ ...tdSt, textAlign: "center", fontFamily: "'DM Mono', monospace", fontSize: 12, color: e.ausentes > 0 ? "var(--accent)" : "var(--muted)", fontWeight: 700 }}>{e.ausentes}</td>
                       <td style={{ ...tdSt, textAlign: "center" }}>
                         <span style={{ fontSize: 12, fontFamily: "'DM Mono', monospace", fontWeight: 700, color: e.porcentaje >= 90 ? "#16a34a" : e.porcentaje >= 70 ? "#a16207" : "var(--accent)" }}>
                           {e.porcentaje}%

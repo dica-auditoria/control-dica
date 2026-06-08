@@ -105,7 +105,7 @@ export default function RequerimientosTab({ requerimientos, entidadId, contratoI
 
                   {/* Deadline chip */}
                   <div style={{ flexShrink: 0, textAlign: "right" }}>
-                    <div style={{ fontSize: 12, fontFamily: "'DM Mono', monospace", color: req.estado === "vencido" ? "var(--accent)" : dias <= 3 ? "#B8860B" : "rgba(15,17,23,0.5)" }}>
+                    <div style={{ fontSize: 12, fontFamily: "'DM Mono', monospace", color: req.estado === "vencido" ? "var(--accent)" : dias <= 3 ? "#B8860B" : "var(--muted-2)" }}>
                       {req.estado === "completado" ? formatFecha(req.fecha_limite) : dias < 0 ? `Venció hace ${Math.abs(dias)}d` : dias === 0 ? "Vence hoy" : `${dias}d restante${dias !== 1 ? "s" : ""}`}
                     </div>
                     <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 2 }}>{formatFecha(req.fecha_limite)}</div>
@@ -260,7 +260,7 @@ function CrearRequerimientoModal({ entidadId, contratoId, onClose, onCreated }: 
   };
 
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 1200, background: "rgba(15,17,23,0.55)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}
+    <div style={{ position: "fixed", inset: 0, zIndex: 1200, background: "var(--overlay)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div style={{ background: "var(--card)", borderRadius: 10, width: "100%", maxWidth: 560, maxHeight: "90vh", display: "flex", flexDirection: "column", boxShadow: "0 24px 64px rgba(15,17,23,0.25)", overflow: "hidden" }}>
         <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", background: "var(--surface)", flexShrink: 0 }}>
@@ -345,7 +345,7 @@ function ExtenderFechaModal({ requerimientoId, onClose, onUpdated }: { requerimi
   };
 
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 1300, background: "rgba(15,17,23,0.55)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}
+    <div style={{ position: "fixed", inset: 0, zIndex: 1300, background: "var(--overlay)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div style={{ background: "var(--card)", borderRadius: 10, width: "100%", maxWidth: 340, boxShadow: "0 24px 64px rgba(15,17,23,0.25)", overflow: "hidden" }}>
         <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", background: "var(--surface)" }}>
@@ -382,7 +382,7 @@ function CerrarModal({ requerimientoId, onClose, onClosed }: { requerimientoId: 
   };
 
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 1300, background: "rgba(15,17,23,0.55)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}
+    <div style={{ position: "fixed", inset: 0, zIndex: 1300, background: "var(--overlay)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div style={{ background: "var(--card)", borderRadius: 10, width: "100%", maxWidth: 400, boxShadow: "0 24px 64px rgba(15,17,23,0.25)", overflow: "hidden" }}>
         <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", background: "var(--surface)" }}>

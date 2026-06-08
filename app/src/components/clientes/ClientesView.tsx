@@ -113,7 +113,7 @@ function ClienteCard({ cliente: c }: { cliente: ClienteListItem }) {
           padding: "2px 8px", borderRadius: 100, fontSize: 10, fontWeight: 600,
           fontFamily: "'DM Mono', monospace", flexShrink: 0,
           background: c.activo ? "rgba(45,106,79,0.1)" : "var(--surface-2)",
-          color: c.activo ? "var(--green)" : "rgba(15,17,23,0.4)",
+          color: c.activo ? "var(--green)" : "var(--muted)",
         }}>
           {c.activo ? "Activo" : "Inactivo"}
         </span>

@@ -183,7 +183,7 @@ function PageBtn({ onClick, disabled, active, children }: { onClick: () => void;
       style={{
         width: 32, height: 32, border: "1.5px solid var(--border-strong)",
         borderRadius: 4, background: active ? "var(--ink)" : "var(--card)",
-        color: active ? "var(--surface)" : disabled ? "var(--muted)" : "var(--ink)",
+        color: active ? "var(--surface)" : disabled ? "var(--disabled)" : "var(--ink)",
         fontSize: 13, cursor: disabled ? "default" : "pointer",
         fontFamily: "'DM Mono', monospace",
       }}

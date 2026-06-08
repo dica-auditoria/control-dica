@@ -25,7 +25,7 @@ export default function ConfirmDialog({
 
   return (
     <div
-      style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(15,17,23,0.45)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
+      style={{ position: "fixed", inset: 0, zIndex: 200, background: "var(--overlay)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
       onClick={e => { if (e.target === e.currentTarget && !loading) onCancel(); }}
     >
       <div style={{ background: "var(--card)", borderRadius: 8, width: "100%", maxWidth: 420, boxShadow: "0 8px 32px rgba(15,17,23,0.2)", overflow: "hidden" }}>

@@ -99,7 +99,7 @@ export default function ActivoDetalleModal({ activo, onClose }: Props) {
   const docs  = archivos.filter(a => a.tipo === "documento");
 
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 60, background: "rgba(15,17,23,0.5)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
+    <div style={{ position: "fixed", inset: 0, zIndex: 60, background: "var(--overlay)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div style={{ background: "var(--card)", borderRadius: 8, width: "100%", maxWidth: 680, maxHeight: "92vh", display: "flex", flexDirection: "column", boxShadow: "0 8px 32px rgba(15,17,23,0.2)" }}>
         {/* Header */}
@@ -124,7 +124,7 @@ export default function ActivoDetalleModal({ activo, onClose }: Props) {
               padding: "10px 16px", border: "none",
               borderBottom: tab === t ? "2px solid var(--accent)" : "2px solid transparent",
               background: "none", fontSize: 12, fontWeight: tab === t ? 600 : 400,
-              color: tab === t ? "var(--accent)" : "rgba(15,17,23,0.5)",
+              color: tab === t ? "var(--accent)" : "var(--muted-2)",
               cursor: "pointer", fontFamily: "'DM Sans', sans-serif", marginBottom: -1,
             }}>{label}</button>
           ))}
@@ -201,7 +201,7 @@ function DR({ label, value, mono, icon }: { label: string; value: string | null 
   return (
     <div>
       <div style={{ fontSize: 10, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 5 }}>{label}</div>
-      <div style={{ fontSize: 13, color: value ? "var(--ink)" : "rgba(15,17,23,0.25)", fontFamily: mono ? "'DM Mono', monospace" : undefined }}>
+      <div style={{ fontSize: 13, color: value ? "var(--ink)" : "var(--muted)", fontFamily: mono ? "'DM Mono', monospace" : undefined }}>
         {icon && <span style={{ marginRight: 4 }}>{icon}</span>}
         {value ?? "—"}
       </div>

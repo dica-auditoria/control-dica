@@ -69,7 +69,7 @@ export default function AsistenciaView({ registros: inicial, empleados, oficinas
               padding: "10px 22px", border: "none",
               borderBottom: tab === t ? "2px solid var(--accent)" : "2px solid transparent",
               background: "none", fontSize: 13,
-              color: tab === t ? "var(--accent)" : "rgba(15,17,23,0.5)",
+              color: tab === t ? "var(--accent)" : "var(--muted-2)",
               fontWeight: tab === t ? 600 : 400,
               cursor: "pointer", fontFamily: "'DM Sans', sans-serif", marginBottom: -1,
             }}>
@@ -212,7 +212,7 @@ function TabHoy({ registros: inicial, empleados, oficinas, fechaInicial }: Props
 
       {/* Modal */}
       {modalOpen && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 50, background: "rgba(15,17,23,0.45)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
+        <div style={{ position: "fixed", inset: 0, zIndex: 50, background: "var(--overlay)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
           onClick={e => { if (e.target === e.currentTarget) setModalOpen(false); }}>
           <div style={{ background: "var(--card)", borderRadius: 8, width: "100%", maxWidth: 460, boxShadow: "0 8px 32px rgba(15,17,23,0.18)", overflow: "hidden" }}>
             <div style={{ padding: "16px 22px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -228,7 +228,7 @@ function TabHoy({ registros: inicial, empleados, oficinas, fechaInicial }: Props
               )}
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                 {(["entrada", "salida"] as const).map(t => (
-                  <button key={t} onClick={() => setTipo(t)} style={{ padding: "10px 0", borderRadius: 6, border: `2px solid ${tipo === t ? (t === "entrada" ? "var(--green)" : "var(--ink-2)") : "var(--border)"}`, background: tipo === t ? (t === "entrada" ? "rgba(45,106,79,0.06)" : "rgba(15,17,23,0.04)") : "white", fontSize: 13, fontWeight: 600, cursor: "pointer", color: tipo === t ? (t === "entrada" ? "var(--green)" : "var(--ink-2)") : "rgba(15,17,23,0.4)", fontFamily: "'DM Sans', sans-serif" }}>
+                  <button key={t} onClick={() => setTipo(t)} style={{ padding: "10px 0", borderRadius: 6, border: `2px solid ${tipo === t ? (t === "entrada" ? "var(--green)" : "var(--ink-2)") : "var(--border)"}`, background: tipo === t ? (t === "entrada" ? "rgba(45,106,79,0.06)" : "rgba(15,17,23,0.04)") : "white", fontSize: 13, fontWeight: 600, cursor: "pointer", color: tipo === t ? (t === "entrada" ? "var(--green)" : "var(--ink-2)") : "var(--muted)", fontFamily: "'DM Sans', sans-serif" }}>
                     {t === "entrada" ? "↗ Entrada" : "↙ Salida"}
                   </button>
                 ))}
@@ -250,7 +250,7 @@ function TabHoy({ registros: inicial, empleados, oficinas, fechaInicial }: Props
               <div>
                 <Lbl>Ubicación GPS</Lbl>
                 <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-                  <button onClick={solicitarGPS} disabled={geoState === "solicitando"} style={{ padding: "8px 12px", borderRadius: 4, border: "1.5px solid var(--border-strong)", background: geoState === "ok" ? "rgba(45,106,79,0.08)" : "white", fontSize: 12, cursor: "pointer", color: geoState === "ok" ? "var(--green)" : "rgba(15,17,23,0.65)", fontFamily: "'DM Sans', sans-serif" }}>
+                  <button onClick={solicitarGPS} disabled={geoState === "solicitando"} style={{ padding: "8px 12px", borderRadius: 4, border: "1.5px solid var(--border-strong)", background: geoState === "ok" ? "rgba(45,106,79,0.08)" : "white", fontSize: 12, cursor: "pointer", color: geoState === "ok" ? "var(--green)" : "var(--muted-2)", fontFamily: "'DM Sans', sans-serif" }}>
                     {geoState === "solicitando" ? "⏳ Obteniendo…" : geoState === "ok" ? "✓ GPS ok" : "📡 Obtener GPS"}
                   </button>
                   {coords && <span style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", color: "var(--green)" }}>{coords.lat.toFixed(5)}, {coords.lng.toFixed(5)}</span>}
@@ -263,7 +263,7 @@ function TabHoy({ registros: inicial, empleados, oficinas, fechaInicial }: Props
               </div>
               <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, paddingTop: 6, borderTop: "1px solid var(--border)" }}>
                 <button onClick={() => setModalOpen(false)} style={btnO}>Cancelar</button>
-                <button onClick={handleRegistrar} disabled={isPending || !empId} style={{ ...btnP, background: !empId ? "rgba(15,17,23,0.2)" : tipo === "entrada" ? "var(--green)" : "var(--ink-2)", cursor: !empId ? "not-allowed" : "pointer" }}>
+                <button onClick={handleRegistrar} disabled={isPending || !empId} style={{ ...btnP, background: !empId ? "var(--muted)" : tipo === "entrada" ? "var(--green)" : "var(--ink-2)", cursor: !empId ? "not-allowed" : "pointer" }}>
                   {isPending ? "Guardando…" : tipo === "entrada" ? "↗ Entrada" : "↙ Salida"}
                 </button>
               </div>
@@ -401,8 +401,8 @@ function TabReportes() {
                       );
                     })}
                     <td style={{ ...tdSt, textAlign: "center", fontFamily: "'DM Mono', monospace", fontSize: 12, color: "#16a34a", fontWeight: 700 }}>{e.presentes}</td>
-                    <td style={{ ...tdSt, textAlign: "center", fontFamily: "'DM Mono', monospace", fontSize: 12, color: e.tardanzas > 0 ? "#a16207" : "rgba(15,17,23,0.3)", fontWeight: 700 }}>{e.tardanzas}</td>
-                    <td style={{ ...tdSt, textAlign: "center", fontFamily: "'DM Mono', monospace", fontSize: 12, color: e.ausentes > 0 ? "var(--accent)" : "rgba(15,17,23,0.3)", fontWeight: 700 }}>{e.ausentes}</td>
+                    <td style={{ ...tdSt, textAlign: "center", fontFamily: "'DM Mono', monospace", fontSize: 12, color: e.tardanzas > 0 ? "#a16207" : "var(--muted)", fontWeight: 700 }}>{e.tardanzas}</td>
+                    <td style={{ ...tdSt, textAlign: "center", fontFamily: "'DM Mono', monospace", fontSize: 12, color: e.ausentes > 0 ? "var(--accent)" : "var(--muted)", fontWeight: 700 }}>{e.ausentes}</td>
                     <td style={{ ...tdSt, textAlign: "center" }}>
                       <span style={{ fontSize: 12, fontFamily: "'DM Mono', monospace", fontWeight: 700, color: e.porcentaje >= 90 ? "#16a34a" : e.porcentaje >= 70 ? "#a16207" : "var(--accent)" }}>{e.porcentaje}%</span>
                     </td>

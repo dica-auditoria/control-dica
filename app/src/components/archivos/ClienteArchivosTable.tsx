@@ -138,7 +138,7 @@ export default function ClienteArchivosTable({ archivos: inicial }: { archivos: 
         <div
           style={{
             position: "fixed", inset: 0,
-            background: "rgba(15,17,23,0.5)",
+            background: "var(--overlay)",
             display: "flex", alignItems: "center", justifyContent: "center",
             zIndex: 50, padding: 24,
           }}
@@ -234,7 +234,7 @@ export default function ClienteArchivosTable({ archivos: inicial }: { archivos: 
                 </button>
                 <button type="submit" disabled={submitting} style={{
                   padding: "8px 20px",
-                  background: submitting ? "rgba(15,17,23,0.3)" : "var(--accent)",
+                  background: submitting ? "var(--disabled)" : "var(--accent)",
                   color: "white", border: "none", borderRadius: 4,
                   fontSize: 13, fontWeight: 600,
                   cursor: submitting ? "not-allowed" : "pointer",

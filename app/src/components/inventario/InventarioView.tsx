@@ -240,7 +240,7 @@ export default function InventarioView({ activos: inicial, categorias, empleados
 
       {/* Modal: Nuevo / Editar */}
       {modalForm && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 50, background: "rgba(15,17,23,0.45)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
+        <div style={{ position: "fixed", inset: 0, zIndex: 50, background: "var(--overlay)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
           onClick={e => { if (e.target === e.currentTarget) setModalForm(false); }}>
           <div style={{ background: "var(--card)", borderRadius: 8, width: "100%", maxWidth: 620, maxHeight: "92vh", overflowY: "auto", boxShadow: "0 8px 32px rgba(15,17,23,0.18)" }}>
             <div style={{ padding: "16px 22px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center", position: "sticky", top: 0, background: "var(--card)", zIndex: 1 }}>
@@ -357,7 +357,7 @@ export default function InventarioView({ activos: inicial, categorias, empleados
 
       {/* Modal: Asignar */}
       {asignandoId && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 50, background: "rgba(15,17,23,0.45)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
+        <div style={{ position: "fixed", inset: 0, zIndex: 50, background: "var(--overlay)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
           onClick={e => { if (e.target === e.currentTarget) setAsignandoId(null); }}>
           <div style={{ background: "var(--card)", borderRadius: 8, width: "100%", maxWidth: 420, boxShadow: "0 8px 32px rgba(15,17,23,0.18)", overflow: "hidden" }}>
             <div style={{ padding: "16px 22px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between" }}>
@@ -377,7 +377,7 @@ export default function InventarioView({ activos: inicial, categorias, empleados
               </MF>
               <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, paddingTop: 6, borderTop: "1px solid var(--border)" }}>
                 <button onClick={() => setAsignandoId(null)} style={btnO} disabled={isPending}>Cancelar</button>
-                <button onClick={handleAsignar} disabled={!empAsig || isPending} style={{ ...btnP, background: !empAsig ? "rgba(15,17,23,0.2)" : "var(--green)", cursor: !empAsig ? "not-allowed" : "pointer" }}>
+                <button onClick={handleAsignar} disabled={!empAsig || isPending} style={{ ...btnP, background: !empAsig ? "var(--disabled)" : "var(--green)", cursor: !empAsig ? "not-allowed" : "pointer" }}>
                   {isPending ? "Asignando…" : "Asignar"}
                 </button>
               </div>

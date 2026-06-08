@@ -142,7 +142,7 @@ function RequerimientoCard({ req, entidadId, isOpen, onToggle, onRefresh }: {
             <div style={{ fontSize: 12, color: "#1B7A3E", fontWeight: 600 }}>✓ Listo</div>
           ) : (
             <>
-              <div style={{ fontSize: 13, fontWeight: 600, color: req.estado === "vencido" ? "var(--accent)" : dias <= 3 ? "#B8860B" : "rgba(15,17,23,0.7)" }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: req.estado === "vencido" ? "var(--accent)" : dias <= 3 ? "#B8860B" : "var(--muted-2)" }}>
                 {dias < 0 ? `Venció hace ${Math.abs(dias)}d` : dias === 0 ? "Vence hoy" : `${dias}d`}
               </div>
               <div style={{ fontSize: 11, color: "var(--muted)", fontFamily: "'DM Mono', monospace" }}>{formatFecha(req.fecha_limite)}</div>

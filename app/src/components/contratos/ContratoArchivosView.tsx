@@ -114,9 +114,9 @@ export default function ContratoArchivosView({
             const isActive = tab === t;
             return (
               <button key={t} onClick={() => { setTab(t); setUploadOpen(false); }}
-                style={{ padding: "8px 18px", border: "none", borderBottom: isActive ? "2px solid var(--accent)" : "2px solid transparent", background: "none", color: isActive ? "var(--accent)" : "rgba(15,17,23,0.5)", fontSize: 13, fontWeight: isActive ? 600 : 400, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", marginBottom: -1, display: "flex", alignItems: "center", gap: 8 }}>
+                style={{ padding: "8px 18px", border: "none", borderBottom: isActive ? "2px solid var(--accent)" : "2px solid transparent", background: "none", color: isActive ? "var(--accent)" : "var(--muted-2)", fontSize: 13, fontWeight: isActive ? 600 : 400, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", marginBottom: -1, display: "flex", alignItems: "center", gap: 8 }}>
                 {tabConfig[t].label}
-                <span style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", padding: "1px 6px", borderRadius: 100, background: isActive ? "rgba(200,71,42,0.1)" : "var(--surface-2)", color: isActive ? "var(--accent)" : "rgba(15,17,23,0.4)" }}>{count}</span>
+                <span style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", padding: "1px 6px", borderRadius: 100, background: isActive ? "rgba(200,71,42,0.1)" : "var(--surface-2)", color: isActive ? "var(--accent)" : "var(--muted)" }}>{count}</span>
                 {t === "cliente" && requerimientosActivos > 0 && (
                   <span style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", padding: "1px 6px", borderRadius: 100, background: isActive ? "rgba(200,71,42,0.1)" : "rgba(255,193,7,0.15)", color: isActive ? "var(--accent)" : "#B8860B" }}>{requerimientosActivos} req.</span>
                 )}

@@ -294,9 +294,9 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
                         padding: "3px 8px", borderRadius: 100,
                         fontSize: 11, fontWeight: 600, fontFamily: "'DM Mono', monospace",
                         background: u.activo ? "var(--green-light)" : "var(--surface-2)",
-                        color: u.activo ? "var(--green)" : "rgba(15,17,23,0.45)",
+                        color: u.activo ? "var(--green)" : "var(--muted)",
                       }}>
-                        <span style={{ width: 5, height: 5, borderRadius: "50%", background: u.activo ? "var(--green)" : "rgba(15,17,23,0.3)" }} />
+                        <span style={{ width: 5, height: 5, borderRadius: "50%", background: u.activo ? "var(--green)" : "var(--muted)" }} />
                         {u.activo ? "Activo" : "Inactivo"}
                       </span>
                     </td>
@@ -353,7 +353,7 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
         <div
           style={{
             position: "fixed", inset: 0,
-            background: "rgba(15,17,23,0.5)",
+            background: "var(--overlay)",
             display: "flex", alignItems: "center", justifyContent: "center",
             zIndex: 50, padding: 24,
           }}
@@ -606,7 +606,7 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
       {/* Modal editar usuario */}
       {editModal && (
         <div
-          style={{ position: "fixed", inset: 0, background: "rgba(15,17,23,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50, padding: 24 }}
+          style={{ position: "fixed", inset: 0, background: "var(--overlay)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50, padding: 24 }}
           onClick={e => { if (e.target === e.currentTarget) setEditModal(null); }}
         >
           <div style={{ background: "var(--card)", borderRadius: 10, width: "100%", maxWidth: 440, boxShadow: "0 12px 40px rgba(15,17,23,0.2)" }}>
