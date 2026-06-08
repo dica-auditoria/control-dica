@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { DicaLogo } from "@/components/ui/DicaLogo";
 
 interface Usuario {
   id: string;
@@ -72,7 +73,7 @@ export default function Sidebar({ usuario, solicitudesPendientes = 0, requerimie
 
   return (
     <aside style={{
-      background: "var(--ink)",
+      background: "#1B4F8A",
       display: "flex",
       flexDirection: "column",
       minHeight: "100vh",
@@ -82,22 +83,9 @@ export default function Sidebar({ usuario, solicitudesPendientes = 0, requerimie
       {/* Brand */}
       <div style={{
         padding: "24px 20px 20px",
-        borderBottom: "1px solid rgba(255,255,255,0.06)",
-        display: "flex", alignItems: "center", gap: 10,
+        borderBottom: "1px solid rgba(255,255,255,0.10)",
       }}>
-        <div style={{
-          width: 32, height: 32,
-          background: "var(--accent)",
-          borderRadius: 4,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          color: "white", flexShrink: 0,
-        }}>
-          <ShieldIcon />
-        </div>
-        <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "rgba(255,255,255,0.45)", letterSpacing: "0.06em", textTransform: "uppercase", lineHeight: 1.4 }}>
-          <strong style={{ display: "block", color: "rgba(255,255,255,0.85)", fontSize: 12 }}>Control</strong>
-          DICA México
-        </div>
+        <DicaLogo variant="white" fontSize={26} />
       </div>
 
       {/* Nav */}
@@ -118,7 +106,7 @@ export default function Sidebar({ usuario, solicitudesPendientes = 0, requerimie
               borderRadius: 4,
               fontSize: 13, fontWeight: 500,
               color: isActive ? "white" : "rgba(255,255,255,0.5)",
-              background: isActive ? "rgba(200,71,42,0.15)" : "transparent",
+              background: isActive ? "rgba(141,198,63,0.15)" : "transparent",
               textDecoration: "none",
               position: "relative",
               transition: "all 0.15s",
@@ -126,14 +114,14 @@ export default function Sidebar({ usuario, solicitudesPendientes = 0, requerimie
               {isActive && (
                 <span style={{
                   position: "absolute", left: 0, top: 4, bottom: 4,
-                  width: 3, background: "var(--accent)", borderRadius: "0 2px 2px 0",
+                  width: 3, background: "#8DC63F", borderRadius: "0 2px 2px 0",
                 }} />
               )}
               {item.label}
               {badge !== null && (
                 <span style={{
                   marginLeft: "auto",
-                  background: "var(--accent)", color: "white",
+                  background: "#8DC63F", color: "white",
                   fontSize: 10, fontWeight: 700, padding: "1px 6px",
                   borderRadius: 100, fontFamily: "'DM Mono', monospace",
                 }}>
@@ -150,9 +138,9 @@ export default function Sidebar({ usuario, solicitudesPendientes = 0, requerimie
         <div style={{ display: "flex", alignItems: "center", gap: 10, padding: 8 }}>
           <div style={{
             width: 32, height: 32,
-            background: "var(--ink-3)", borderRadius: "50%",
+            background: "rgba(255,255,255,0.12)", borderRadius: "50%",
             display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 12, fontWeight: 700, color: "var(--gold)", flexShrink: 0,
+            fontSize: 12, fontWeight: 700, color: "#8DC63F", flexShrink: 0,
           }}>
             {initials}
           </div>
@@ -174,14 +162,6 @@ export default function Sidebar({ usuario, solicitudesPendientes = 0, requerimie
         </div>
       </div>
     </aside>
-  );
-}
-
-function ShieldIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-    </svg>
   );
 }
 

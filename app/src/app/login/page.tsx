@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import { DicaLogo } from "@/components/ui/DicaLogo";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -42,28 +43,11 @@ export default function LoginPage() {
         flexDirection: "column",
         justifyContent: "space-between",
         padding: "48px 56px",
-        background: "var(--ink-2)",
+        background: "#1B4F8A",
         position: "relative",
         overflow: "hidden",
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <div style={{
-            width: 38, height: 38,
-            background: "var(--accent)",
-            borderRadius: 4,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            color: "white",
-          }}>
-            <ShieldIcon />
-          </div>
-          <span style={{
-            fontFamily: "'DM Mono', monospace",
-            fontSize: 13,
-            color: "rgba(255,255,255,0.5)",
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-          }}>control · dica-mx</span>
-        </div>
+        <DicaLogo variant="white" fontSize={34} />
 
         <div style={{ zIndex: 1 }}>
           <h1 style={{
@@ -74,7 +58,7 @@ export default function LoginPage() {
             marginBottom: 20,
           }}>
             Gestión documental{" "}
-            <em style={{ fontStyle: "italic", color: "var(--gold)" }}>segura</em>{" "}
+            <em style={{ fontStyle: "italic", color: "#8DC63F" }}>segura</em>{" "}
             y auditable.
           </h1>
           <p style={{ fontSize: 15, color: "rgba(255,255,255,0.45)", lineHeight: 1.7, maxWidth: 340 }}>
@@ -96,7 +80,7 @@ export default function LoginPage() {
               fontFamily: "'DM Mono', monospace",
               letterSpacing: "0.04em",
             }}>
-              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--gold)" }} />
+              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#8DC63F" }} />
               {label}
             </span>
           ))}
@@ -187,7 +171,7 @@ export default function LoginPage() {
               disabled={loading}
               style={{
                 width: "100%", padding: 12,
-                background: "var(--ink)", color: "white",
+                background: "#1B4F8A", color: "white",
                 border: "none", borderRadius: 4,
                 fontFamily: "'DM Sans', sans-serif",
                 fontSize: 14, fontWeight: 600,
@@ -205,10 +189,3 @@ export default function LoginPage() {
   );
 }
 
-function ShieldIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-    </svg>
-  );
-}
