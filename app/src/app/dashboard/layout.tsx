@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import Sidebar from "@/components/layout/Sidebar";
+import DashboardShell from "@/components/layout/DashboardShell";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = createClient();
@@ -45,16 +45,12 @@ export default async function DashboardLayout({ children }: { children: React.Re
   }
 
   return (
-    <div style={{
-      minHeight: "100vh",
-      display: "grid",
-      gridTemplateColumns: "220px 1fr",
-      background: "var(--surface)",
-    }}>
-      <Sidebar usuario={perfil} solicitudesPendientes={solicitudesPendientes} requerimientosPendientes={requerimientosPendientes} />
-      <main style={{ overflowY: "auto" }}>
-        {children}
-      </main>
-    </div>
+    <DashboardShell
+      usuario={perfil}
+      solicitudesPendientes={solicitudesPendientes}
+      requerimientosPendientes={requerimientosPendientes}
+    >
+      {children}
+    </DashboardShell>
   );
 }

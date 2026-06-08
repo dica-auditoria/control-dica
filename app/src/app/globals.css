@@ -31,3 +31,82 @@ body {
   background: var(--surface);
   color: var(--ink);
 }
+
+/* ── Dashboard shell ─────────────────────── */
+.dashboard-layout { min-height: 100vh; background: var(--surface); }
+.dashboard-body { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
+
+.sidebar-aside { min-height: 100vh; position: sticky; top: 0; }
+
+.mobile-topbar { display: none; }
+.sidebar-overlay { display: none; }
+
+/* ── Login ───────────────────────────────── */
+.login-grid { min-height: 100vh; display: grid; grid-template-columns: 1fr 1fr; background: var(--ink); }
+.login-mobile-logo { display: none; }
+
+/* ── Responsive grids ───────────────────── */
+.grid-resp-4 { display: grid; gap: 16px; grid-template-columns: repeat(4, 1fr); }
+.grid-resp-3 { display: grid; gap: 16px; grid-template-columns: repeat(3, 1fr); }
+.grid-resp-2 { display: grid; gap: 16px; grid-template-columns: repeat(2, 1fr); }
+
+/* ── Page spacing ───────────────────────── */
+.page-pad { padding: 28px 32px; }
+
+/* ── Table ──────────────────────────────── */
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+/* ── Mobile ─────────────────────────────── */
+@media (max-width: 768px) {
+  .mobile-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    height: 56px;
+    background: #1B4F8A;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    flex-shrink: 0;
+  }
+
+  .dashboard-body { grid-template-columns: 1fr; min-height: calc(100vh - 56px); }
+
+  .sidebar-aside {
+    position: fixed;
+    top: 56px;
+    left: 0;
+    bottom: 0;
+    width: 260px;
+    z-index: 200;
+    min-height: unset;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    overflow-y: auto;
+  }
+  .sidebar-aside.sidebar-open { transform: translateX(0); }
+
+  .sidebar-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 150;
+  }
+
+  .login-grid { grid-template-columns: 1fr; }
+  .login-panel-brand { display: none !important; }
+  .login-mobile-logo { display: block; }
+
+  .grid-resp-4 { grid-template-columns: repeat(2, 1fr); }
+  .grid-resp-3 { grid-template-columns: repeat(2, 1fr); }
+  .grid-resp-2 { grid-template-columns: 1fr; }
+
+  .page-pad { padding: 16px; }
+}
+
+@media (max-width: 480px) {
+  .grid-resp-4 { grid-template-columns: 1fr; }
+  .grid-resp-3 { grid-template-columns: 1fr; }
+}

@@ -45,7 +45,7 @@ export default async function DashboardPage() {
       .limit(5) as { data: ArchivoRow[] | null; error: unknown };
 
     return (
-      <div style={{ padding: "28px 32px" }}>
+      <div className="page-pad">
         <div style={{ marginBottom: 28 }}>
           <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: "var(--ink)" }}>Dashboard</h1>
           <p style={{ fontSize: 12, color: "rgba(15,17,23,0.4)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>
@@ -54,7 +54,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* Stats */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginBottom: 28 }}>
+        <div className="grid-resp-4" style={{ marginBottom: 28 }}>
           <StatCard label="Total archivos" value={totalArchivos ?? 0} meta="En custodia activa"
             accent="#c8472a" tint="#fdecea" icon={<IconFiles />} />
           <StatCard label="Entidades" value={totalEntidades ?? 0} meta="Clientes activos"
@@ -71,6 +71,7 @@ export default async function DashboardPage() {
             <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>Archivos recientes</div>
             <div style={{ fontSize: 11, color: "rgba(15,17,23,0.4)", fontFamily: "'DM Mono', monospace", marginTop: 1 }}>Últimas cargas al sistema</div>
           </div>
+          <div className="table-scroll">
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr style={{ background: "var(--surface)" }}>
@@ -101,6 +102,7 @@ export default async function DashboardPage() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       </div>
     );
@@ -111,7 +113,7 @@ export default async function DashboardPage() {
     const { data: emp } = await fetchMiExpedienteAction();
 
     return (
-      <div style={{ padding: "28px 32px" }}>
+      <div className="page-pad">
         <div style={{ marginBottom: 24 }}>
           <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: "var(--ink)" }}>
             Bienvenido{emp ? `, ${(emp as Record<string, unknown>).nombres as string}` : ""}
@@ -121,7 +123,7 @@ export default async function DashboardPage() {
           </p>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 28 }}>
+        <div className="grid-resp-3" style={{ marginBottom: 28 }}>
           {emp && (
             <>
               <StatCard
@@ -146,7 +148,7 @@ export default async function DashboardPage() {
           )}
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+        <div className="grid-resp-2">
           <AccesoRapido
             href="/dashboard/mi-expediente"
             titulo="Mi Expediente"
@@ -190,7 +192,7 @@ export default async function DashboardPage() {
   const requerimientos = rReqs.data ?? [];
 
   return (
-    <div style={{ padding: "28px 32px" }}>
+    <div className="page-pad">
       <div style={{ marginBottom: 24 }}>
         <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: "var(--ink)" }}>Mi Portal</h1>
         <p style={{ fontSize: 12, color: "rgba(15,17,23,0.4)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>

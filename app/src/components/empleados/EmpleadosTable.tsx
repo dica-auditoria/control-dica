@@ -21,6 +21,7 @@ export default function EmpleadosTable({ empleados, onEliminar }: { empleados: E
   }
 
   return (
+    <div className="table-scroll">
     <table style={{ width: "100%", borderCollapse: "collapse" }}>
       <thead>
         <tr style={{ background: "var(--surface)" }}>
@@ -92,6 +93,7 @@ export default function EmpleadosTable({ empleados, onEliminar }: { empleados: E
         ))}
       </tbody>
     </table>
+    </div>
   );
 }
 

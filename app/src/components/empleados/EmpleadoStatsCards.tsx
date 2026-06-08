@@ -3,12 +3,7 @@ import type { EmpleadosStats } from "@/types/empleados";
 
 export default function EmpleadoStatsCards({ stats }: { stats: EmpleadosStats }) {
   return (
-    <div style={{
-      display: "grid",
-      gridTemplateColumns: "repeat(4, 1fr)",
-      gap: 16,
-      marginBottom: 24,
-    }}>
+    <div className="grid-resp-4" style={{ marginBottom: 24 }}>
       <MetricCard
         label="Activos"
         value={stats.activos}

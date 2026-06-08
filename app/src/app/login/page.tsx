@@ -31,14 +31,9 @@ export default function LoginPage() {
   };
 
   return (
-    <div style={{
-      minHeight: "100vh",
-      display: "grid",
-      gridTemplateColumns: "1fr 1fr",
-      background: "var(--ink)",
-    }}>
-      {/* Panel izquierdo */}
-      <div style={{
+    <div className="login-grid">
+      {/* Panel izquierdo — oculto en móvil */}
+      <div className="login-panel-brand" style={{
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
@@ -90,10 +85,14 @@ export default function LoginPage() {
       {/* Panel derecho */}
       <div style={{
         display: "flex", alignItems: "center", justifyContent: "center",
-        padding: 48,
+        padding: "48px 24px",
         background: "var(--surface)",
       }}>
         <div style={{ width: "100%", maxWidth: 380 }}>
+          {/* Logo visible solo en móvil */}
+          <div className="login-mobile-logo" style={{ marginBottom: 32 }}>
+            <DicaLogo variant="color" fontSize={28} />
+          </div>
           <h2 style={{
             fontFamily: "'DM Serif Display', serif",
             fontSize: 30,

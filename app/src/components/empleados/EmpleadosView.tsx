@@ -79,9 +79,10 @@ export default function EmpleadosView({ initialEmpleados, initialStats, titulo, 
         borderBottom: "1px solid var(--border)",
         background: "var(--card)",
         display: "flex",
-        alignItems: "center",
+        alignItems: "flex-start",
         justifyContent: "space-between",
         gap: 12,
+        flexWrap: "wrap",
       }}>
         <div>
           <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: "var(--ink)", margin: 0 }}>
@@ -115,7 +116,7 @@ export default function EmpleadosView({ initialEmpleados, initialStats, titulo, 
         </div>
       </div>
 
-      <div style={{ padding: "28px 32px" }}>
+      <div className="page-pad">
         {error && (
           <div style={{ padding: 12, marginBottom: 16, background: "var(--red-light)", color: "var(--accent)", borderRadius: 4, fontSize: 13 }}>
             {error}

@@ -17,6 +17,8 @@ interface SidebarProps {
   usuario: Usuario;
   solicitudesPendientes?: number;
   requerimientosPendientes?: number;
+  isMobileOpen?: boolean;
+  onMobileClose?: () => void;
 }
 
 const NAV_ADMIN = [
@@ -49,7 +51,7 @@ const NAV_CLIENTE = [
   { href: "/dashboard", label: "Mi Portal", icon: "files" },
 ];
 
-export default function Sidebar({ usuario, solicitudesPendientes = 0, requerimientosPendientes = 0 }: SidebarProps) {
+export default function Sidebar({ usuario, solicitudesPendientes = 0, requerimientosPendientes = 0, isMobileOpen = false, onMobileClose }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const supabase = createClient();
@@ -72,20 +74,30 @@ export default function Sidebar({ usuario, solicitudesPendientes = 0, requerimie
     .toUpperCase();
 
   return (
-    <aside style={{
+    <aside className={`sidebar-aside${isMobileOpen ? " sidebar-open" : ""}`} style={{
       background: "#1B4F8A",
       display: "flex",
       flexDirection: "column",
-      minHeight: "100vh",
-      position: "sticky",
-      top: 0,
     }}>
       {/* Brand */}
       <div style={{
         padding: "24px 20px 20px",
         borderBottom: "1px solid rgba(255,255,255,0.10)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
       }}>
         <DicaLogo variant="white" fontSize={26} />
+        {onMobileClose && (
+          <button
+            onClick={onMobileClose}
+            className="sidebar-close-btn"
+            style={{ background: "none", border: "none", color: "rgba(255,255,255,0.5)", cursor: "pointer", padding: 4, display: "flex" }}
+            aria-label="Cerrar menú"
+          >
+            <CloseIcon />
+          </button>
+        )}
       </div>
 
       {/* Nav */}
@@ -162,6 +174,15 @@ export default function Sidebar({ usuario, solicitudesPendientes = 0, requerimie
         </div>
       </div>
     </aside>
+  );
+}
+
+function CloseIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18" />
+      <line x1="6" y1="6" x2="18" y2="18" />
+    </svg>
   );
 }
 
