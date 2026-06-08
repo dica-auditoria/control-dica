@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 
@@ -14,8 +15,10 @@ export async function aceptarPrivacidadClienteAction() {
   const headersList = await headers();
   const ip = headersList.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;
 
+  // Use admin client — users have no UPDATE policy on their own row in usuarios
+  const admin = createAdminClient();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { error } = await (supabase.from("usuarios") as any)
+  const { error } = await (admin.from("usuarios") as any)
     .update({
       privacidad_aceptada_at: new Date().toISOString(),
       privacidad_version: VERSION_AVISO_CLIENTE,
@@ -26,6 +29,7 @@ export async function aceptarPrivacidadClienteAction() {
   if (error) return { error: "Error al registrar la aceptación" };
 
   revalidatePath("/dashboard");
+  revalidatePath("/cliente/privacidad");
   return { success: true };
 }
 

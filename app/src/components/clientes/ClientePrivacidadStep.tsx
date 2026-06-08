@@ -61,7 +61,7 @@ export default function ClientePrivacidadStep({ nombre, email }: Props) {
         return;
       }
       setDone(true);
-      setTimeout(() => router.push("/dashboard"), 1500);
+      setTimeout(() => { router.refresh(); router.push("/dashboard"); }, 1500);
     });
   };
 

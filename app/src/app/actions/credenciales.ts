@@ -121,7 +121,7 @@ export async function invitarPortalEmpleadoAction(empleadoId: string) {
   if (!emp) return { error: "Empleado no encontrado", inviteUrl: null };
 
   const { data, error } = await admin.auth.admin.inviteUserByEmail(emp.email_institucional, {
-    data: { role: "empleado", empleado_id: empleadoId },
+    data: { rol: "empleado", empleado_id: empleadoId },
   });
 
   if (error) return { error: error.message ?? "Error al enviar invitación", inviteUrl: null };
