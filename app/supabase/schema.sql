@@ -112,7 +112,7 @@ drop policy if exists "superadmin_gestionar_entidades" on public.entidades;
 
 create policy "admin_ver_entidades" on public.entidades
   for select to authenticated
-  using (get_user_role() in ('admin', 'superadmin'));
+  using (get_user_role() in ('admin', 'superadmin', 'rrhh', 'empleado'));
 
 create policy "cliente_ver_su_entidad" on public.entidades
   for select to authenticated

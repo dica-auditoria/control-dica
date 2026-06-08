@@ -54,8 +54,11 @@ const EMPTY_FORM: CrearUbicacionInput = {
 
 type TabActual = UbicacionTipo | "empresas";
 
+const SOLO_EMPRESAS_ROLES = ["empleado", "rrhh"];
+
 export default function DirectorioView({ oficinas, entidades, empresas: initialEmpresas, rolActual }: Props) {
-  const [tab, setTab] = useState<TabActual>("oficina");
+  const soloEmpresas = SOLO_EMPRESAS_ROLES.includes(rolActual);
+  const [tab, setTab] = useState<TabActual>(soloEmpresas ? "empresas" : "oficina");
   const [modalOpen, setModalOpen] = useState(false);
   const [editando, setEditando] = useState<Ubicacion | null>(null);
   const [form, setForm] = useState<CrearUbicacionInput>({ ...EMPTY_FORM });
@@ -196,7 +199,7 @@ export default function DirectorioView({ oficinas, entidades, empresas: initialE
       <div style={{ padding: "28px 32px" }}>
         {/* Tabs */}
         <div style={{ display: "flex", gap: 4, marginBottom: 24, borderBottom: "1px solid var(--border)" }}>
-          {(["oficina", "empresas"] as TabActual[]).map(t => {
+          {(soloEmpresas ? ["empresas"] : ["oficina", "empresas"] as TabActual[]).map(t => {
             const labels: Record<string, string> = { oficina: "🏢 Oficinas DICA", empresas: "🏛 Empresas" };
             const counts: Record<string, number> = { oficina: oficinas.length, empresas: empresas.length };
             return (

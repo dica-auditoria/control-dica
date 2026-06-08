@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { fetchUbicacionesAction } from "@/app/actions/directorio";
 import DirectorioView from "@/components/directorio/DirectorioView";
 import type { EntidadOption } from "@/types/directorio";
@@ -22,13 +23,16 @@ export default async function DirectorioPage() {
 
   if (!perfil || perfil.rol === "cliente") redirect("/dashboard");
 
+  // Use admin client to bypass RLS on entidades/contratos for non-admin roles
+  const admin = createAdminClient();
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [rOficinas, rEntidades, rContratos] = await Promise.all([
     fetchUbicacionesAction("oficina"),
-    (supabase.from("entidades") as any)
+    (admin.from("entidades") as any)
       .select("id, nombre, activo, created_at")
       .order("nombre") as Promise<{ data: EntidadRow[] | null; error: unknown }>,
-    (supabase.from("contratos") as any)
+    (admin.from("contratos") as any)
       .select("entidad_id, estado") as Promise<{ data: ContratoRow[] | null; error: unknown }>,
   ]);
 

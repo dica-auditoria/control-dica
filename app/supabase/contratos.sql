@@ -60,7 +60,7 @@ drop policy if exists "admin_gestionar_contratos"  on public.contratos;
 
 create policy "admin_ver_contratos" on public.contratos
   for select to authenticated
-  using (get_user_role() in ('admin', 'superadmin'));
+  using (get_user_role() in ('admin', 'superadmin', 'rrhh', 'empleado'));
 
 create policy "admin_gestionar_contratos" on public.contratos
   for all to authenticated
