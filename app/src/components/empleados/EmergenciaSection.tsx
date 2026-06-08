@@ -236,14 +236,20 @@ function MedicoPanel({ empleadoId, inicial }: { empleadoId: string; inicial: Con
   const [form, setForm] = useState<CondicionesMedicas>(inicial ?? empty);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved]   = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const toggle = (k: keyof CondicionesMedicas) =>
     setForm(p => ({ ...p, [k]: !p[k] }));
 
   const handleSave = async () => {
     setSaving(true);
-    await guardarMedicoAction(empleadoId, form);
+    setSaveError(null);
+    const res = await guardarMedicoAction(empleadoId, form);
     setSaving(false);
+    if (res.error) {
+      setSaveError(res.error);
+      return;
+    }
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -288,8 +294,14 @@ function MedicoPanel({ empleadoId, inicial }: { empleadoId: string; inicial: Con
         </MF>
       </div>
 
+      {saveError && (
+        <div style={{ marginBottom: 12, padding: "8px 12px", background: "var(--red-light)", color: "var(--accent)", borderRadius: 4, fontSize: 13 }}>
+          {saveError}
+        </div>
+      )}
+
       <button
-        style={{ ...btnPrimary, background: saved ? "var(--green)" : "var(--green)" }}
+        style={btnPrimary}
         onClick={handleSave}
         disabled={saving}
       >
