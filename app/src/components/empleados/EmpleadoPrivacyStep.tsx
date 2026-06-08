@@ -3,20 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useEmpleadoMutations } from "@/hooks/useEmpleadoMutations";
-import { VERSION_AVISO_PRIVACIDAD } from "@/lib/empleados/constants";
-
-const AVISO_TEXTO = `AVISO DE PRIVACIDAD INTEGRAL — DICA
-
-En cumplimiento con la Ley Federal de Protección de Datos Personales en Posesión de los Particulares (LFPDPPP), DICA le informa que sus datos personales serán tratados para las siguientes finalidades:
-
-• Gestión de la relación laboral y administración de personal.
-• Generación de documentos oficiales (contratos, recibos).
-• Cumplimiento de obligaciones ante instituciones mexicanas (IMSS, SAT, INFONAVIT).
-• Otorgamiento de prestaciones y seguro médico.
-
-Sus datos personales sensibles (financieros, biométricos, médicos) serán tratados con medidas de seguridad conforme a ISO/IEC 27002:2022.
-
-Para ejercer sus derechos ARCO, contacte: ti@dica-mx.com`;
+import { VERSION_AVISO_PRIVACIDAD, AVISO_PRIVACIDAD_EMPLEADO } from "@/lib/empleados/constants";
 
 interface Props {
   token: string;
@@ -124,7 +111,7 @@ export default function EmpleadoPrivacyStep({ token, nombreCompleto, email }: Pr
         whiteSpace: "pre-wrap",
         marginBottom: 20,
       }}>
-        {AVISO_TEXTO}
+        {AVISO_PRIVACIDAD_EMPLEADO}
       </div>
 
       <label style={{ display: "flex", gap: 10, marginBottom: 12, fontSize: 13, cursor: "pointer" }}>
