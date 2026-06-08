@@ -128,14 +128,18 @@ export async function buscarEmpleadoCheckinAction(query: string) {
 // ─── PÚBLICO: Resumen de hoy para un empleado ────────────────────────────────
 
 export async function obtenerResumenHoyAction(empleadoId: string) {
-  const supabase = createClient();
-  const hoy = new Date().toISOString().split("T")[0];
+  const admin = createAdminClient();
 
-  const { data } = await db(supabase, "empleado_asistencia")
+  // México City es UTC-6 sin DST desde 2023
+  const mxDateStr = new Date().toLocaleDateString("en-CA", { timeZone: "America/Mexico_City" });
+  const inicioUTC = new Date(`${mxDateStr}T00:00:00-06:00`).toISOString();
+  const finUTC    = new Date(`${mxDateStr}T23:59:59-06:00`).toISOString();
+
+  const { data } = await (admin.from("empleado_asistencia") as any)
     .select("tipo, created_at, dentro_radio, distancia_metros")
     .eq("empleado_id", empleadoId)
-    .gte("created_at", `${hoy}T00:00:00`)
-    .lte("created_at", `${hoy}T23:59:59`)
+    .gte("created_at", inicioUTC)
+    .lte("created_at", finUTC)
     .order("created_at", { ascending: true }) as { data: Array<{ tipo: string; created_at: string; dentro_radio: boolean | null; distancia_metros: number | null }> | null };
 
   const registros = data ?? [];

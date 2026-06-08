@@ -157,6 +157,7 @@ export default function EmpleadoCheckinView({
 }) {
   const [empleado, setEmpleado] = useState(initialEmpleado);
   const [resumen, setResumen] = useState<Resumen | null>(null);
+  const [refreshTick, setRefreshTick] = useState(0);
   const [coords, setCoords] = useState<LatLng | null>(null);
   const [geoState, setGeoState] = useState<"idle" | "loading" | "ok" | "error">("idle");
   const [flash, setFlash] = useState<{ tipo: "entrada" | "salida"; dentroRadio: boolean | null; distancia: number | null } | null>(null);
@@ -185,7 +186,7 @@ export default function EmpleadoCheckinView({
   useEffect(() => {
     if (!empleado?.id) return;
     obtenerResumenHoyAction(empleado.id).then(r => setResumen(r));
-  }, [empleado?.id]);
+  }, [empleado?.id, refreshTick]);
 
   useEffect(() => { solicitarGPS(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -268,8 +269,7 @@ export default function EmpleadoCheckinView({
       });
       if (r.error) { setRegError(r.error); return; }
       setFlash({ tipo: proxTipo, dentroRadio: r.dentroRadio ?? null, distancia: r.distancia ?? null });
-      const res = await obtenerResumenHoyAction(empleado.id!);
-      setResumen(res);
+      setRefreshTick(t => t + 1);
       setTimeout(() => setFlash(null), 4000);
     });
   };
