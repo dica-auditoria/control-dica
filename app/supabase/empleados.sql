@@ -124,15 +124,20 @@ alter table public.empleado_invitaciones    enable row level security;
 
 drop policy if exists "admin_gestionar_empleados" on public.empleados;
 drop policy if exists "admin_ver_empleados" on public.empleados;
+drop policy if exists "empleado_ver_propio" on public.empleados;
 
 create policy "admin_ver_empleados" on public.empleados
   for select to authenticated
-  using (get_user_role() in ('admin', 'superadmin'));
+  using (get_user_role() in ('admin', 'superadmin', 'rrhh'));
 
 create policy "admin_gestionar_empleados" on public.empleados
   for all to authenticated
-  using (get_user_role() in ('admin', 'superadmin'))
-  with check (get_user_role() in ('admin', 'superadmin'));
+  using (get_user_role() in ('admin', 'superadmin', 'rrhh'))
+  with check (get_user_role() in ('admin', 'superadmin', 'rrhh'));
+
+create policy "empleado_ver_propio" on public.empleados
+  for select to authenticated
+  using (email_institucional = auth.email());
 
 -- empleado_datos_personales
 drop policy if exists "admin_empleado_datos" on public.empleado_datos_personales;

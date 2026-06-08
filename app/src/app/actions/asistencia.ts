@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import type { RegistrarAsistenciaInput, RegistroAsistencia } from "@/types/asistencia";
@@ -168,7 +169,8 @@ export async function getEmpleadoParaCheckinAuthAction() {
   if (!perfil) return { error: "Perfil no encontrado", empleado: null, rol: null };
 
   const email = user.email ?? "";
-  const { data: emp } = await supabase
+  const admin = createAdminClient();
+  const { data: emp } = await admin
     .from("empleados")
     .select("id, nombres, apellido_paterno, apellido_materno, codigo_empleado, departamento")
     .eq("email_institucional", email)
