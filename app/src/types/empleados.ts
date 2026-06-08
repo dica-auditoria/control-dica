@@ -25,6 +25,9 @@ export interface EmpleadoDetalle extends EmpleadoListItem {
   foto_url: string | null;
   created_at: string;
   tiene_privacidad: boolean;
+  hora_entrada: string | null;
+  hora_salida: string | null;
+  tolerancia_minutos: number;
   datos_personales: EmpleadoDatosPersonales | null;
   documentos: EmpleadoDocumento[];
   bitacora: EmpleadoBitacoraEntry[];
@@ -77,6 +80,8 @@ export interface CrearEmpleadoInput {
   fecha_ingreso: string;
   tipo_contrato: TipoContrato;
   zona_ubicacion: string;
+  hora_entrada?: string | null;
+  hora_salida?: string | null;
 }
 
 export interface InvitacionEmpleadoInfo {

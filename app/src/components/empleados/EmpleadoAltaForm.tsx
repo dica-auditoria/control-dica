@@ -45,6 +45,8 @@ export default function EmpleadoAltaForm({ supervisores, ubicaciones }: Props) {
     fecha_ingreso: "",
     tipo_contrato: "indeterminado" as TipoContrato,
     zona_ubicacion: "",
+    hora_entrada: "",
+    hora_salida: "",
   });
   const [emailManual, setEmailManual] = useState(false);
   const [successUrl, setSuccessUrl] = useState<string | null>(null);
@@ -64,7 +66,8 @@ export default function EmpleadoAltaForm({ supervisores, ubicaciones }: Props) {
     form.apellido_materno.trim() &&
     form.email_local.trim() &&
     form.puesto.trim() &&
-    form.fecha_ingreso;
+    form.fecha_ingreso &&
+    (form.tipo_contrato !== "practicas" || form.hora_entrada.trim());
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -199,6 +202,45 @@ export default function EmpleadoAltaForm({ supervisores, ubicaciones }: Props) {
           </select>
         </FormField>
       </div>
+
+      {form.tipo_contrato === "practicas" && (
+        <>
+          <SectionTitle icon="🕐" title="Horario de prácticas" />
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 8 }}>
+            <FormField label="Hora de entrada" required>
+              <input
+                type="time"
+                style={inputStyle}
+                value={form.hora_entrada}
+                onChange={e => setForm(f => ({ ...f, hora_entrada: e.target.value }))}
+                required
+              />
+            </FormField>
+            <FormField label="Hora de salida">
+              <input
+                type="time"
+                style={inputStyle}
+                value={form.hora_salida}
+                onChange={e => setForm(f => ({ ...f, hora_salida: e.target.value }))}
+              />
+            </FormField>
+          </div>
+          <div style={{
+            padding: "8px 12px",
+            background: "var(--tint-blue)",
+            borderRadius: 4,
+            fontSize: 12,
+            color: "var(--muted-2)",
+            marginBottom: 28,
+            display: "flex",
+            gap: 8,
+            alignItems: "center",
+          }}>
+            <span>ℹ</span>
+            <span>Se aplicará una tolerancia de <strong>10 minutos</strong> para el registro de entrada.</span>
+          </div>
+        </>
+      )}
 
       <div style={{
         padding: 16,

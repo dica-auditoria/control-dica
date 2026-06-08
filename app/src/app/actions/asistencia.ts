@@ -273,9 +273,10 @@ export async function registrarCheckinPublicoAction(input: {
   const supabase = createClient();
 
   const { data: emp } = await supabase
-    .from("empleados").select("id, departamento")
+    .from("empleados").select("id, departamento, tipo_contrato, hora_entrada, tolerancia_minutos")
     .eq("id", input.empleado_id).eq("estado", "activo").maybeSingle() as {
-      data: { id: string; departamento: string } | null; error: unknown;
+      data: { id: string; departamento: string; tipo_contrato: string; hora_entrada: string | null; tolerancia_minutos: number | null } | null;
+      error: unknown;
     };
   if (!emp) return { error: "Empleado no encontrado" };
 
@@ -292,6 +293,19 @@ export async function registrarCheckinPublicoAction(input: {
   if (geo.dentroRadio === false) {
     const suffix = geo.distancia !== null ? ` — estás a ${Math.round(geo.distancia)} m del punto de registro` : "";
     return { error: `Estás fuera del área de registro${suffix}` };
+  }
+
+  // Validate schedule for practicas employees on entrada
+  if (input.tipo === "entrada" && emp.tipo_contrato === "practicas" && emp.hora_entrada) {
+    const nowMX = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Mexico_City" }));
+    const currentMinutes = nowMX.getHours() * 60 + nowMX.getMinutes();
+    const [hh, mm] = emp.hora_entrada.split(":").map(Number);
+    const scheduleMinutes = hh * 60 + mm;
+    const tolerance = emp.tolerancia_minutos ?? 10;
+    if (currentMinutes > scheduleMinutes + tolerance) {
+      const fmt = (m: number) => `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
+      return { error: `Entrada fuera de horario — tu hora era ${fmt(scheduleMinutes)}, con tolerancia hasta las ${fmt(scheduleMinutes + tolerance)}` };
+    }
   }
 
   const { error } = await db(supabase, "empleado_asistencia").insert({
