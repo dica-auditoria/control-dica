@@ -33,7 +33,7 @@ Sus datos no serán transferidos a terceros sin su consentimiento, salvo en los 
 
 DERECHOS ARCO
 
-Usted tiene derecho a Acceder, Rectificar, Cancelar u Oponerse al tratamiento de sus datos personales. Para ejercerlos, envíe su solicitud a: privacidad@dica.mx
+Usted tiene derecho a Acceder, Rectificar, Cancelar u Oponerse al tratamiento de sus datos personales. Para ejercerlos, envíe su solicitud a: ti@dica-mx.com
 
 CAMBIOS AL AVISO
 
@@ -135,7 +135,7 @@ export default function ClientePrivacidadStep({ nombre, email }: Props) {
           He leído y <strong>acepto</strong> el aviso de privacidad de DICA México y consiento
           el tratamiento de mis datos personales con las finalidades descritas. Entiendo que
           puedo ejercer mis derechos ARCO en cualquier momento contactando a{" "}
-          <strong>privacidad@dica.mx</strong>.
+          <strong>ti@dica-mx.com</strong>.
         </span>
       </label>
 

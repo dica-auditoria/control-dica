@@ -16,7 +16,7 @@ En cumplimiento con la Ley Federal de Protección de Datos Personales en Posesi�
 
 Sus datos personales sensibles (financieros, biométricos, médicos) serán tratados con medidas de seguridad conforme a ISO/IEC 27002:2022.
 
-Para ejercer sus derechos ARCO, contacte: privacidad@dica.mx`;
+Para ejercer sus derechos ARCO, contacte: ti@dica-mx.com`;
 
 interface Props {
   nombre: string;
