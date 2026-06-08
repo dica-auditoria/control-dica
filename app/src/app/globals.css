@@ -71,6 +71,7 @@
   --green: #5b9fd8;
   --amber: #e0893a;
   --accent: #e07060;
+  --clock-color: #ffffff;
 }
 
 body {
@@ -102,6 +103,7 @@ body {
 
 /* ── Table ──────────────────────────────── */
 .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
 
 /* ── Mobile ─────────────────────────────── */
 @media (max-width: 768px) {

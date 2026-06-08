@@ -162,6 +162,7 @@ export default function EmpleadoCheckinView({
   const [flash, setFlash] = useState<{ tipo: "entrada" | "salida"; dentroRadio: boolean | null; distancia: number | null } | null>(null);
   const [regError, setRegError] = useState<string | null>(null);
   const [now, setNow] = useState(new Date());
+  const [isDark, setIsDark] = useState(false);
   const [isPending, startTransition] = useTransition();
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<MapLike | null>(null);
@@ -171,6 +172,14 @@ export default function EmpleadoCheckinView({
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(t);
+  }, []);
+
+  useEffect(() => {
+    const update = () => setIsDark(document.documentElement.getAttribute("data-theme") === "dark");
+    update();
+    const obs = new MutationObserver(update);
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    return () => obs.disconnect();
   }, []);
 
   useEffect(() => {
@@ -265,11 +274,10 @@ export default function EmpleadoCheckinView({
     });
   };
 
-  const btnBg = isPending
-    ? "var(--muted)"
-    : flash
-      ? (flash.dentroRadio === false ? "#f97316" : "#22c55e")
-      : isEntrada ? "#1677ff" : "#f97316";
+  const gpsOk = geoState === "ok";
+  const btnBg = isPending || !gpsOk
+    ? "#94a3b8"
+    : flash ? "#22c55e" : isEntrada ? "#1677ff" : "#f97316";
 
   return (
     <div style={{ minHeight: "100%", background: "var(--card)", display: "flex", flexDirection: "column", fontFamily: "'DM Sans', sans-serif" }}>
@@ -300,7 +308,7 @@ export default function EmpleadoCheckinView({
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px 24px 40px" }}>
 
         {/* Reloj */}
-        <div style={{ fontSize: 64, fontWeight: 700, color: "#0f1117", fontFamily: "'DM Mono', monospace", lineHeight: 1, letterSpacing: "-0.02em" }}>
+        <div style={{ fontSize: 64, fontWeight: 700, color: isDark ? "#ffffff" : "var(--ink)", fontFamily: "'DM Mono', monospace", lineHeight: 1, letterSpacing: "-0.02em", userSelect: "none" }}>
           {now.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" })}
         </div>
         <div style={{ fontSize: 14, color: "var(--muted)", marginTop: 8, marginBottom: 36 }}>
@@ -310,12 +318,12 @@ export default function EmpleadoCheckinView({
         {/* Botón CHECK IN / OUT */}
         <button
           onClick={handleCheckin}
-          disabled={isPending}
+          disabled={isPending || !gpsOk}
           style={{
             width: 140, height: 140, borderRadius: "50%",
             background: btnBg, border: "none",
-            boxShadow: isPending ? "none" : `0 8px 32px ${isEntrada ? "rgba(22,119,255,0.35)" : "rgba(249,115,22,0.35)"}`,
-            color: "white", cursor: isPending ? "not-allowed" : "pointer",
+            boxShadow: (isPending || !gpsOk) ? "none" : `0 8px 32px ${isEntrada ? "rgba(22,119,255,0.35)" : "rgba(249,115,22,0.35)"}`,
+            color: "white", cursor: (isPending || !gpsOk) ? "not-allowed" : "pointer",
             display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
             gap: 4, transition: "background 0.2s, box-shadow 0.2s, transform 0.1s",
             marginBottom: 28,
@@ -324,21 +332,23 @@ export default function EmpleadoCheckinView({
           onMouseUp={e => { (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)"; }}
           onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)"; }}
         >
-          {isPending ? <Spinner /> : flash
-            ? <><span style={{ fontSize: 28 }}>✓</span><span style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.1em" }}>REGISTRADO</span></>
-            : <><span style={{ fontSize: 12, fontWeight: 800, letterSpacing: "0.12em" }}>CHECK</span><span style={{ fontSize: 12, fontWeight: 800, letterSpacing: "0.12em" }}>{isEntrada ? "IN" : "OUT"}</span></>
+          {isPending ? <Spinner />
+            : flash
+              ? <><span style={{ fontSize: 28 }}>✓</span><span style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.1em" }}>REGISTRADO</span></>
+              : !gpsOk
+                ? <><span style={{ fontSize: 20 }}>{geoState === "error" ? "⚠️" : "📡"}</span><span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.08em" }}>{geoState === "error" ? "SIN GPS" : "GPS..."}</span></>
+                : <><span style={{ fontSize: 12, fontWeight: 800, letterSpacing: "0.12em" }}>CHECK</span><span style={{ fontSize: 12, fontWeight: 800, letterSpacing: "0.12em" }}>{isEntrada ? "IN" : "OUT"}</span></>
           }
         </button>
 
         {flash && (
-          <div style={{ marginBottom: 20, padding: "7px 20px", borderRadius: 100, background: flash.dentroRadio === false ? "rgba(249,115,22,0.08)" : "rgba(34,197,94,0.08)", color: flash.dentroRadio === false ? "#ea580c" : "#16a34a", fontSize: 12, fontFamily: "'DM Mono', monospace" }}>
+          <div style={{ marginBottom: 20, padding: "7px 20px", borderRadius: 100, background: "rgba(34,197,94,0.08)", color: "#16a34a", fontSize: 12, fontFamily: "'DM Mono', monospace" }}>
             {flash.tipo === "entrada" ? "Entrada" : "Salida"} registrada
             {flash.distancia !== null && ` · ${flash.distancia.toFixed(0)} m`}
-            {flash.dentroRadio === false && " · fuera del radio"}
           </div>
         )}
         {regError && (
-          <div style={{ marginBottom: 20, padding: "8px 20px", borderRadius: 6, background: "#fef2f2", color: "#dc2626", fontSize: 13 }}>{regError}</div>
+          <div style={{ marginBottom: 20, padding: "8px 20px", borderRadius: 6, background: "var(--red-light)", color: "var(--accent)", fontSize: 13 }}>{regError}</div>
         )}
 
         {/* Stats del día */}

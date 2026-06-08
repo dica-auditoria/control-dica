@@ -61,7 +61,7 @@ export default function EmpleadoSectionNav({ active, onChange, completitud, aler
                 border: "none",
                 borderBottom: "1px solid var(--border)",
                 borderLeft: isActive ? "3px solid var(--green)" : "3px solid transparent",
-                background: isActive ? "rgba(45,106,79,0.06)" : "white",
+                background: isActive ? "var(--tint-green)" : "var(--card)",
                 color: isActive ? "var(--green)" : "var(--muted-2)",
                 fontSize: 13,
                 fontWeight: isActive ? 600 : 400,

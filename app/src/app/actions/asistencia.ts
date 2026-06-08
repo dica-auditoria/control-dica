@@ -289,6 +289,11 @@ export async function registrarCheckinPublicoAction(input: {
   let geo = { ubicacionId: null as string | null, distancia: null as number | null, dentroRadio: null as boolean | null };
   if (input.lat && input.lng) geo = await calcularGeofencing(supabase, input.lat, input.lng, null);
 
+  if (geo.dentroRadio === false) {
+    const suffix = geo.distancia !== null ? ` — estás a ${Math.round(geo.distancia)} m del punto de registro` : "";
+    return { error: `Estás fuera del área de registro${suffix}` };
+  }
+
   const { error } = await db(supabase, "empleado_asistencia").insert({
     empleado_id: input.empleado_id, ubicacion_id: geo.ubicacionId,
     tipo: input.tipo, lat: input.lat ?? null, lng: input.lng ?? null,
