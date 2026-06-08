@@ -1,5 +1,5 @@
 export type EmpleadoEstado = "pendiente" | "activo" | "inactivo";
-export type TipoContrato = "indeterminado" | "temporal" | "honorarios" | "practicas";
+export type TipoContrato = "indeterminado" | "temporal" | "honorarios" | "practicas" | "proyecto";
 export type DocumentoEstado = "pendiente" | "vigente" | "por_vencer" | "vencido";
 
 export interface EmpleadoListItem {
@@ -28,6 +28,8 @@ export interface EmpleadoDetalle extends EmpleadoListItem {
   hora_entrada: string | null;
   hora_salida: string | null;
   tolerancia_minutos: number;
+  fecha_inicio_proyecto: string | null;
+  fecha_fin_proyecto: string | null;
   datos_personales: EmpleadoDatosPersonales | null;
   documentos: EmpleadoDocumento[];
   bitacora: EmpleadoBitacoraEntry[];
@@ -82,6 +84,8 @@ export interface CrearEmpleadoInput {
   zona_ubicacion: string;
   hora_entrada?: string | null;
   hora_salida?: string | null;
+  fecha_inicio_proyecto?: string | null;
+  fecha_fin_proyecto?: string | null;
   password?: string;
 }
 

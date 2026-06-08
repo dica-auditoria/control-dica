@@ -17,6 +17,7 @@ export const TIPOS_CONTRATO = [
   { value: "temporal", label: "Temporal" },
   { value: "honorarios", label: "Honorarios" },
   { value: "practicas", label: "Prácticas" },
+  { value: "proyecto", label: "Proyecto" },
 ] as const;
 
 export const ZONAS_UBICACION = [

@@ -87,31 +87,35 @@ export default function EmpleadoDetalleView({ empleado: inicial, supervisores = 
 
   // ── Edit modal form ────────────────────────────────────────────────────────
   const [editForm, setEditForm] = useState({
-    nombres:          empleado.nombres,
-    apellido_paterno: empleado.apellido_paterno,
-    apellido_materno: empleado.apellido_materno,
-    puesto:           empleado.puesto,
-    departamento:     empleado.departamento,
-    tipo_contrato:    empleado.tipo_contrato as string,
-    fecha_ingreso:    empleado.fecha_ingreso,
-    supervisor_id:    empleado.supervisor_id ?? "",
-    zona_ubicacion:   empleado.zona_ubicacion ?? "",
-    estado:           empleado.estado,
+    nombres:               empleado.nombres,
+    apellido_paterno:      empleado.apellido_paterno,
+    apellido_materno:      empleado.apellido_materno,
+    puesto:                empleado.puesto,
+    departamento:          empleado.departamento,
+    tipo_contrato:         empleado.tipo_contrato as string,
+    fecha_ingreso:         empleado.fecha_ingreso,
+    supervisor_id:         empleado.supervisor_id ?? "",
+    zona_ubicacion:        empleado.zona_ubicacion ?? "",
+    estado:                empleado.estado,
+    fecha_inicio_proyecto: (empleado as any).fecha_inicio_proyecto ?? "",
+    fecha_fin_proyecto:    (empleado as any).fecha_fin_proyecto ?? "",
   });
   const [editError, setEditError] = useState<string | null>(null);
 
   const openEdit = () => {
     setEditForm({
-      nombres:          empleado.nombres,
-      apellido_paterno: empleado.apellido_paterno,
-      apellido_materno: empleado.apellido_materno,
-      puesto:           empleado.puesto,
-      departamento:     empleado.departamento,
-      tipo_contrato:    empleado.tipo_contrato,
-      fecha_ingreso:    empleado.fecha_ingreso,
-      supervisor_id:    empleado.supervisor_id ?? "",
-      zona_ubicacion:   empleado.zona_ubicacion ?? "",
-      estado:           empleado.estado,
+      nombres:               empleado.nombres,
+      apellido_paterno:      empleado.apellido_paterno,
+      apellido_materno:      empleado.apellido_materno,
+      puesto:                empleado.puesto,
+      departamento:          empleado.departamento,
+      tipo_contrato:         empleado.tipo_contrato,
+      fecha_ingreso:         empleado.fecha_ingreso,
+      supervisor_id:         empleado.supervisor_id ?? "",
+      zona_ubicacion:        empleado.zona_ubicacion ?? "",
+      estado:                empleado.estado,
+      fecha_inicio_proyecto: (empleado as any).fecha_inicio_proyecto ?? "",
+      fecha_fin_proyecto:    (empleado as any).fecha_fin_proyecto ?? "",
     });
     setEditError(null);
     clearError();
@@ -121,30 +125,34 @@ export default function EmpleadoDetalleView({ empleado: inicial, supervisores = 
   const handleGuardarEdit = async () => {
     setEditError(null);
     const result = await actualizar(empleado.id, {
-      nombres:          editForm.nombres.trim(),
-      apellido_paterno: editForm.apellido_paterno.trim(),
-      apellido_materno: editForm.apellido_materno.trim(),
-      puesto:           editForm.puesto.trim(),
-      departamento:     editForm.departamento,
-      tipo_contrato:    editForm.tipo_contrato as TipoContrato,
-      fecha_ingreso:    editForm.fecha_ingreso,
-      supervisor_id:    editForm.supervisor_id || null,
-      zona_ubicacion:   editForm.zona_ubicacion,
-      estado:           editForm.estado,
+      nombres:               editForm.nombres.trim(),
+      apellido_paterno:      editForm.apellido_paterno.trim(),
+      apellido_materno:      editForm.apellido_materno.trim(),
+      puesto:                editForm.puesto.trim(),
+      departamento:          editForm.departamento,
+      tipo_contrato:         editForm.tipo_contrato as TipoContrato,
+      fecha_ingreso:         editForm.fecha_ingreso,
+      supervisor_id:         editForm.supervisor_id || null,
+      zona_ubicacion:        editForm.zona_ubicacion,
+      estado:                editForm.estado,
+      fecha_inicio_proyecto: editForm.fecha_inicio_proyecto || null,
+      fecha_fin_proyecto:    editForm.fecha_fin_proyecto || null,
     });
     if (result.error) { setEditError(result.error); return; }
     setEmpleado(e => ({
       ...e,
-      nombres:          editForm.nombres.trim(),
-      apellido_paterno: editForm.apellido_paterno.trim(),
-      apellido_materno: editForm.apellido_materno.trim(),
-      puesto:           editForm.puesto.trim(),
-      departamento:     editForm.departamento,
-      tipo_contrato:    editForm.tipo_contrato as TipoContrato,
-      fecha_ingreso:    editForm.fecha_ingreso,
-      supervisor_id:    editForm.supervisor_id || null,
-      zona_ubicacion:   editForm.zona_ubicacion,
-      estado:           editForm.estado as EmpleadoDetalle["estado"],
+      nombres:               editForm.nombres.trim(),
+      apellido_paterno:      editForm.apellido_paterno.trim(),
+      apellido_materno:      editForm.apellido_materno.trim(),
+      puesto:                editForm.puesto.trim(),
+      departamento:          editForm.departamento,
+      tipo_contrato:         editForm.tipo_contrato as TipoContrato,
+      fecha_ingreso:         editForm.fecha_ingreso,
+      supervisor_id:         editForm.supervisor_id || null,
+      zona_ubicacion:        editForm.zona_ubicacion,
+      estado:                editForm.estado as EmpleadoDetalle["estado"],
+      fecha_inicio_proyecto: editForm.fecha_inicio_proyecto || null,
+      fecha_fin_proyecto:    editForm.fecha_fin_proyecto || null,
     }));
     setEditOpen(false);
   };
@@ -307,6 +315,12 @@ export default function EmpleadoDetalleView({ empleado: inicial, supervisores = 
                 {dp.fecha_alta_imss && (
                   <DataRow label="Alta IMSS" value={new Date(dp.fecha_alta_imss + "T12:00:00").toLocaleDateString("es-MX", { day: "numeric", month: "long", year: "numeric" })} />
                 )}
+                {(empleado as any).fecha_inicio_proyecto && (
+                  <DataRow label="Inicio de proyecto" value={new Date((empleado as any).fecha_inicio_proyecto + "T12:00:00").toLocaleDateString("es-MX", { day: "numeric", month: "long", year: "numeric" })} />
+                )}
+                {(empleado as any).fecha_fin_proyecto && (
+                  <DataRow label="Fin de proyecto" value={new Date((empleado as any).fecha_fin_proyecto + "T12:00:00").toLocaleDateString("es-MX", { day: "numeric", month: "long", year: "numeric" })} />
+                )}
               </div>
             </SectionPanel>
           )}
@@ -406,6 +420,16 @@ export default function EmpleadoDetalleView({ empleado: inicial, supervisores = 
                       {TIPOS_CONTRATO.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                     </select>
                   </MF>
+                  {editForm.tipo_contrato === "proyecto" && (
+                    <>
+                      <MF label="Inicio de proyecto">
+                        <input type="date" style={iSt} value={editForm.fecha_inicio_proyecto} onChange={e => ef("fecha_inicio_proyecto", e.target.value)} />
+                      </MF>
+                      <MF label="Fin de proyecto">
+                        <input type="date" style={iSt} value={editForm.fecha_fin_proyecto} onChange={e => ef("fecha_fin_proyecto", e.target.value)} min={editForm.fecha_inicio_proyecto || undefined} />
+                      </MF>
+                    </>
+                  )}
                   <MF label="Fecha de admisión" required>
                     <input type="date" style={iSt} value={editForm.fecha_ingreso} onChange={e => ef("fecha_ingreso", e.target.value)} />
                   </MF>

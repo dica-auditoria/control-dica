@@ -79,6 +79,10 @@ export async function crearEmpleadoAction(input: CrearEmpleadoInput) {
         hora_salida: input.hora_salida || null,
         tolerancia_minutos: 10,
       }),
+      ...(input.tipo_contrato === "proyecto" && {
+        fecha_inicio_proyecto: input.fecha_inicio_proyecto || null,
+        fecha_fin_proyecto: input.fecha_fin_proyecto || null,
+      }),
       estado: "pendiente",
       codigo_empleado: codigo,
       progreso_perfil: 20,
@@ -182,6 +186,8 @@ export async function actualizarEmpleadoAction(
   if (updates.fecha_ingreso) payload.fecha_ingreso = updates.fecha_ingreso;
   if (updates.tipo_contrato) payload.tipo_contrato = updates.tipo_contrato;
   if (updates.zona_ubicacion) payload.zona_ubicacion = updates.zona_ubicacion;
+  if ("fecha_inicio_proyecto" in updates) payload.fecha_inicio_proyecto = updates.fecha_inicio_proyecto ?? null;
+  if ("fecha_fin_proyecto" in updates) payload.fecha_fin_proyecto = updates.fecha_fin_proyecto ?? null;
   if (updates.estado) payload.estado = updates.estado;
   if (updates.email_local) {
     payload.email_local = updates.email_local.trim().toLowerCase();

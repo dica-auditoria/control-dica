@@ -47,6 +47,8 @@ export default function EmpleadoAltaForm({ supervisores, ubicaciones }: Props) {
     zona_ubicacion: "",
     hora_entrada: "",
     hora_salida: "",
+    fecha_inicio_proyecto: "",
+    fecha_fin_proyecto: "",
     password: "",
     confirmPassword: "",
   });
@@ -72,6 +74,7 @@ export default function EmpleadoAltaForm({ supervisores, ubicaciones }: Props) {
     form.puesto.trim() &&
     form.fecha_ingreso &&
     (form.tipo_contrato !== "practicas" || form.hora_entrada.trim()) &&
+    (form.tipo_contrato !== "proyecto" || form.fecha_inicio_proyecto.trim()) &&
     pwdOk;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -268,6 +271,46 @@ export default function EmpleadoAltaForm({ supervisores, ubicaciones }: Props) {
           }}>
             <span>ℹ</span>
             <span>Se aplicará una tolerancia de <strong>10 minutos</strong> para el registro de entrada.</span>
+          </div>
+        </>
+      )}
+
+      {form.tipo_contrato === "proyecto" && (
+        <>
+          <SectionTitle icon="📅" title="Vigencia del proyecto" />
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 8 }}>
+            <FormField label="Fecha de inicio" required>
+              <input
+                type="date"
+                style={inputStyle}
+                value={form.fecha_inicio_proyecto}
+                onChange={e => setForm(f => ({ ...f, fecha_inicio_proyecto: e.target.value }))}
+                required
+              />
+            </FormField>
+            <FormField label="Fecha de fin">
+              <input
+                type="date"
+                style={inputStyle}
+                value={form.fecha_fin_proyecto}
+                onChange={e => setForm(f => ({ ...f, fecha_fin_proyecto: e.target.value }))}
+                min={form.fecha_inicio_proyecto || undefined}
+              />
+            </FormField>
+          </div>
+          <div style={{
+            padding: "8px 12px",
+            background: "var(--tint-blue)",
+            borderRadius: 4,
+            fontSize: 12,
+            color: "var(--muted-2)",
+            marginBottom: 28,
+            display: "flex",
+            gap: 8,
+            alignItems: "center",
+          }}>
+            <span>ℹ</span>
+            <span>Define el periodo del proyecto. La fecha de fin puede actualizarse si el proyecto se extiende.</span>
           </div>
         </>
       )}
