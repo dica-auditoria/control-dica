@@ -21,6 +21,10 @@ export interface InventarioActivo {
   fecha_registro: string | null;
   condicion: ActivoCondicion | null;
   sistema_operativo: string | null;
+  procesador: string | null;
+  ram: string | null;
+  almacenamiento: string | null;
+  cargador: string | null;
   tipo_adquisicion: "propio" | "renta" | null;
   ubicacion_id: string | null;
   ubicacion_nombre: string | null;
@@ -76,6 +80,10 @@ export interface CrearActivoInput {
   fecha_registro?: string;
   condicion?: string;
   sistema_operativo?: string;
+  procesador?: string;
+  ram?: string;
+  almacenamiento?: string;
+  cargador?: string;
   tipo_adquisicion?: string;
   ubicacion_id?: string | null;
   observaciones_fisicas?: string;

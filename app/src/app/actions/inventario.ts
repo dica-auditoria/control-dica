@@ -64,7 +64,8 @@ export async function fetchActivosSimpleAction(opts?: { estado?: string; categor
 
   let query = db(supabase, "inventario_activos")
     .select(`id, nombre, marca, modelo, numero_serie, numero_activo, descripcion,
-      fecha_registro, condicion, sistema_operativo, tipo_adquisicion, ubicacion_id,
+      fecha_registro, condicion, sistema_operativo, procesador, ram, almacenamiento, cargador,
+      tipo_adquisicion, ubicacion_id,
       observaciones_fisicas, estado, notas, created_at, categoria_id,
       inventario_categorias(nombre, icono),
       ubicaciones(nombre)`)
@@ -112,6 +113,10 @@ export async function fetchActivosSimpleAction(opts?: { estado?: string; categor
       fecha_registro: (a.fecha_registro as string) ?? null,
       condicion: (a.condicion as InventarioActivo["condicion"]) ?? null,
       sistema_operativo: (a.sistema_operativo as string) ?? null,
+      procesador: (a.procesador as string) ?? null,
+      ram: (a.ram as string) ?? null,
+      almacenamiento: (a.almacenamiento as string) ?? null,
+      cargador: (a.cargador as string) ?? null,
       tipo_adquisicion: (a.tipo_adquisicion as InventarioActivo["tipo_adquisicion"]) ?? null,
       ubicacion_id: (a.ubicacion_id as string) ?? null,
       ubicacion_nombre: ub?.nombre ?? null,
@@ -151,6 +156,10 @@ export async function crearActivoAction(input: CrearActivoInput) {
       fecha_registro: input.fecha_registro || null,
       condicion: input.condicion || "bueno",
       sistema_operativo: input.sistema_operativo?.trim() || null,
+      procesador: input.procesador?.trim() || null,
+      ram: input.ram?.trim() || null,
+      almacenamiento: input.almacenamiento?.trim() || null,
+      cargador: input.cargador?.trim() || null,
       tipo_adquisicion: input.tipo_adquisicion || "propio",
       ubicacion_id: input.ubicacion_id || null,
       observaciones_fisicas: input.observaciones_fisicas?.trim() || null,
@@ -191,6 +200,7 @@ export async function actualizarActivoAction(id: string, input: Partial<CrearAct
     ["categoria_id","categoria_id"],["nombre","nombre"],["marca","marca"],["modelo","modelo"],
     ["numero_serie","numero_serie"],["numero_activo","numero_activo"],["descripcion","descripcion"],
     ["fecha_registro","fecha_registro"],["condicion","condicion"],["sistema_operativo","sistema_operativo"],
+    ["procesador","procesador"],["ram","ram"],["almacenamiento","almacenamiento"],["cargador","cargador"],
     ["tipo_adquisicion","tipo_adquisicion"],["ubicacion_id","ubicacion_id"],
     ["observaciones_fisicas","observaciones_fisicas"],["notas","notas"],["estado","estado"],
   ];

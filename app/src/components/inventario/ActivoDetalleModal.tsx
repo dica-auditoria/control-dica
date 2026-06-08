@@ -174,6 +174,10 @@ function TabDatos({ activo }: { activo: InventarioActivo }) {
       <DR label="Tipo de adquisición" value={activo.tipo_adquisicion ? ADQUI[activo.tipo_adquisicion] : null} />
       <DR label="Fecha de registro" value={activo.fecha_registro ? new Date(activo.fecha_registro + "T12:00:00").toLocaleDateString("es-MX", { day: "numeric", month: "long", year: "numeric" }) : null} />
       {activo.sistema_operativo && <DR label="Sistema operativo" value={activo.sistema_operativo} />}
+      {activo.procesador && <DR label="Procesador" value={activo.procesador} />}
+      {activo.ram && <DR label="RAM" value={activo.ram} />}
+      {activo.almacenamiento && <DR label="Almacenamiento" value={activo.almacenamiento} />}
+      {activo.cargador && <DR label="Cargador" value={activo.cargador} />}
       {activo.ubicacion_nombre && <DR label="Ubicación" value={activo.ubicacion_nombre} />}
       {activo.empleado_nombre && (
         <DR label="Asignado a" value={`${activo.empleado_nombre}${activo.fecha_asignacion ? ` · desde ${new Date(activo.fecha_asignacion + "T12:00:00").toLocaleDateString("es-MX")}` : ""}`} />

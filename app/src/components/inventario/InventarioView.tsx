@@ -38,7 +38,8 @@ const CONDICIONES = [
 const EMPTY: CrearActivoInput = {
   categoria_id: null, nombre: "", marca: "", modelo: "", numero_serie: "",
   numero_activo: "", descripcion: "", fecha_registro: "", condicion: "bueno",
-  sistema_operativo: "", tipo_adquisicion: "propio", ubicacion_id: null,
+  sistema_operativo: "", procesador: "", ram: "", almacenamiento: "", cargador: "",
+  tipo_adquisicion: "propio", ubicacion_id: null,
   observaciones_fisicas: "", notas: "", asignar_empleado_id: null, asignar_notas: "",
 };
 
@@ -101,7 +102,10 @@ export default function InventarioView({ activos: inicial, categorias, empleados
       modelo: a.modelo ?? "", numero_serie: a.numero_serie ?? "",
       numero_activo: a.numero_activo ?? "", descripcion: a.descripcion ?? "",
       fecha_registro: a.fecha_registro ?? "", condicion: a.condicion ?? "bueno",
-      sistema_operativo: a.sistema_operativo ?? "", tipo_adquisicion: a.tipo_adquisicion ?? "propio",
+      sistema_operativo: a.sistema_operativo ?? "",
+      procesador: a.procesador ?? "", ram: a.ram ?? "",
+      almacenamiento: a.almacenamiento ?? "", cargador: a.cargador ?? "",
+      tipo_adquisicion: a.tipo_adquisicion ?? "propio",
       ubicacion_id: a.ubicacion_id, observaciones_fisicas: a.observaciones_fisicas ?? "",
       notas: a.notas ?? "", asignar_empleado_id: null, asignar_notas: "",
     });
@@ -275,15 +279,35 @@ export default function InventarioView({ activos: inicial, categorias, empleados
                   <MF label="Fecha de registro"><input type="date" style={iSt} value={form.fecha_registro ?? ""} onChange={e => set("fecha_registro", e.target.value)} /></MF>
                   <div style={{ gridColumn: "1 / -1" }}>
                     <MF label="Descripción / Especificaciones">
-                      <input style={iSt} value={form.descripcion ?? ""} onChange={e => set("descripcion", e.target.value)} placeholder="Ej. 16 GB RAM, SSD 512 GB, Win 11 Pro" />
+                      <textarea
+                        style={{ ...iSt, minHeight: 72, resize: "vertical" }}
+                        value={form.descripcion ?? ""}
+                        onChange={e => set("descripcion", e.target.value)}
+                        placeholder={esComputo ? "Notas adicionales sobre el equipo…" : "Descripción general del activo…"}
+                        onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) e.stopPropagation(); }}
+                      />
                     </MF>
                   </div>
                   {esComputo && (
-                    <div style={{ gridColumn: "1 / -1" }}>
-                      <MF label="Sistema operativo">
-                        <input style={iSt} value={form.sistema_operativo ?? ""} onChange={e => set("sistema_operativo", e.target.value)} placeholder="Ej. Windows 11 Pro 23H2, macOS Sonoma 14.5…" />
+                    <>
+                      <div style={{ gridColumn: "1 / -1" }}>
+                        <MF label="Sistema operativo">
+                          <input style={iSt} value={form.sistema_operativo ?? ""} onChange={e => set("sistema_operativo", e.target.value)} placeholder="Ej. Windows 11 Pro 23H2, macOS Sonoma 14.5…" />
+                        </MF>
+                      </div>
+                      <MF label="Procesador">
+                        <input style={iSt} value={form.procesador ?? ""} onChange={e => set("procesador", e.target.value)} placeholder="Ej. Intel Core i5-1235U, AMD Ryzen 5 7530U…" />
                       </MF>
-                    </div>
+                      <MF label="RAM">
+                        <input style={iSt} value={form.ram ?? ""} onChange={e => set("ram", e.target.value)} placeholder="Ej. 16 GB DDR4 3200 MHz" />
+                      </MF>
+                      <MF label="Almacenamiento">
+                        <input style={iSt} value={form.almacenamiento ?? ""} onChange={e => set("almacenamiento", e.target.value)} placeholder="Ej. SSD NVMe 512 GB" />
+                      </MF>
+                      <MF label="Cargador">
+                        <input style={iSt} value={form.cargador ?? ""} onChange={e => set("cargador", e.target.value)} placeholder="Ej. 65W USB-C, incluido / extraviado" />
+                      </MF>
+                    </>
                   )}
                 </div>
               </Sec>
