@@ -154,6 +154,114 @@ export async function obtenerResumenHoyAction(empleadoId: string) {
   return { primera, ultima, horas, ultimoTipo, totalRegistros: registros.length };
 }
 
+// ─── AUTENTICADO: Obtener empleado del usuario logueado ───────────────────────
+
+export async function getEmpleadoParaCheckinAuthAction() {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "No autenticado", empleado: null, rol: null };
+
+  const { data: perfil } = await supabase
+    .from("usuarios").select("nombre, rol").eq("id", user.id).single() as {
+      data: { nombre: string; rol: string } | null; error: unknown;
+    };
+  if (!perfil) return { error: "Perfil no encontrado", empleado: null, rol: null };
+
+  const email = user.email ?? "";
+  const { data: emp } = await supabase
+    .from("empleados")
+    .select("id, nombres, apellido_paterno, apellido_materno, codigo_empleado, departamento")
+    .eq("email_institucional", email)
+    .eq("estado", "activo")
+    .maybeSingle() as {
+      data: { id: string; nombres: string; apellido_paterno: string; apellido_materno: string; codigo_empleado: string | null; departamento: string } | null;
+      error: unknown;
+    };
+
+  const empleado = emp
+    ? {
+        id: emp.id,
+        nombre: `${emp.nombres} ${emp.apellido_paterno} ${emp.apellido_materno}`.trim(),
+        codigo: emp.codigo_empleado,
+        departamento: emp.departamento,
+      }
+    : {
+        id: null as string | null,
+        nombre: perfil.nombre,
+        codigo: null as string | null,
+        departamento: "DICA",
+      };
+
+  return { error: null, empleado, rol: perfil.rol };
+}
+
+// ─── AUTENTICADO: Crear perfil de empleado para usuario admin/superadmin ───────
+
+export async function crearPerfilEmpleadoAuthAction(input: {
+  nombres: string;
+  apellido_paterno: string;
+  apellido_materno: string;
+  puesto: string;
+  departamento: string;
+  fecha_ingreso: string;
+  tipo_contrato: string;
+}) {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user || !user.email) return { error: "No autenticado", empleadoId: null };
+
+  const { data: perfil } = await supabase
+    .from("usuarios").select("rol, nombre").eq("id", user.id).single() as {
+      data: { rol: string; nombre: string } | null; error: unknown;
+    };
+  if (!perfil) return { error: "Perfil no encontrado", empleadoId: null };
+
+  const { data: existing } = await supabase
+    .from("empleados").select("id").eq("email_institucional", user.email).maybeSingle();
+  if (existing) return { error: "Ya tienes un perfil de empleado registrado", empleadoId: null };
+
+  // Generate employee code
+  const { data: last } = await supabase
+    .from("empleados").select("codigo_empleado")
+    .not("codigo_empleado", "is", null)
+    .order("created_at", { ascending: false })
+    .limit(1).maybeSingle() as { data: { codigo_empleado: string | null } | null; error: unknown };
+  const lastNum = last?.codigo_empleado
+    ? parseInt(last.codigo_empleado.replace(/\D/g, "").slice(-3) || "0", 10)
+    : 0;
+  const codigo = `DICA-ADM-${String(lastNum + 1).padStart(3, "0")}`;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: emp, error } = await (supabase.from("empleados") as any)
+    .insert({
+      nombres:          input.nombres.trim(),
+      apellido_paterno: input.apellido_paterno.trim(),
+      apellido_materno: input.apellido_materno.trim(),
+      email_institucional: user.email,
+      email_local: user.email.split("@")[0],
+      puesto:           input.puesto.trim(),
+      departamento:     input.departamento,
+      fecha_ingreso:    input.fecha_ingreso,
+      tipo_contrato:    input.tipo_contrato,
+      estado:           "activo",
+      codigo_empleado:  codigo,
+      progreso_perfil:  20,
+    })
+    .select("id").single() as { data: { id: string } | null; error: { message?: string } | null };
+
+  if (error) return { error: "Error al crear el perfil: " + (error.message ?? ""), empleadoId: null };
+
+  // Bootstrap datos_personales
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (supabase.from("empleado_datos_personales") as any).insert({
+    empleado_id: emp!.id, nacionalidad: "Mexicana",
+  });
+
+  revalidatePath("/dashboard/empleados");
+  revalidatePath("/dashboard/mi-asistencia");
+  return { error: null, empleadoId: emp!.id };
+}
+
 // ─── PÚBLICO: Registrar check-in/out ─────────────────────────────────────────
 
 export async function registrarCheckinPublicoAction(input: {
@@ -164,8 +272,16 @@ export async function registrarCheckinPublicoAction(input: {
 }) {
   const supabase = createClient();
 
-  const { data: emp } = await supabase.from("empleados").select("id").eq("id", input.empleado_id).eq("estado", "activo").maybeSingle();
+  const { data: emp } = await supabase
+    .from("empleados").select("id, departamento")
+    .eq("id", input.empleado_id).eq("estado", "activo").maybeSingle() as {
+      data: { id: string; departamento: string } | null; error: unknown;
+    };
   if (!emp) return { error: "Empleado no encontrado" };
+
+  const DEPTS_SIN_CHECKIN = ["Dirección General", "Dirección de Administración"];
+  if (DEPTS_SIN_CHECKIN.includes(emp.departamento))
+    return { error: "El check-in no aplica para este departamento" };
 
   const headersList = await headers();
   const ip = headersList.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;

@@ -1,6 +1,10 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import type { ArchivoEstado, UserRole } from "@/types/database";
 import ClienteArchivosTable, { type ClienteArchivo } from "@/components/archivos/ClienteArchivosTable";
+import { fetchRequerimientosClienteAction } from "@/app/actions/requerimientos";
+import RequerimientosClienteSection from "@/components/requerimientos/RequerimientosClienteSection";
+import { fetchMiExpedienteAction } from "@/app/actions/empleados";
 
 interface PerfilRow { rol: UserRole; entidad_id: string | null }
 interface ArchivoRow { id: string; nombre: string; tipo: string; estado: ArchivoEstado; created_at: string; size_bytes: number; entidades: { nombre: string } | null }
@@ -16,17 +20,22 @@ export default async function DashboardPage() {
     .single() as { data: PerfilRow | null; error: unknown };
 
   const isAdmin = perfil?.rol === "admin" || perfil?.rol === "superadmin";
+  const isEmpleado = perfil?.rol === "empleado";
 
   if (isAdmin) {
     const [
       { count: totalArchivos },
       { count: totalEntidades },
       { count: totalSolicitudes },
+      { count: archivosVerificados },
     ] = await Promise.all([
-      supabase.from("archivos").select("*", { count: "exact", head: true }).neq("estado", "eliminado"),
+      supabase.from("archivos").select("*", { count: "exact", head: true }).neq("estado", "eliminado").neq("tipo", "carpeta"),
       supabase.from("entidades").select("*", { count: "exact", head: true }).eq("activo", true),
       supabase.from("solicitudes_eliminacion").select("*", { count: "exact", head: true }).eq("estado", "pendiente"),
+      supabase.from("archivos").select("*", { count: "exact", head: true }).neq("estado", "eliminado").neq("tipo", "carpeta").neq("hash_sha256", "0000000000000000000000000000000000000000000000000000000000000000"),
     ]);
+
+    const integridadPct = totalArchivos ? Math.round(((archivosVerificados ?? 0) / (totalArchivos ?? 1)) * 100) : 100;
 
     const { data: archivosRecientes } = await supabase
       .from("archivos")
@@ -49,7 +58,7 @@ export default async function DashboardPage() {
           <StatCard label="Total archivos" value={totalArchivos ?? 0} meta="En custodia activa" accent="var(--accent)" />
           <StatCard label="Entidades" value={totalEntidades ?? 0} meta="Clientes activos" accent="var(--gold)" />
           <StatCard label="Solicitudes" value={totalSolicitudes ?? 0} meta="Pendientes de revisión" accent="var(--amber)" />
-          <StatCard label="Integridad" value="100%" meta="SHA-256 verificado" accent="var(--green)" />
+          <StatCard label="Integridad" value={`${integridadPct}%`} meta="SHA-256 verificado" accent="var(--green)" />
         </div>
 
         {/* Tabla archivos recientes */}
@@ -93,21 +102,105 @@ export default async function DashboardPage() {
     );
   }
 
+  // Vista empleado
+  if (isEmpleado) {
+    const { data: emp } = await fetchMiExpedienteAction();
+
+    return (
+      <div style={{ padding: "28px 32px" }}>
+        <div style={{ marginBottom: 24 }}>
+          <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: "var(--ink)" }}>
+            Bienvenido{emp ? `, ${(emp as Record<string, unknown>).nombres as string}` : ""}
+          </h1>
+          <p style={{ fontSize: 12, color: "rgba(15,17,23,0.4)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>
+            Portal del empleado — Control DICA
+          </p>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 28 }}>
+          {emp && (
+            <>
+              <StatCard
+                label="Progreso de perfil"
+                value={`${(emp as Record<string, unknown>).progreso_perfil as number}%`}
+                meta="Completitud de tu expediente"
+                accent="var(--green)"
+              />
+              <StatCard
+                label="Departamento"
+                value={(emp as Record<string, unknown>).departamento as string}
+                meta={(emp as Record<string, unknown>).puesto as string}
+                accent="var(--gold)"
+              />
+              <StatCard
+                label="Estado"
+                value={(emp as Record<string, unknown>).estado === "activo" ? "Activo" : "Pendiente"}
+                meta={`Código: ${(emp as Record<string, unknown>).codigo_empleado ?? "—"}`}
+                accent="var(--accent)"
+              />
+            </>
+          )}
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+          <AccesoRapido
+            href="/dashboard/mi-expediente"
+            titulo="Mi Expediente"
+            desc="Ver tus datos personales, documentos y más"
+            color="var(--green)"
+          />
+          <AccesoRapido
+            href="/dashboard/mi-asistencia"
+            titulo="Mi Check-in"
+            desc="Registrar entrada / salida del día"
+            color="var(--gold)"
+          />
+          <AccesoRapido
+            href="/dashboard/directorio"
+            titulo="Directorio"
+            desc="Ubicaciones de oficinas y zonas cliente"
+            color="var(--accent)"
+          />
+          <AccesoRapido
+            href="/dashboard/buscar"
+            titulo="Búsqueda"
+            desc="Buscar archivos, clientes y contratos"
+            color="rgba(15,17,23,0.5)"
+          />
+        </div>
+      </div>
+    );
+  }
+
   // Vista cliente
-  const { data: misArchivos } = await supabase
-    .from("archivos")
-    .select("id, nombre, tipo, estado, size_bytes, created_at")
-    .eq("entidad_id", perfil!.entidad_id!)
-    .neq("estado", "eliminado")
-    .order("created_at", { ascending: false }) as { data: ClienteArchivo[] | null; error: unknown };
+  const [{ data: misArchivos }, rReqs] = await Promise.all([
+    supabase
+      .from("archivos")
+      .select("id, nombre, tipo, estado, size_bytes, created_at")
+      .eq("entidad_id", perfil!.entidad_id!)
+      .neq("estado", "eliminado")
+      .order("created_at", { ascending: false }) as unknown as Promise<{ data: ClienteArchivo[] | null; error: unknown }>,
+    fetchRequerimientosClienteAction(),
+  ]);
+
+  const requerimientos = rReqs.data ?? [];
 
   return (
     <div style={{ padding: "28px 32px" }}>
-      <div style={{ marginBottom: 28 }}>
-        <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: "var(--ink)" }}>Mis Archivos</h1>
+      <div style={{ marginBottom: 24 }}>
+        <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: "var(--ink)" }}>Mi Portal</h1>
         <p style={{ fontSize: 12, color: "rgba(15,17,23,0.4)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>
-          Documentos de tu entidad en custodia
+          Documentos y requerimientos de tu expediente
         </p>
+      </div>
+
+      {/* Requerimientos pendientes — solo si hay alguno */}
+      {requerimientos.length > 0 && (
+        <RequerimientosClienteSection requerimientos={requerimientos} entidadId={perfil!.entidad_id!} />
+      )}
+
+      <div style={{ marginBottom: 12 }}>
+        <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, color: "var(--ink)", margin: 0 }}>Mis archivos</h2>
       </div>
       <ClienteArchivosTable archivos={misArchivos ?? []} />
     </div>
@@ -121,6 +214,21 @@ function StatCard({ label, value, meta, accent }: { label: string; value: string
       <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 32, color: "var(--ink)", lineHeight: 1, marginBottom: 6 }}>{value}</div>
       <div style={{ fontSize: 12, color: "rgba(15,17,23,0.4)" }}>{meta}</div>
     </div>
+  );
+}
+
+function AccesoRapido({ href, titulo, desc, color }: { href: string; titulo: string; desc: string; color: string }) {
+  return (
+    <Link href={href} style={{
+      display: "block", textDecoration: "none",
+      background: "white", border: "1px solid var(--border)", borderRadius: 8,
+      padding: 20, boxShadow: "0 1px 3px rgba(15,17,23,0.06)",
+      borderLeft: `3px solid ${color}`,
+      transition: "box-shadow 0.15s",
+    }}>
+      <div style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", marginBottom: 4 }}>{titulo}</div>
+      <div style={{ fontSize: 12, color: "rgba(15,17,23,0.45)" }}>{desc}</div>
+    </Link>
   );
 }
 

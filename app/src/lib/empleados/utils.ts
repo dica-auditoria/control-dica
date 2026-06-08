@@ -36,6 +36,7 @@ export function iniciales(
   return `${n}${a}`.toUpperCase();
 }
 
+// Weights: privacidad 15 + datos 30 + docs 25 + emergencia 10 + laboral 20 = 100
 export function calcularProgresoPerfil(input: {
   tienePrivacidad: boolean;
   datosPersonales?: {
@@ -44,15 +45,17 @@ export function calcularProgresoPerfil(input: {
     fecha_nacimiento?: string | null;
   } | null;
   documentosCount?: number;
+  tieneEmergencia?: boolean;
 }): number {
   let total = 0;
   if (input.tienePrivacidad) total += 15;
   const dp = input.datosPersonales;
-  if (dp?.curp && dp?.rfc && dp?.fecha_nacimiento) total += 35;
-  else if (dp?.curp || dp?.rfc) total += 15;
+  if (dp?.curp && dp?.rfc && dp?.fecha_nacimiento) total += 30;
+  else if (dp?.curp || dp?.rfc) total += 12;
   const docs = input.documentosCount ?? 0;
-  if (docs >= 3) total += 30;
-  else if (docs >= 1) total += 15;
+  if (docs >= 3) total += 25;
+  else if (docs >= 1) total += 12;
+  if (input.tieneEmergencia) total += 10;
   total += 20; // relación laboral siempre completa al alta
   return Math.min(100, total);
 }

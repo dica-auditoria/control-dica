@@ -31,7 +31,7 @@ export default async function ArchivosPage() {
     .eq("id", user.id)
     .single() as { data: PerfilRow | null; error: unknown };
 
-  if (!perfil) redirect("/login");
+  if (!perfil || perfil.rol === "empleado") redirect("/dashboard");
 
   const isAdmin = perfil.rol === "admin" || perfil.rol === "superadmin";
 

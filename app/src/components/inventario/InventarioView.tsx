@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import ActivoDetalleModal from "./ActivoDetalleModal";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import {
   crearActivoAction, actualizarActivoAction,
   asignarActivoAction, devolverActivoAction, eliminarActivoAction,
@@ -55,6 +56,10 @@ export default function InventarioView({ activos: inicial, categorias, empleados
   const [notasAsig, setNotasAsig]     = useState("");
   const [error, setError]             = useState<string | null>(null);
   const [isPending, startTransition]  = useTransition();
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmMsg, setConfirmMsg]   = useState("");
+  const [confirmTitle, setConfirmTitle] = useState("");
+  const [confirmAction, setConfirmAction] = useState<(() => void) | null>(null);
 
   const catSeleccionada = categorias.find(c => c.id === form.categoria_id);
   const esComputo = catSeleccionada?.nombre === "Equipo de cómputo";
@@ -125,13 +130,24 @@ export default function InventarioView({ activos: inicial, categorias, empleados
   };
 
   const handleDevolver = (a: InventarioActivo) => {
-    if (!a.asignacion_id || !window.confirm(`¿Devolver "${a.nombre}"?`)) return;
-    startTransition(async () => { await devolverActivoAction(a.asignacion_id!, a.id); refrescar(); });
+    if (!a.asignacion_id) return;
+    setConfirmTitle("Devolver activo");
+    setConfirmMsg(`¿Confirmas la devolución de "${a.nombre}"?`);
+    setConfirmAction(() => () => {
+      setConfirmOpen(false);
+      startTransition(async () => { await devolverActivoAction(a.asignacion_id!, a.id); refrescar(); });
+    });
+    setConfirmOpen(true);
   };
 
   const handleEliminar = (a: InventarioActivo) => {
-    if (!window.confirm(`¿Eliminar "${a.nombre}"?`)) return;
-    startTransition(async () => { await eliminarActivoAction(a.id); refrescar(); });
+    setConfirmTitle("Eliminar activo");
+    setConfirmMsg(`¿Eliminar "${a.nombre}"? Esta acción no se puede deshacer.`);
+    setConfirmAction(() => () => {
+      setConfirmOpen(false);
+      startTransition(async () => { await eliminarActivoAction(a.id); refrescar(); });
+    });
+    setConfirmOpen(true);
   };
 
   const set = (k: keyof CrearActivoInput, v: string | null) => setForm(f => ({ ...f, [k]: v }));
@@ -372,6 +388,16 @@ export default function InventarioView({ activos: inicial, categorias, empleados
 
       {/* Modal: Detalle */}
       {detalle && <ActivoDetalleModal activo={detalle} onClose={() => setDetalle(null)} />}
+
+      <ConfirmDialog
+        open={confirmOpen}
+        title={confirmTitle}
+        message={confirmMsg}
+        confirmLabel="Confirmar"
+        danger
+        onConfirm={() => confirmAction && confirmAction()}
+        onCancel={() => setConfirmOpen(false)}
+      />
     </>
   );
 }

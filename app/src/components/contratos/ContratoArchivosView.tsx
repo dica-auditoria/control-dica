@@ -1,0 +1,240 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import UploadZone from "@/components/archivos/UploadZone";
+import ArchivoExplorer from "@/components/archivos/ArchivoExplorer";
+import RequerimientosTab from "@/components/requerimientos/RequerimientosTab";
+import type { ArchivoContratoItem } from "@/app/actions/archivos";
+import type { Contrato } from "@/types/contratos";
+import type { Requerimiento } from "@/types/requerimientos";
+
+type TabDestino = "cliente" | "empleado";
+
+interface Props {
+  contrato: Contrato;
+  entidadNombre: string;
+  entidadId: string;
+  archivosCliente: ArchivoContratoItem[];
+  archivosEmpleado: ArchivoContratoItem[];
+  requerimientos: Requerimiento[];
+  rol: string;
+}
+
+export default function ContratoArchivosView({
+  contrato, entidadNombre, entidadId, archivosCliente, archivosEmpleado, requerimientos, rol,
+}: Props) {
+  const router = useRouter();
+  const [tab, setTab] = useState<TabDestino>("cliente");
+  const [uploadOpen, setUploadOpen] = useState(false);
+
+  const isAdmin = rol === "admin" || rol === "superadmin";
+  const archivos = tab === "cliente" ? archivosCliente : archivosEmpleado;
+  const requerimientosActivos = requerimientos.filter(r => r.estado !== "completado").length;
+
+  const dirección = [
+    contrato.calle && `${contrato.calle}${contrato.numero_exterior ? " " + contrato.numero_exterior : ""}`,
+    contrato.colonia,
+    contrato.municipio,
+    contrato.estado_republica,
+  ].filter(Boolean).join(", ");
+
+  const handleUploadDone = () => {
+    setUploadOpen(false);
+    router.refresh();
+  };
+
+  const tabConfig: Record<"cliente" | "empleado", { label: string; emptyMsg: string; uploadLabel: string }> = {
+    cliente: {
+      label: "Clientes",
+      emptyMsg: "Sin archivos para clientes",
+      uploadLabel: "Subir archivo de cliente",
+    },
+    empleado: {
+      label: "Empleados",
+      emptyMsg: "Sin archivos para empleados",
+      uploadLabel: "Subir archivo de empleado",
+    },
+  };
+
+  return (
+    <>
+      {/* Topbar */}
+      <div style={{
+        padding: "20px 32px 0",
+        borderBottom: "1px solid var(--border)",
+        background: "white",
+      }}>
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, paddingBottom: 14 }}>
+          {/* Breadcrumb + título */}
+          <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+            <Link href="/dashboard/directorio" style={{ color: "rgba(15,17,23,0.4)", textDecoration: "none", fontSize: 13, flexShrink: 0 }}>
+              Directorio
+            </Link>
+            <span style={{ color: "rgba(15,17,23,0.2)", flexShrink: 0 }}>/</span>
+            <Link href={`/dashboard/directorio/empresa/${entidadId}`} style={{ color: "rgba(15,17,23,0.5)", textDecoration: "none", fontSize: 13, flexShrink: 0 }}>
+              {entidadNombre}
+            </Link>
+            <span style={{ color: "rgba(15,17,23,0.2)", flexShrink: 0 }}>/</span>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 20, color: "var(--ink)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {contrato.nombre}
+              </div>
+              <div style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "rgba(15,17,23,0.4)", marginTop: 2 }}>
+                {contrato.numero_contrato && `${contrato.numero_contrato} · `}
+                {archivosCliente.length + archivosEmpleado.length} archivo{archivosCliente.length + archivosEmpleado.length !== 1 ? "s" : ""}
+              </div>
+            </div>
+          </div>
+
+          {/* Badge estado + botón subir */}
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
+            <EstadoBadge estado={contrato.estado} />
+            {isAdmin && (
+              <button
+                onClick={() => setUploadOpen(o => !o)}
+                style={{
+                  display: "flex", alignItems: "center", gap: 7,
+                  padding: "8px 16px", background: "var(--ink)", color: "white",
+                  border: "none", borderRadius: 4, fontSize: 13, fontWeight: 500,
+                  cursor: "pointer", fontFamily: "'DM Sans', sans-serif",
+                }}
+              >
+                <UploadIcon /> {tabConfig[tab].uploadLabel}
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div style={{ display: "flex", gap: 2 }}>
+          {(["cliente", "empleado"] as TabDestino[]).map(t => {
+            const count = t === "cliente" ? archivosCliente.length : archivosEmpleado.length;
+            const isActive = tab === t;
+            return (
+              <button key={t} onClick={() => { setTab(t); setUploadOpen(false); }}
+                style={{ padding: "8px 18px", border: "none", borderBottom: isActive ? "2px solid var(--accent)" : "2px solid transparent", background: "none", color: isActive ? "var(--accent)" : "rgba(15,17,23,0.5)", fontSize: 13, fontWeight: isActive ? 600 : 400, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", marginBottom: -1, display: "flex", alignItems: "center", gap: 8 }}>
+                {tabConfig[t].label}
+                <span style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", padding: "1px 6px", borderRadius: 100, background: isActive ? "rgba(200,71,42,0.1)" : "var(--surface-2)", color: isActive ? "var(--accent)" : "rgba(15,17,23,0.4)" }}>{count}</span>
+                {t === "cliente" && requerimientosActivos > 0 && (
+                  <span style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", padding: "1px 6px", borderRadius: 100, background: isActive ? "rgba(200,71,42,0.1)" : "rgba(255,193,7,0.15)", color: isActive ? "var(--accent)" : "#B8860B" }}>{requerimientosActivos} req.</span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div style={{ padding: "24px 32px" }}>
+        {/* Info contrato */}
+        <div style={{
+          background: "white", border: "1px solid var(--border)", borderRadius: 8,
+          padding: "14px 20px", marginBottom: 20,
+          display: "flex", gap: 32, flexWrap: "wrap",
+          boxShadow: "0 1px 3px rgba(15,17,23,0.06)",
+        }}>
+          {contrato.fecha_inicio && (
+            <InfoItem label="Vigencia">
+              {new Date(contrato.fecha_inicio + "T12:00:00").toLocaleDateString("es-MX")}
+              {contrato.fecha_fin && ` — ${new Date(contrato.fecha_fin + "T12:00:00").toLocaleDateString("es-MX")}`}
+            </InfoItem>
+          )}
+          {dirección && <InfoItem label="Dirección">{dirección}</InfoItem>}
+        </div>
+
+        {/* Upload zone */}
+        {uploadOpen && (
+          <div style={{
+            background: "white", border: "1px solid var(--border)", borderRadius: 8,
+            padding: "20px 24px", marginBottom: 20,
+            boxShadow: "0 1px 3px rgba(15,17,23,0.06)",
+          }}>
+            <div style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(15,17,23,0.4)", marginBottom: 16 }}>
+              {tabConfig[tab].uploadLabel}
+            </div>
+            <UploadZone
+              entidadId={entidadId}
+              contratoId={contrato.id}
+              destino={tab}
+              onDone={handleUploadDone}
+            />
+          </div>
+        )}
+
+        {/* Requerimientos — solo en tab cliente */}
+        {tab === "cliente" && (
+          <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden", boxShadow: "0 1px 3px rgba(15,17,23,0.06)", marginBottom: 20 }}>
+            <RequerimientosTab
+              requerimientos={requerimientos}
+              entidadId={entidadId}
+              contratoId={contrato.id}
+              isSuperAdmin={rol === "superadmin"}
+            />
+          </div>
+        )}
+
+        {/* Tabla archivos */}
+        <div style={{ background: "white", border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden", boxShadow: "0 1px 3px rgba(15,17,23,0.06)" }}>
+          <div style={{ padding: "14px 20px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)" }}>
+              Archivos — {tabConfig[tab].label}
+            </div>
+            <span style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", padding: "1px 7px", borderRadius: 100, background: "var(--surface-2)", color: "rgba(15,17,23,0.5)" }}>
+              {archivos.length}
+            </span>
+          </div>
+          <ArchivoExplorer
+            archivos={archivos}
+            isAdmin={isAdmin}
+            entidadId={entidadId}
+            contratoId={contrato.id}
+            destino={tab}
+            nombreZip={`${contrato.nombre}-${tab}`}
+            emptyMsg={isAdmin
+              ? `${tabConfig[tab].emptyMsg} — usa el botón "Subir" para agregar`
+              : tabConfig[tab].emptyMsg}
+          />
+        </div>
+      </div>
+    </>
+  );
+}
+
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
+function InfoItem({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(15,17,23,0.4)", marginBottom: 4 }}>
+        {label}
+      </div>
+      <div style={{ fontSize: 13, color: "var(--ink)" }}>{children}</div>
+    </div>
+  );
+}
+
+function EstadoBadge({ estado }: { estado: string }) {
+  const map: Record<string, { bg: string; color: string }> = {
+    vigente:   { bg: "var(--green-light)",  color: "var(--green)" },
+    vencido:   { bg: "var(--surface-2)",    color: "rgba(15,17,23,0.45)" },
+    cancelado: { bg: "var(--red-light)",    color: "var(--accent)" },
+  };
+  const s = map[estado] ?? map.vencido;
+  return (
+    <span style={{ padding: "3px 10px", borderRadius: 100, fontSize: 11, fontWeight: 600, fontFamily: "'DM Mono', monospace", background: s.bg, color: s.color }}>
+      {estado.charAt(0).toUpperCase() + estado.slice(1)}
+    </span>
+  );
+}
+
+
+
+function UploadIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="16 16 12 12 8 16" /><line x1="12" y1="12" x2="12" y2="21" />
+      <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3" />
+    </svg>
+  );
+}

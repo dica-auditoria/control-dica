@@ -197,6 +197,7 @@ export interface GuardarPerfilEmpleadoInput {
   curp?: string | null;
   rfc?: string | null;
   nss?: string | null;
+  fecha_alta_imss?: string | null;
   estado_civil?: string | null;
   nacionalidad?: string | null;
   tipo_sangre?: string | null;
@@ -219,20 +220,22 @@ export async function guardarPerfilEmpleadoAction(
 
   if (error) return { error: "Error al guardar los datos personales" };
 
-  const { count: privCount } = await supabase
-    .from("empleado_privacidad")
-    .select("*", { count: "exact", head: true })
-    .eq("empleado_id", empleadoId);
-
-  const { count: docCount } = await supabase
-    .from("empleado_documentos")
-    .select("*", { count: "exact", head: true })
-    .eq("empleado_id", empleadoId);
+  const [
+    { count: privCount },
+    { count: docCount },
+    { count: emergCount },
+  ] = await Promise.all([
+    supabase.from("empleado_privacidad").select("*", { count: "exact", head: true }).eq("empleado_id", empleadoId),
+    supabase.from("empleado_documentos").select("*", { count: "exact", head: true }).eq("empleado_id", empleadoId),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase.from("empleado_emergencia") as any).select("*", { count: "exact", head: true }).eq("empleado_id", empleadoId) as Promise<{ count: number | null }>,
+  ]);
 
   const progreso = calcularProgresoPerfil({
     tienePrivacidad: (privCount ?? 0) > 0,
     datosPersonales: datos,
     documentosCount: docCount ?? 0,
+    tieneEmergencia: (emergCount ?? 0) > 0,
   });
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -424,10 +427,22 @@ export async function fetchEmpleadoByIdAction(empleadoId: string) {
     apellido_materno: string;
   } | null;
 
+  // Generar URL firmada para la foto si hay una ruta almacenada
+  let foto_url: string | null = null;
+  if (empRow.foto_url && typeof empRow.foto_url === "string" && !empRow.foto_url.startsWith("http")) {
+    const { data: signed } = await supabase.storage
+      .from("empleado-docs")
+      .createSignedUrl(empRow.foto_url, 3600);
+    foto_url = signed?.signedUrl ?? null;
+  } else if (typeof empRow.foto_url === "string") {
+    foto_url = empRow.foto_url;
+  }
+
   return {
     error: null,
     data: {
       ...empRow,
+      foto_url,
       supervisor_nombre: sup
         ? `${sup.nombres} ${sup.apellido_paterno} ${sup.apellido_materno}`
         : null,
@@ -437,4 +452,135 @@ export async function fetchEmpleadoByIdAction(empleadoId: string) {
       bitacora: rBitacora.data ?? [],
     },
   };
+}
+
+// ---------- FOTO DE PERFIL ----------
+
+export async function subirFotoEmpleadoAction(empleadoId: string, formData: FormData) {
+  const { supabase, error: authErr } = await verificarAdmin();
+  if (authErr || !supabase) return { error: authErr, url: null };
+
+  const file = formData.get("file") as File | null;
+  if (!file) return { error: "Sin archivo", url: null };
+
+  const ext = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
+  const ruta = `${empleadoId}/foto.${ext}`;
+
+  const { error: uploadErr } = await supabase.storage
+    .from("empleado-docs")
+    .upload(ruta, file, { upsert: true, contentType: file.type });
+
+  if (uploadErr) return { error: "Error al subir la foto", url: null };
+
+  // Guardar la ruta (no la URL firmada) — se genera URL fresca al cargar el perfil
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (supabase.from("empleados") as any)
+    .update({ foto_url: ruta })
+    .eq("id", empleadoId);
+
+  // Generar URL firmada de corta duración para retornar al cliente
+  const { data: signed } = await supabase.storage
+    .from("empleado-docs")
+    .createSignedUrl(ruta, 3600);
+
+  revalidatePath(`/dashboard/empleados/${empleadoId}`);
+  return { url: signed?.signedUrl ?? null, error: null };
+}
+
+export async function getFotoUrlAction(ruta: string) {
+  const supabase = createClient();
+  const { data } = await supabase.storage.from("empleado-docs").createSignedUrl(ruta, 3600);
+  return data?.signedUrl ?? null;
+}
+
+// ---------- MI EXPEDIENTE (empleado ve su propio perfil) ----------
+
+export async function fetchMiExpedienteAction() {
+  const supabase = createClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) return { error: "No autenticado", data: null, esAdmin: false };
+
+  const { data: perfil } = await supabase
+    .from("usuarios")
+    .select("rol")
+    .eq("id", user.id)
+    .single() as { data: { rol: string } | null; error: unknown };
+
+  if (!perfil) return { error: "Perfil no encontrado", data: null, esAdmin: false };
+
+  const esAdmin = ["admin", "superadmin"].includes(perfil.rol);
+
+  const { data: emp, error } = await supabase
+    .from("empleados")
+    .select("*")
+    .eq("email_institucional", user.email ?? "")
+    .maybeSingle();
+
+  if (error || !emp) return { error: "No se encontró tu expediente de empleado", data: null, esAdmin };
+
+  const empRow = emp as Record<string, unknown>;
+
+  const [rDatos, rDocs, rPriv, rSupervisor, rBitacora] = await Promise.all([
+    supabase.from("empleado_datos_personales").select("*").eq("empleado_id", empRow.id as string).maybeSingle(),
+    supabase.from("empleado_documentos").select("*").eq("empleado_id", empRow.id as string).order("created_at"),
+    supabase.from("empleado_privacidad").select("id").eq("empleado_id", empRow.id as string).limit(1),
+    empRow.supervisor_id
+      ? supabase.from("empleados").select("nombres, apellido_paterno, apellido_materno").eq("id", empRow.supervisor_id as string).maybeSingle()
+      : Promise.resolve({ data: null }),
+    supabase.from("empleado_bitacora" as never)
+      .select("id, accion, detalle_json, created_at")
+      .eq("empleado_id", empRow.id as string)
+      .order("created_at", { ascending: false })
+      .limit(20) as unknown as Promise<{ data: unknown[] | null; error: unknown }>,
+  ]);
+
+  const sup = rSupervisor.data as { nombres: string; apellido_paterno: string; apellido_materno: string } | null;
+
+  let foto_url: string | null = null;
+  if (empRow.foto_url && typeof empRow.foto_url === "string" && !empRow.foto_url.startsWith("http")) {
+    const { data: signed } = await supabase.storage.from("empleado-docs").createSignedUrl(empRow.foto_url, 3600);
+    foto_url = signed?.signedUrl ?? null;
+  } else if (typeof empRow.foto_url === "string") {
+    foto_url = empRow.foto_url;
+  }
+
+  return {
+    error: null,
+    esAdmin,
+    data: {
+      ...empRow,
+      foto_url,
+      supervisor_nombre: sup ? `${sup.nombres} ${sup.apellido_paterno} ${sup.apellido_materno}` : null,
+      datos_personales: rDatos.data ?? null,
+      documentos: rDocs.data ?? [],
+      tiene_privacidad: (rPriv.data?.length ?? 0) > 0,
+      bitacora: rBitacora.data ?? [],
+    },
+  };
+}
+
+// ---------- SUBORDINADOS (supervisor ve su equipo) ----------
+
+export async function fetchSubordinadosAction() {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "No autenticado", data: null, empleadoId: null };
+
+  const { data: emp } = await supabase
+    .from("empleados")
+    .select("id")
+    .eq("email_institucional", user.email ?? "")
+    .maybeSingle() as { data: { id: string } | null; error: unknown };
+
+  if (!emp) return { error: "No se encontró tu expediente", data: null, empleadoId: null };
+
+  const { data, error } = await supabase
+    .from("empleados")
+    .select("id, nombres, apellido_paterno, apellido_materno, email_institucional, puesto, departamento, estado, progreso_perfil, fecha_ingreso, codigo_empleado")
+    .eq("supervisor_id", emp.id)
+    .order("apellido_paterno");
+
+  if (error) return { error: "Error al cargar equipo", data: null, empleadoId: emp.id };
+
+  return { error: null, data: data ?? [], empleadoId: emp.id };
 }

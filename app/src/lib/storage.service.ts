@@ -1,35 +1,50 @@
-import { createClient } from "@/lib/supabase/client";
+import { getWasabiUploadUrlAction, deleteWasabiFileAction } from "@/app/actions/storage";
 
-export const BUCKET = "documentos";
-
+// Sube un archivo a Wasabi via URL pre-firmada (el archivo va directo del browser a Wasabi)
 export async function uploadFileToStorage(
   file: File,
-  entidadId: string
+  entidadId: string,
+  contratoId?: string | null,
+  carpetaPrefix?: string | null
 ): Promise<{ ruta: string | null; error: string | null }> {
-  const supabase = createClient();
-  const ext = file.name.split(".").pop()?.toLowerCase() ?? "bin";
-  const ruta = `${entidadId}/${crypto.randomUUID()}.${ext}`;
+  // 1. Pedir URL pre-firmada al servidor
+  const { url, key, error: urlErr } = await getWasabiUploadUrlAction({
+    filename: file.name,
+    contentType: file.type || "application/octet-stream",
+    entidadId,
+    contratoId,
+    relativePath: file.webkitRelativePath || null,
+    carpetaPrefix: carpetaPrefix || null,
+  });
 
-  const { error } = await supabase.storage
-    .from(BUCKET)
-    .upload(ruta, file, {
-      contentType: file.type || "application/octet-stream",
-      upsert: false,
-    });
+  if (urlErr || !url || !key) {
+    return { ruta: null, error: urlErr ?? "Error al preparar la subida" };
+  }
 
-  if (error) return { ruta: null, error: error.message };
-  return { ruta, error: null };
+  // 2. Subir directo a Wasabi con PUT (sin pasar por el servidor)
+  const response = await fetch(url, {
+    method: "PUT",
+    body: file,
+    headers: {
+      "Content-Type": file.type || "application/octet-stream",
+    },
+  });
+
+  if (!response.ok) {
+    return { ruta: null, error: `Error al subir a Wasabi (${response.status})` };
+  }
+
+  return { ruta: key, error: null };
 }
 
-export async function deleteFileFromStorage(ruta: string): Promise<void> {
-  const supabase = createClient();
-  await supabase.storage.from(BUCKET).remove([ruta]);
+// Elimina un archivo de Wasabi
+export async function deleteFileFromStorage(key: string): Promise<void> {
+  await deleteWasabiFileAction(key);
 }
 
-export async function getSignedUrl(ruta: string, expiresIn = 3600): Promise<string | null> {
-  const supabase = createClient();
-  const { data } = await supabase.storage
-    .from(BUCKET)
-    .createSignedUrl(ruta, expiresIn);
-  return data?.signedUrl ?? null;
+// URL pública de descarga (Wasabi — bucket privado requiere pre-signed, público directo)
+export function getFileUrl(key: string): string {
+  const endpoint = process.env.NEXT_PUBLIC_WASABI_ENDPOINT ?? "https://s3.us-central-1.wasabisys.com";
+  const bucket = process.env.NEXT_PUBLIC_WASABI_BUCKET ?? "control-dica-docs";
+  return `${endpoint}/${bucket}/${key}`;
 }

@@ -12,6 +12,7 @@ export function mapEmpleadoDetalle(raw: Record<string, unknown>): EmpleadoDetall
     departamento: raw.departamento as string,
     supervisor_id: (raw.supervisor_id as string) ?? null,
     supervisor_nombre: (raw.supervisor_nombre as string) ?? null,
+    foto_url: (raw.foto_url as string) ?? null,
     fecha_ingreso: raw.fecha_ingreso as string,
     tipo_contrato: raw.tipo_contrato as EmpleadoDetalle["tipo_contrato"],
     zona_ubicacion: (raw.zona_ubicacion as string) ?? null,

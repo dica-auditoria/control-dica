@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { fetchEmpleadosListAction } from "@/app/actions/empleados";
+import { fetchEmpleadosListAction, fetchSubordinadosAction } from "@/app/actions/empleados";
 import EmpleadosView from "@/components/empleados/EmpleadosView";
 import { mapEmpleadoListItem } from "@/lib/empleados/map";
 import type { EmpleadosStats } from "@/types/empleados";
@@ -20,9 +20,44 @@ export default async function EmpleadosPage() {
 
   if (!perfil || perfil.rol === "cliente") redirect("/dashboard");
 
+  // Empleado (no admin): ver solo su equipo si es supervisor
+  if (perfil.rol === "empleado") {
+    const { data: subordinados, empleadoId, error } = await fetchSubordinadosAction();
+
+    // Sin subordinados → va a su propio expediente
+    if (error || !subordinados || subordinados.length === 0) {
+      redirect("/dashboard/mi-expediente");
+    }
+
+    const empleados = (subordinados as unknown[]).map(e =>
+      mapEmpleadoListItem(e as Record<string, unknown>)
+    );
+
+    const stats: EmpleadosStats = {
+      activos: empleados.filter(e => e.estado === "activo").length,
+      perfilesIncompletos: empleados.filter(e => e.progreso_perfil < 100).length,
+      documentosPorVencer: 0,
+      capacitacionesPendientes: 0,
+      nuevosEsteMes: 0,
+    };
+
+    return (
+      <EmpleadosView
+        initialEmpleados={empleados}
+        initialStats={stats}
+        titulo="Mi Equipo"
+        subtitulo="Empleados bajo tu supervisión"
+        ocultarNuevo
+      />
+    );
+  }
+
+  // Admin / superadmin: ver todos
   const result = await fetchEmpleadosListAction({ estado: "todos", departamento: "todos" });
 
-  const empleados = (result.data ?? []).map(e => mapEmpleadoListItem(e as unknown as Record<string, unknown>));
+  const empleados = (result.data ?? []).map(e =>
+    mapEmpleadoListItem(e as unknown as Record<string, unknown>)
+  );
   const stats: EmpleadosStats = result.stats ?? {
     activos: 0,
     perfilesIncompletos: 0,

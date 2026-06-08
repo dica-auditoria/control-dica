@@ -1,17 +1,20 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import StatusBadge from "@/components/ui/StatusBadge";
 import { iniciales, nombreCompleto } from "@/lib/empleados/utils";
 import type { EmpleadoDetalle } from "@/types/empleados";
 
 interface Props {
   empleado: EmpleadoDetalle;
-  onEditar: () => void;
+  fotoUrl?: string | null;
+  onEditar?: () => void;
+  soloLectura?: boolean;
 }
 
-export default function EmpleadoProfileHeader({ empleado, onEditar }: Props) {
-  const ingreso = new Date(empleado.fecha_ingreso).toLocaleDateString("es-MX", {
+export default function EmpleadoProfileHeader({ empleado, fotoUrl, onEditar, soloLectura = false }: Props) {
+  const ingreso = new Date(empleado.fecha_ingreso + "T12:00:00").toLocaleDateString("es-MX", {
     day: "numeric", month: "short", year: "numeric",
   });
 
@@ -31,13 +34,14 @@ export default function EmpleadoProfileHeader({ empleado, onEditar }: Props) {
         boxShadow: "0 1px 3px rgba(15,17,23,0.06)",
       }}>
         <div style={{ display: "flex", gap: 16 }}>
-          <div style={{
-            width: 56, height: 56, borderRadius: "50%",
-            background: "var(--surface-2)", display: "flex",
-            alignItems: "center", justifyContent: "center",
-            fontSize: 18, fontWeight: 700, color: "var(--green)",
-          }}>
-            {iniciales(empleado.nombres, empleado.apellido_paterno)}
+          <div style={{ width: 56, height: 56, borderRadius: "50%", flexShrink: 0, overflow: "hidden", background: "var(--surface-2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            {fotoUrl ? (
+              <Image src={fotoUrl} alt="Foto de perfil" width={56} height={56} style={{ width: "100%", height: "100%", objectFit: "cover" }} unoptimized />
+            ) : (
+              <span style={{ fontSize: 18, fontWeight: 700, color: "var(--green)" }}>
+                {iniciales(empleado.nombres, empleado.apellido_paterno)}
+              </span>
+            )}
           </div>
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
@@ -55,10 +59,12 @@ export default function EmpleadoProfileHeader({ empleado, onEditar }: Props) {
             </div>
           </div>
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          <button type="button" style={btnOutline}>Generar resguardo</button>
-          <button type="button" onClick={onEditar} style={btnPrimary}>Editar</button>
-        </div>
+        {!soloLectura && (
+          <div style={{ display: "flex", gap: 8 }}>
+            <button type="button" style={btnOutline}>Generar resguardo</button>
+            <button type="button" onClick={onEditar} style={btnPrimary}>Editar</button>
+          </div>
+        )}
       </div>
     </>
   );

@@ -29,7 +29,7 @@ export default async function AuditLogPage() {
     .eq("id", user.id)
     .single() as { data: PerfilRow | null; error: unknown };
 
-  if (!perfil || perfil.rol === "cliente") redirect("/dashboard");
+  if (!perfil || !["admin", "superadmin"].includes(perfil.rol)) redirect("/dashboard");
 
   const { data: raw, count } = await supabase
     .from("audit_log")

@@ -14,7 +14,7 @@ export default async function InventarioPage() {
 
   const { data: perfil } = await supabase
     .from("usuarios").select("rol").eq("id", user.id).single() as { data: PerfilRow | null; error: unknown };
-  if (!perfil || perfil.rol === "cliente") redirect("/dashboard");
+  if (!perfil || !["admin", "superadmin"].includes(perfil.rol)) redirect("/dashboard");
 
   const [rActivos, categorias, rEmpleados, rUbicaciones] = await Promise.all([
     fetchActivosSimpleAction(),

@@ -26,7 +26,7 @@ export default async function UsuariosPage() {
     .eq("id", user.id)
     .single() as { data: PerfilRow | null; error: unknown };
 
-  if (!perfil || perfil.rol === "cliente") redirect("/dashboard");
+  if (!perfil || !["admin", "superadmin"].includes(perfil.rol)) redirect("/dashboard");
 
   const [rUsuarios, rEntidades] = await Promise.all([
     supabase

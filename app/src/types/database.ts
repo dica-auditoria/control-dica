@@ -1,4 +1,4 @@
-export type UserRole = "cliente" | "admin" | "superadmin";
+export type UserRole = "cliente" | "empleado" | "admin" | "superadmin";
 export type ArchivoEstado = "activo" | "pendiente_eliminacion" | "eliminado";
 export type SolicitudEstado = "pendiente" | "aprobado" | "rechazado";
 export type AuditAccion =

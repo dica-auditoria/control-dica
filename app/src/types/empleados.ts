@@ -22,6 +22,7 @@ export interface EmpleadoDetalle extends EmpleadoListItem {
   zona_ubicacion: string | null;
   supervisor_id: string | null;
   supervisor_nombre: string | null;
+  foto_url: string | null;
   created_at: string;
   tiene_privacidad: boolean;
   datos_personales: EmpleadoDatosPersonales | null;
@@ -34,6 +35,7 @@ export interface EmpleadoDatosPersonales {
   curp: string | null;
   rfc: string | null;
   nss: string | null;
+  fecha_alta_imss: string | null;
   estado_civil: string | null;
   nacionalidad: string | null;
   tipo_sangre: string | null;

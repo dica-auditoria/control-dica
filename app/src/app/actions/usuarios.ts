@@ -61,6 +61,8 @@ export interface CrearUsuarioArgs {
   password: string;
   rol: "cliente" | "admin";
   entidad_id: string | null;
+  contratos_ids?: string[];
+  emails_acceso?: string[];
 }
 
 export async function crearUsuarioAction(args: CrearUsuarioArgs) {
@@ -81,6 +83,7 @@ export async function crearUsuarioAction(args: CrearUsuarioArgs) {
       nombre: args.nombre.trim(),
       rol: args.rol,
       entidad_id: args.entidad_id ?? undefined,
+      emails_acceso: args.emails_acceso?.filter(e => e.trim()) ?? [],
     },
   });
 
@@ -89,14 +92,64 @@ export async function crearUsuarioAction(args: CrearUsuarioArgs) {
     return { error: createErr.message };
   }
 
+  // Primer contrato como campo legacy contrato_id
+  const primeraContrato = args.contratos_ids?.[0] ?? null;
+  if (primeraContrato) {
+    await admin.from("usuarios").update({ contrato_id: primeraContrato }).eq("id", data.user.id);
+  }
+
+  // Guardar todos los contratos en la tabla relacional
+  const contratosIds = (args.contratos_ids ?? []).filter(Boolean);
+  if (contratosIds.length > 0) {
+    await admin.from("usuario_contratos").insert(
+      contratosIds.map(cid => ({ usuario_id: data.user.id, contrato_id: cid }))
+    );
+  }
+
   await auditAcceso(supabase, userId, "USER_CREATE", {
     email: args.email.trim().toLowerCase(),
     nombre: args.nombre.trim(),
     rol: args.rol,
     entidad_id: args.entidad_id,
+    contratos_ids: contratosIds,
   }, data.user.id);
 
+  // Crear cuenta para cada correo de acceso adicional con la misma contraseña
+  const correosFiltrados = (args.emails_acceso ?? []).map(e => e.trim().toLowerCase()).filter(Boolean);
+  for (const correo of correosFiltrados) {
+    const nombreExtra = correo.split("@")[0].replace(/[._-]/g, " ").replace(/\b\w/g, l => l.toUpperCase());
+    const { data: extraUser } = await admin.auth.admin.createUser({
+      email: correo,
+      password: args.password,
+      email_confirm: true,
+      user_metadata: {
+        nombre: nombreExtra,
+        rol: "cliente",
+        entidad_id: args.entidad_id ?? undefined,
+      },
+    });
+    if (extraUser?.user) {
+      if (primeraContrato) {
+        await admin.from("usuarios").update({ contrato_id: primeraContrato }).eq("id", extraUser.user.id);
+      }
+      if (contratosIds.length > 0) {
+        await admin.from("usuario_contratos").insert(
+          contratosIds.map(cid => ({ usuario_id: extraUser.user!.id, contrato_id: cid }))
+        );
+      }
+      await auditAcceso(supabase, userId, "USER_CREATE", {
+        email: correo,
+        nombre: nombreExtra,
+        rol: "cliente",
+        entidad_id: args.entidad_id,
+        contratos_ids: args.contratos_ids ?? [],
+        creado_como_acceso_adicional: true,
+      }, extraUser.user.id);
+    }
+  }
+
   revalidatePath("/dashboard/usuarios");
+  revalidatePath("/dashboard/clientes");
   revalidatePath("/dashboard/audit-log");
   return { userId: data.user.id };
 }
@@ -168,5 +221,142 @@ export async function actualizarEntidadAction(userId: string, entidadId: string 
 
   revalidatePath("/dashboard/usuarios");
   revalidatePath("/dashboard/audit-log");
+  return { success: true };
+}
+
+// ---------- EDITAR USUARIO CLIENTE ----------
+
+export interface EditarClienteArgs {
+  userId: string;
+  nombre?: string;
+  email?: string;
+  password?: string;
+}
+
+export async function editarClienteAction(args: EditarClienteArgs) {
+  const { supabase, userId: actorId, error: authErr } = await verificarAdmin();
+  if (authErr || !supabase || !actorId) return { error: authErr };
+
+  const admin = createAdminClient();
+
+  const authUpdate: Record<string, unknown> = {};
+  if (args.email?.trim())    authUpdate.email    = args.email.trim().toLowerCase();
+  if (args.password?.trim()) authUpdate.password = args.password;
+  if (args.nombre?.trim())   authUpdate.user_metadata = { nombre: args.nombre.trim() };
+
+  if (Object.keys(authUpdate).length > 0) {
+    const { error } = await admin.auth.admin.updateUserById(args.userId, authUpdate);
+    if (error) return { error: error.message };
+  }
+
+  const tableUpdate: Record<string, unknown> = {};
+  if (args.nombre?.trim()) tableUpdate.nombre = args.nombre.trim();
+  if (args.email?.trim())  tableUpdate.email  = args.email.trim().toLowerCase();
+
+  if (Object.keys(tableUpdate).length > 0) {
+    await admin.from("usuarios").update(tableUpdate).eq("id", args.userId);
+  }
+
+  revalidatePath("/dashboard/clientes");
+  revalidatePath("/dashboard/usuarios");
+  return { success: true };
+}
+
+// ---------- TOGGLE ACTIVO ----------
+
+export async function toggleActivoClienteAction(userId: string, activo: boolean) {
+  const { supabase, userId: actorId, error: authErr } = await verificarAdmin();
+  if (authErr || !supabase || !actorId) return { error: authErr };
+
+  const admin = createAdminClient();
+
+  await admin.auth.admin.updateUserById(userId, {
+    ban_duration: activo ? "none" : "87600h",
+  });
+
+  await admin.from("usuarios").update({ activo }).eq("id", userId);
+
+  revalidatePath("/dashboard/clientes");
+  revalidatePath("/dashboard/usuarios");
+  return { success: true };
+}
+
+// ---------- ELIMINAR USUARIO ----------
+
+export async function eliminarClienteAction(userId: string) {
+  const { supabase, userId: actorId, rol, error: authErr } = await verificarAdmin();
+  if (authErr || !supabase || !actorId) return { error: authErr };
+  if (rol !== "superadmin") return { error: "Solo el superadmin puede eliminar usuarios" };
+
+  const admin = createAdminClient();
+
+  const { error } = await admin.auth.admin.deleteUser(userId);
+  if (error) return { error: error.message };
+
+  revalidatePath("/dashboard/clientes");
+  revalidatePath("/dashboard/usuarios");
+  return { success: true };
+}
+
+// ---------- CONTRATOS DE UN USUARIO ----------
+
+export interface UsuarioContratoItem {
+  id: string;
+  nombre: string;
+  numero_contrato: string | null;
+  entidad_nombre: string | null;
+}
+
+export async function fetchUserContratosAction(userId: string) {
+  const { supabase, error: authErr } = await verificarAdmin();
+  if (authErr || !supabase) return { error: authErr, data: null };
+
+  const admin = createAdminClient();
+  const { data, error } = await admin
+    .from("usuario_contratos")
+    .select("contrato_id, contratos(id, nombre, numero_contrato, entidades(nombre))")
+    .eq("usuario_id", userId) as {
+      data: Array<{
+        contrato_id: string;
+        contratos: { id: string; nombre: string; numero_contrato: string | null; entidades: { nombre: string } | null } | null;
+      }> | null;
+      error: unknown;
+    };
+
+  if (error) return { error: "Error al cargar contratos", data: null };
+
+  const items: UsuarioContratoItem[] = (data ?? [])
+    .filter(r => r.contratos)
+    .map(r => ({
+      id: r.contratos!.id,
+      nombre: r.contratos!.nombre,
+      numero_contrato: r.contratos!.numero_contrato,
+      entidad_nombre: r.contratos!.entidades?.nombre ?? null,
+    }));
+
+  return { data: items, error: null };
+}
+
+export async function updateUserContratosAction(userId: string, contratosIds: string[]) {
+  const { supabase, error: authErr } = await verificarAdmin();
+  if (authErr || !supabase) return { error: authErr };
+
+  const admin = createAdminClient();
+
+  // Reemplazar todos los contratos
+  await admin.from("usuario_contratos").delete().eq("usuario_id", userId);
+
+  const ids = contratosIds.filter(Boolean);
+  if (ids.length > 0) {
+    const { error } = await admin.from("usuario_contratos").insert(
+      ids.map(cid => ({ usuario_id: userId, contrato_id: cid }))
+    );
+    if (error) return { error: "Error al guardar contratos" };
+  }
+
+  // Actualizar campo legacy contrato_id
+  await admin.from("usuarios").update({ contrato_id: ids[0] ?? null }).eq("id", userId);
+
+  revalidatePath("/dashboard/clientes");
   return { success: true };
 }

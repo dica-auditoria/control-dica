@@ -1,4 +1,4 @@
-export const DOMINIO_EMAIL = "@dica.mx";
+export const DOMINIO_EMAIL = "@dica-mx.com";
 
 export const DEPARTAMENTOS = [
   "Dirección General",

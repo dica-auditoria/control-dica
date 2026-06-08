@@ -1,19 +1,33 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import PlacesAutocomplete from "./PlacesAutocomplete";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import {
   crearUbicacionAction,
   actualizarUbicacionAction,
   toggleUbicacionActivoAction,
   eliminarUbicacionAction,
 } from "@/app/actions/directorio";
+import { crearEntidadAction } from "@/app/actions/entidades";
 import type { Ubicacion, CrearUbicacionInput, EntidadOption, UbicacionTipo, PlaceData } from "@/types/directorio";
+
+export interface EmpresaDirectorioItem {
+  id: string;
+  nombre: string;
+  activo: boolean;
+  created_at: string;
+  totalContratos: number;
+  contratosVigentes: number;
+}
 
 interface Props {
   oficinas: Ubicacion[];
   zonas: Ubicacion[];
   entidades: EntidadOption[];
+  empresas: EmpresaDirectorioItem[];
   rolActual: string;
 }
 
@@ -39,22 +53,51 @@ const EMPTY_FORM: CrearUbicacionInput = {
   notas: "",
 };
 
-export default function DirectorioView({ oficinas, zonas, entidades, rolActual }: Props) {
-  const [tab, setTab] = useState<UbicacionTipo>("oficina");
+type TabActual = UbicacionTipo | "empresas";
+
+export default function DirectorioView({ oficinas, zonas, entidades, empresas: initialEmpresas, rolActual }: Props) {
+  const [tab, setTab] = useState<TabActual>("oficina");
   const [modalOpen, setModalOpen] = useState(false);
   const [editando, setEditando] = useState<Ubicacion | null>(null);
   const [form, setForm] = useState<CrearUbicacionInput>({ ...EMPTY_FORM });
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
+  // Estado empresas
+  const [empresas, setEmpresas] = useState(initialEmpresas);
+  const [modalEmpresaOpen, setModalEmpresaOpen] = useState(false);
+  const [nombreEmpresa, setNombreEmpresa] = useState("");
+  const [errorEmpresa, setErrorEmpresa] = useState("");
+  const [submittingEmpresa, setSubmittingEmpresa] = useState(false);
+  const router = useRouter();
+
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmMsg, setConfirmMsg] = useState("");
+  const [confirmAction, setConfirmAction] = useState<(() => void) | null>(null);
+
   const puedeEditar = ["admin", "superadmin"].includes(rolActual);
   const lista = tab === "oficina" ? oficinas : zonas;
 
   const abrirNuevo = () => {
-    setForm({ ...EMPTY_FORM, tipo: tab });
+    setForm({ ...EMPTY_FORM, tipo: tab as UbicacionTipo });
     setEditando(null);
     setError(null);
     setModalOpen(true);
+  };
+
+  const handleCrearEmpresa = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmittingEmpresa(true);
+    setErrorEmpresa("");
+    const result = await crearEntidadAction(nombreEmpresa);
+    if (result.error) { setErrorEmpresa(result.error); setSubmittingEmpresa(false); return; }
+    if (result.entidad) {
+      setEmpresas(prev => [...prev, { ...result.entidad!, totalContratos: 0, contratosVigentes: 0 }]);
+    }
+    setNombreEmpresa("");
+    setModalEmpresaOpen(false);
+    setSubmittingEmpresa(false);
+    router.refresh();
   };
 
   const abrirEditar = (u: Ubicacion) => {
@@ -118,8 +161,12 @@ export default function DirectorioView({ oficinas, zonas, entidades, rolActual }
   };
 
   const handleEliminar = (u: Ubicacion) => {
-    if (!window.confirm(`¿Eliminar "${u.nombre}"? Esta acción no se puede deshacer.`)) return;
-    startTransition(async () => { await eliminarUbicacionAction(u.id); });
+    setConfirmMsg(`¿Eliminar "${u.nombre}"? Esta acción no se puede deshacer.`);
+    setConfirmAction(() => () => {
+      setConfirmOpen(false);
+      startTransition(async () => { await eliminarUbicacionAction(u.id); });
+    });
+    setConfirmOpen(true);
   };
 
   const set = (key: keyof CrearUbicacionInput, val: string | number | null) =>
@@ -134,54 +181,126 @@ export default function DirectorioView({ oficinas, zonas, entidades, rolActual }
             Directorio de Direcciones
           </h1>
           <p style={{ fontSize: 13, color: "rgba(15,17,23,0.45)", marginTop: 4 }}>
-            Oficinas propias y zonas de clientes · Coordenadas y radios de geofencing
+            Oficinas · Zonas de clientes · Empresas y contratos
           </p>
         </div>
-        {puedeEditar && (
+        {puedeEditar && tab !== "empresas" && (
           <button onClick={abrirNuevo} style={btnPrimary}>+ Nueva ubicación</button>
+        )}
+        {puedeEditar && tab === "empresas" && (
+          <button onClick={() => { setModalEmpresaOpen(true); setErrorEmpresa(""); setNombreEmpresa(""); }} style={btnPrimary}>
+            + Nueva empresa
+          </button>
         )}
       </div>
 
       <div style={{ padding: "28px 32px" }}>
         {/* Tabs */}
         <div style={{ display: "flex", gap: 4, marginBottom: 24, borderBottom: "1px solid var(--border)" }}>
-          {(["oficina", "zona_cliente"] as UbicacionTipo[]).map(t => (
-            <button key={t} onClick={() => setTab(t)} style={{
-              padding: "10px 20px", border: "none",
-              borderBottom: tab === t ? "2px solid var(--accent)" : "2px solid transparent",
-              background: "none",
-              color: tab === t ? "var(--accent)" : "rgba(15,17,23,0.5)",
-              fontSize: 13, fontWeight: tab === t ? 600 : 400,
-              cursor: "pointer", fontFamily: "'DM Sans', sans-serif", marginBottom: -1,
-            }}>
-              {t === "oficina" ? "🏢 Oficinas DICA" : "📍 Zonas de Clientes"}
-              <span style={{
-                marginLeft: 8, padding: "1px 7px", borderRadius: 100, fontSize: 10,
-                fontFamily: "'DM Mono', monospace",
-                background: tab === t ? "rgba(200,71,42,0.1)" : "var(--surface-2)",
-                color: tab === t ? "var(--accent)" : "rgba(15,17,23,0.4)",
+          {(["oficina", "zona_cliente", "empresas"] as TabActual[]).map(t => {
+            const labels: Record<TabActual, string> = { oficina: "🏢 Oficinas DICA", zona_cliente: "📍 Zonas de Clientes", empresas: "🏛 Empresas" };
+            const counts: Record<TabActual, number> = { oficina: oficinas.length, zona_cliente: zonas.length, empresas: empresas.length };
+            return (
+              <button key={t} onClick={() => setTab(t)} style={{
+                padding: "10px 20px", border: "none",
+                borderBottom: tab === t ? "2px solid var(--accent)" : "2px solid transparent",
+                background: "none",
+                color: tab === t ? "var(--accent)" : "rgba(15,17,23,0.5)",
+                fontSize: 13, fontWeight: tab === t ? 600 : 400,
+                cursor: "pointer", fontFamily: "'DM Sans', sans-serif", marginBottom: -1,
               }}>
-                {t === "oficina" ? oficinas.length : zonas.length}
-              </span>
-            </button>
-          ))}
+                {labels[t]}
+                <span style={{
+                  marginLeft: 8, padding: "1px 7px", borderRadius: 100, fontSize: 10,
+                  fontFamily: "'DM Mono', monospace",
+                  background: tab === t ? "rgba(200,71,42,0.1)" : "var(--surface-2)",
+                  color: tab === t ? "var(--accent)" : "rgba(15,17,23,0.4)",
+                }}>
+                  {counts[t]}
+                </span>
+              </button>
+            );
+          })}
         </div>
 
-        {lista.length === 0 ? (
-          <div style={{ padding: 64, textAlign: "center", color: "rgba(15,17,23,0.35)", fontFamily: "'DM Mono', monospace", fontSize: 13 }}>
-            No hay registros
-            {puedeEditar && <div style={{ marginTop: 12 }}><button onClick={abrirNuevo} style={{ ...btnPrimary, fontSize: 13 }}>+ Agregar primera</button></div>}
-          </div>
-        ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(330px, 1fr))", gap: 16 }}>
-            {lista.map(u => (
-              <UbicacionCard key={u.id} ubicacion={u} puedeEditar={puedeEditar} onEditar={abrirEditar} onToggle={handleToggle} onEliminar={handleEliminar} />
-            ))}
-          </div>
+        {/* Tab Empresas */}
+        {tab === "empresas" && (
+          empresas.length === 0 ? (
+            <div style={{ padding: 64, textAlign: "center", color: "rgba(15,17,23,0.35)", fontFamily: "'DM Mono', monospace", fontSize: 13 }}>
+              No hay empresas registradas
+              {puedeEditar && (
+                <div style={{ marginTop: 12 }}>
+                  <button onClick={() => { setModalEmpresaOpen(true); setErrorEmpresa(""); setNombreEmpresa(""); }} style={{ ...btnPrimary, fontSize: 13 }}>
+                    + Agregar primera empresa
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 16 }}>
+              {empresas.map(emp => (
+                <EmpresaCard key={emp.id} empresa={emp} />
+              ))}
+            </div>
+          )
+        )}
+
+        {/* Tab Ubicaciones */}
+        {tab !== "empresas" && (
+          lista.length === 0 ? (
+            <div style={{ padding: 64, textAlign: "center", color: "rgba(15,17,23,0.35)", fontFamily: "'DM Mono', monospace", fontSize: 13 }}>
+              No hay registros
+              {puedeEditar && <div style={{ marginTop: 12 }}><button onClick={abrirNuevo} style={{ ...btnPrimary, fontSize: 13 }}>+ Agregar primera</button></div>}
+            </div>
+          ) : (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(330px, 1fr))", gap: 16 }}>
+              {lista.map(u => (
+                <UbicacionCard key={u.id} ubicacion={u} puedeEditar={puedeEditar} onEditar={abrirEditar} onToggle={handleToggle} onEliminar={handleEliminar} />
+              ))}
+            </div>
+          )
         )}
       </div>
 
-      {/* Modal */}
+      {/* Modal nueva empresa */}
+      {modalEmpresaOpen && (
+        <div
+          style={{ position: "fixed", inset: 0, zIndex: 50, background: "rgba(15,17,23,0.45)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
+          onClick={e => { if (e.target === e.currentTarget) setModalEmpresaOpen(false); }}
+        >
+          <div style={{ background: "white", borderRadius: 8, width: "100%", maxWidth: 420, boxShadow: "0 8px 32px rgba(15,17,23,0.18)" }}>
+            <div style={{ padding: "18px 24px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <h2 style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>Nueva empresa</h2>
+              <button onClick={() => setModalEmpresaOpen(false)} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "rgba(15,17,23,0.4)", lineHeight: 1 }}>×</button>
+            </div>
+            <form onSubmit={handleCrearEmpresa}>
+              <div style={{ padding: "20px 24px", display: "flex", flexDirection: "column", gap: 16 }}>
+                {errorEmpresa && (
+                  <div style={{ padding: 12, background: "var(--red-light)", color: "var(--accent)", borderRadius: 4, fontSize: 13 }}>{errorEmpresa}</div>
+                )}
+                <F label="Nombre de la empresa" required>
+                  <input
+                    style={iStyle}
+                    value={nombreEmpresa}
+                    onChange={e => setNombreEmpresa(e.target.value)}
+                    placeholder="Ej. Constructora Omega S.A. de C.V."
+                    required
+                    autoFocus
+                  />
+                </F>
+              </div>
+              <div style={{ padding: "14px 24px", borderTop: "1px solid var(--border)", display: "flex", gap: 10, justifyContent: "flex-end" }}>
+                <button type="button" onClick={() => setModalEmpresaOpen(false)} style={btnOutline} disabled={submittingEmpresa}>Cancelar</button>
+                <button type="submit" style={btnPrimary} disabled={submittingEmpresa}>
+                  {submittingEmpresa ? "Creando…" : "Crear empresa"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal ubicación */}
       {modalOpen && (
         <div style={{ position: "fixed", inset: 0, zIndex: 50, background: "rgba(15,17,23,0.45)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
           onClick={e => { if (e.target === e.currentTarget) setModalOpen(false); }}>
@@ -321,7 +440,79 @@ export default function DirectorioView({ oficinas, zonas, entidades, rolActual }
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={confirmOpen}
+        title="Eliminar ubicación"
+        message={confirmMsg}
+        confirmLabel="Eliminar"
+        danger
+        onConfirm={() => confirmAction && confirmAction()}
+        onCancel={() => setConfirmOpen(false)}
+      />
     </>
+  );
+}
+
+// -------- Empresa Card --------
+
+function EmpresaCard({ empresa }: { empresa: EmpresaDirectorioItem }) {
+  return (
+    <div style={{
+      background: "white", border: "1px solid var(--border)", borderRadius: 8,
+      overflow: "hidden", boxShadow: "0 1px 3px rgba(15,17,23,0.06)",
+      opacity: empresa.activo ? 1 : 0.55,
+    }}>
+      <div style={{ padding: "14px 16px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+          <div style={{ width: 36, height: 36, borderRadius: 6, background: "rgba(15,17,23,0.06)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>
+            🏛
+          </div>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {empresa.nombre}
+            </div>
+            <div style={{ fontSize: 11, color: "rgba(15,17,23,0.4)", marginTop: 2, fontFamily: "'DM Mono', monospace" }}>
+              Alta: {new Date(empresa.created_at).toLocaleDateString("es-MX")}
+            </div>
+          </div>
+        </div>
+        <span style={{
+          padding: "2px 8px", borderRadius: 100, fontSize: 10, fontWeight: 600,
+          fontFamily: "'DM Mono', monospace", flexShrink: 0,
+          background: empresa.activo ? "rgba(45,106,79,0.1)" : "var(--surface-2)",
+          color: empresa.activo ? "var(--green)" : "rgba(15,17,23,0.4)",
+        }}>
+          {empresa.activo ? "Activa" : "Inactiva"}
+        </span>
+      </div>
+
+      <div style={{ padding: "12px 16px", display: "flex", gap: 16 }}>
+        <div style={{ textAlign: "center" }}>
+          <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 24, color: "var(--ink)", lineHeight: 1 }}>{empresa.totalContratos}</div>
+          <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", color: "rgba(15,17,23,0.4)", textTransform: "uppercase", marginTop: 2 }}>Contratos</div>
+        </div>
+        <div style={{ textAlign: "center" }}>
+          <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 24, color: "var(--green)", lineHeight: 1 }}>{empresa.contratosVigentes}</div>
+          <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", color: "rgba(15,17,23,0.4)", textTransform: "uppercase", marginTop: 2 }}>Vigentes</div>
+        </div>
+      </div>
+
+      <div style={{ padding: "10px 16px", borderTop: "1px solid var(--border)" }}>
+        <Link
+          href={`/dashboard/directorio/empresa/${empresa.id}`}
+          style={{
+            display: "block", textAlign: "center",
+            padding: "7px", background: "var(--surface)",
+            color: "var(--ink)", border: "1px solid var(--border-strong)",
+            borderRadius: 4, fontSize: 12, fontWeight: 600,
+            textDecoration: "none", fontFamily: "'DM Sans', sans-serif",
+          }}
+        >
+          Ver directorio →
+        </Link>
+      </div>
+    </div>
   );
 }
 

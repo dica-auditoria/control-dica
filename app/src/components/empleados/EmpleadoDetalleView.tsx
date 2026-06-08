@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useRef } from "react";
 import EmpleadoProfileHeader from "./EmpleadoProfileHeader";
 import EmpleadoSectionNav, { type SeccionId, type SeccionEstado } from "./EmpleadoSectionNav";
 import { createClient } from "@/lib/supabase/client";
@@ -9,6 +9,7 @@ import {
   eliminarDocumentoEmpleadoAction,
   getDocumentoUrlAction,
 } from "@/app/actions/empleado_documentos";
+import { subirFotoEmpleadoAction } from "@/app/actions/empleados";
 import {
   getBancariosAction,
   guardarBancariosAction,
@@ -18,6 +19,19 @@ import {
 import { fetchActivosEmpleadoAction } from "@/app/actions/inventario";
 import type { AsignacionActivo } from "@/types/inventario";
 import FormField, { inputStyle } from "@/components/ui/FormField";
+import EmergenciaSection from "./EmergenciaSection";
+import CredencialesSection from "./CredencialesSection";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import { iniciales } from "@/lib/empleados/utils";
+
+function CameraIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+      <circle cx="12" cy="13" r="4" />
+    </svg>
+  );
+}
 import { useEmpleadoMutations } from "@/hooks/useEmpleadoMutations";
 import { DEPARTAMENTOS, TIPOS_CONTRATO } from "@/lib/empleados/constants";
 import type { EmpleadoDetalle, EmpleadoDatosPersonales, EmpleadoBitacoraEntry, TipoContrato } from "@/types/empleados";
@@ -29,6 +43,7 @@ interface Props {
   empleado: EmpleadoDetalle;
   supervisores?: SupervisorOption[];
   ubicaciones?: UbicacionOption[];
+  soloLectura?: boolean;
 }
 
 const ACCION_LABELS: Record<string, string> = {
@@ -49,8 +64,11 @@ const ESTADOS_EMP = [
   { value: "inactivo", label: "Inactivo" },
 ];
 
-export default function EmpleadoDetalleView({ empleado: inicial, supervisores = [], ubicaciones = [] }: Props) {
+export default function EmpleadoDetalleView({ empleado: inicial, supervisores = [], ubicaciones = [], soloLectura = false }: Props) {
   const [empleado, setEmpleado] = useState(inicial);
+  const [fotoUrl, setFotoUrl]   = useState<string | null>(inicial.foto_url ?? null);
+  const [fotoUploading, setFotoUploading] = useState(false);
+  const fotoInputRef = useRef<HTMLInputElement>(null);
   const [seccion, setSeccion]   = useState<SeccionId>("datos_personales");
   const [editOpen, setEditOpen] = useState(false);
   const { guardarPerfil, actualizar, generarInvitacion, loading, error, clearError } = useEmpleadoMutations();
@@ -61,6 +79,7 @@ export default function EmpleadoDetalleView({ empleado: inicial, supervisores = 
   const [formDp, setFormDp] = useState({
     fecha_nacimiento: dp.fecha_nacimiento ?? "",
     curp: dp.curp ?? "", rfc: dp.rfc ?? "", nss: dp.nss ?? "",
+    fecha_alta_imss: dp.fecha_alta_imss ?? "",
     estado_civil: dp.estado_civil ?? "", nacionalidad: dp.nacionalidad ?? "Mexicana",
     tipo_sangre: dp.tipo_sangre ?? "",
   });
@@ -132,10 +151,24 @@ export default function EmpleadoDetalleView({ empleado: inicial, supervisores = 
   // ── Datos personales save ──────────────────────────────────────────────────
   const handleGuardarDp = async () => {
     const result = await guardarPerfil(empleado.id, {
-      ...formDp, fecha_nacimiento: formDp.fecha_nacimiento || null,
+      ...formDp,
+      fecha_nacimiento: formDp.fecha_nacimiento || null,
+      fecha_alta_imss: formDp.fecha_alta_imss || null,
     });
     if (!result.error && result.progreso !== undefined)
       setEmpleado(e => ({ ...e, progreso_perfil: result.progreso as number }));
+  };
+
+  const handleFotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setFotoUploading(true);
+    const fd = new FormData();
+    fd.append("file", file);
+    const res = await subirFotoEmpleadoAction(empleado.id, fd);
+    if (!res.error && res.url) setFotoUrl(res.url);
+    setFotoUploading(false);
+    if (fotoInputRef.current) fotoInputRef.current.value = "";
   };
 
   const handleReenviarInvitacion = async () => {
@@ -154,7 +187,7 @@ export default function EmpleadoDetalleView({ empleado: inicial, supervisores = 
       : { porcentaje: empleado.documentos.length >= 3 ? 100 : empleado.documentos.length > 0 ? 50 : 0 },
     emergencia:   { porcentaje: null },
     bancarios:    { porcentaje: null },
-    credenciales: { porcentaje: null, bloqueado: true },
+    credenciales: { porcentaje: null },
     activos:      { porcentaje: null },  // cargado lazy
     bitacora:     { porcentaje: null },
   };
@@ -163,9 +196,9 @@ export default function EmpleadoDetalleView({ empleado: inicial, supervisores = 
 
   return (
     <div style={{ padding: "28px 32px" }}>
-      <EmpleadoProfileHeader empleado={empleado} onEditar={openEdit} />
+      <EmpleadoProfileHeader empleado={empleado} fotoUrl={fotoUrl} onEditar={soloLectura ? undefined : openEdit} soloLectura={soloLectura} />
 
-      {!empleado.tiene_privacidad && (
+      {!soloLectura && !empleado.tiene_privacidad && (
         <div style={{ padding: 14, marginBottom: 20, background: "var(--amber-light)", borderRadius: 6, border: "1px solid rgba(181,86,14,0.2)", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 13 }}>
           <span>⚠ Pendiente: aceptación del aviso de privacidad (LFPDPPP)</span>
           <button type="button" onClick={handleReenviarInvitacion} disabled={loading} style={btnSm}>Generar enlace</button>
@@ -185,6 +218,40 @@ export default function EmpleadoDetalleView({ empleado: inicial, supervisores = 
 
           {seccion === "datos_personales" && (
             <SectionPanel title="Datos personales" complete={dpCompleto}>
+              {/* Foto de perfil */}
+              <input ref={fotoInputRef} type="file" accept="image/jpeg,image/png,image/webp" style={{ display: "none" }} onChange={handleFotoChange} />
+              <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 24, paddingBottom: 20, borderBottom: "1px solid var(--border)" }}>
+                <div
+                  onClick={() => !fotoUploading && fotoInputRef.current?.click()}
+                  style={{ position: "relative", width: 72, height: 72, borderRadius: "50%", overflow: "hidden", cursor: fotoUploading ? "default" : "pointer", flexShrink: 0, border: "2px solid var(--border-strong)" }}
+                >
+                  {fotoUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={fotoUrl} alt="Foto" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  ) : (
+                    <div style={{ width: "100%", height: "100%", background: "var(--surface-2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, fontWeight: 700, color: "var(--green)" }}>
+                      {iniciales(empleado.nombres, empleado.apellido_paterno)}
+                    </div>
+                  )}
+                  {/* Overlay */}
+                  <div style={{ position: "absolute", inset: 0, background: "rgba(15,17,23,0.45)", display: "flex", alignItems: "center", justifyContent: "center", opacity: fotoUploading ? 1 : 0, transition: "opacity 0.15s" }}
+                    onMouseEnter={e => { if (!fotoUploading) (e.currentTarget as HTMLDivElement).style.opacity = "1"; }}
+                    onMouseLeave={e => { if (!fotoUploading) (e.currentTarget as HTMLDivElement).style.opacity = "0"; }}
+                  >
+                    {fotoUploading
+                      ? <span style={{ color: "white", fontSize: 11 }}>Subiendo…</span>
+                      : <CameraIcon />
+                    }
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", marginBottom: 4 }}>Foto de perfil</div>
+                  <div style={{ fontSize: 12, color: "rgba(15,17,23,0.45)", marginBottom: 8 }}>JPG, PNG o WebP · máx. 5 MB</div>
+                  <button onClick={() => fotoInputRef.current?.click()} disabled={fotoUploading} style={{ padding: "5px 14px", background: "white", border: "1.5px solid var(--border-strong)", borderRadius: 4, fontSize: 12, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", color: "var(--ink)" }}>
+                    {fotoUploading ? "Subiendo…" : fotoUrl ? "Cambiar foto" : "Subir foto"}
+                  </button>
+                </div>
+              </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
                 <DataRow label="Nombre completo" value={`${empleado.nombres} ${empleado.apellido_paterno} ${empleado.apellido_materno}`} />
                 <FormField label="Fecha de nacimiento">
@@ -199,13 +266,18 @@ export default function EmpleadoDetalleView({ empleado: inicial, supervisores = 
                 <FormField label="NSS">
                   <input style={{ ...inputStyle, fontFamily: "'DM Mono', monospace" }} value={formDp.nss} onChange={e => setFormDp(f => ({ ...f, nss: e.target.value }))} placeholder="12345678901" />
                 </FormField>
+                <FormField label="Fecha de alta IMSS">
+                  <input type="date" style={inputStyle} value={formDp.fecha_alta_imss} onChange={e => setFormDp(f => ({ ...f, fecha_alta_imss: e.target.value }))} />
+                </FormField>
                 <FormField label="Estado civil">
                   <select style={inputStyle} value={formDp.estado_civil} onChange={e => setFormDp(f => ({ ...f, estado_civil: e.target.value }))}>
                     <option value="">Seleccionar…</option>
                     {["Soltero/a","Casado/a","Unión libre","Divorciado/a","Viudo/a"].map(v => <option key={v} value={v}>{v}</option>)}
                   </select>
                 </FormField>
-                <DataRow label="Nacionalidad" value={formDp.nacionalidad || "Mexicana"} />
+                <FormField label="Nacionalidad">
+                  <input style={inputStyle} value={formDp.nacionalidad} onChange={e => setFormDp(f => ({ ...f, nacionalidad: e.target.value }))} placeholder="Mexicana" />
+                </FormField>
                 <FormField label="Tipo de sangre">
                   <select style={inputStyle} value={formDp.tipo_sangre} onChange={e => setFormDp(f => ({ ...f, tipo_sangre: e.target.value }))}>
                     <option value="">No especificado</option>
@@ -213,9 +285,11 @@ export default function EmpleadoDetalleView({ empleado: inicial, supervisores = 
                   </select>
                 </FormField>
               </div>
-              <button type="button" onClick={handleGuardarDp} disabled={loading} style={{ marginTop: 20, padding: "10px 20px", background: "var(--green)", color: "white", border: "none", borderRadius: 4, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>
-                {loading ? "Guardando…" : "Guardar datos personales"}
-              </button>
+              {!soloLectura && (
+                <button type="button" onClick={handleGuardarDp} disabled={loading} style={{ marginTop: 20, padding: "10px 20px", background: "var(--green)", color: "white", border: "none", borderRadius: 4, fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>
+                  {loading ? "Guardando…" : "Guardar datos personales"}
+                </button>
+              )}
             </SectionPanel>
           )}
 
@@ -227,8 +301,11 @@ export default function EmpleadoDetalleView({ empleado: inicial, supervisores = 
                 <DataRow label="Tipo de contrato" value={TIPOS_CONTRATO.find(t => t.value === empleado.tipo_contrato)?.label ?? empleado.tipo_contrato} />
                 <DataRow label="Zona / Ubicación" value={empleado.zona_ubicacion ?? "—"} />
                 <DataRow label="Supervisor" value={empleado.supervisor_nombre ?? "—"} />
-                <DataRow label="Fecha de ingreso" value={new Date(empleado.fecha_ingreso).toLocaleDateString("es-MX", { day: "numeric", month: "long", year: "numeric" })} />
+                <DataRow label="Fecha de ingreso" value={new Date(empleado.fecha_ingreso + "T12:00:00").toLocaleDateString("es-MX", { day: "numeric", month: "long", year: "numeric" })} />
                 <DataRow label="Código empleado" value={empleado.codigo_empleado ?? "—"} mono />
+                {dp.fecha_alta_imss && (
+                  <DataRow label="Alta IMSS" value={new Date(dp.fecha_alta_imss + "T12:00:00").toLocaleDateString("es-MX", { day: "numeric", month: "long", year: "numeric" })} />
+                )}
               </div>
             </SectionPanel>
           )}
@@ -261,7 +338,20 @@ export default function EmpleadoDetalleView({ empleado: inicial, supervisores = 
             <ActivosEmpleadoSection empleadoId={empleado.id} />
           )}
 
-          {!["datos_personales","relacion_laboral","documentos","bitacora","bancarios","activos"].includes(seccion) && (
+          {seccion === "emergencia" && (
+            <EmergenciaSection empleadoId={empleado.id} />
+          )}
+
+          {seccion === "credenciales" && !soloLectura && (
+            <CredencialesSection empleadoId={empleado.id} />
+          )}
+          {seccion === "credenciales" && soloLectura && (
+            <SectionPanel title="Credenciales">
+              <p style={{ fontSize: 13, color: "rgba(15,17,23,0.45)" }}>Administrado por el equipo de sistemas.</p>
+            </SectionPanel>
+          )}
+
+          {!["datos_personales","relacion_laboral","documentos","bitacora","bancarios","activos","emergencia","credenciales"].includes(seccion) && (
             <SectionPanel title={labelSeccion(seccion)}>
               <div style={{ padding: "32px 0", textAlign: "center", color: "rgba(15,17,23,0.35)", fontSize: 13 }}>
                 El empleado completará esta sección desde su portal de autoservicio.
@@ -272,7 +362,7 @@ export default function EmpleadoDetalleView({ empleado: inicial, supervisores = 
       </div>
 
       {/* ── Modal de edición ─────────────────────────────────────────────── */}
-      {editOpen && (
+      {!soloLectura && editOpen && (
         <div style={{ position: "fixed", inset: 0, zIndex: 50, background: "rgba(15,17,23,0.45)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
           onClick={e => { if (e.target === e.currentTarget) setEditOpen(false); }}>
           <div style={{ background: "white", borderRadius: 8, width: "100%", maxWidth: 620, maxHeight: "90vh", overflowY: "auto", boxShadow: "0 8px 32px rgba(15,17,23,0.18)" }}>
@@ -423,7 +513,7 @@ const BUCKET = "empleado-docs";
 
 function docStatus(doc: { fecha_vencimiento: string | null }): { text: string; color: string } {
   if (!doc.fecha_vencimiento) return { text: "Vigente", color: "var(--green)" };
-  const days = Math.floor((new Date(doc.fecha_vencimiento).getTime() - Date.now()) / 86400000);
+  const days = Math.floor((new Date(doc.fecha_vencimiento + "T12:00:00").getTime() - Date.now()) / 86400000);
   if (days < 0)   return { text: "Vencido", color: "var(--accent)" };
   if (days <= 30) return { text: `Vence en ${days} días`, color: "var(--amber)" };
   return {
@@ -448,6 +538,7 @@ function DocumentosSection({
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isPending, startTransition]  = useTransition();
   const [uploading, setUploading]     = useState(false);
+  const [confirmDoc, setConfirmDoc]   = useState<EmpleadoDocumento | null>(null);
 
   const [form, setForm] = useState({
     nombre: TIPOS_DOC[0],
@@ -504,11 +595,16 @@ function DocumentosSection({
   };
 
   const handleEliminar = (doc: EmpleadoDocumento) => {
-    if (!window.confirm(`¿Eliminar "${doc.nombre}"?`)) return;
+    setConfirmDoc(doc);
+  };
+
+  const doEliminar = () => {
+    if (!confirmDoc) return;
+    setConfirmDoc(null);
     startTransition(async () => {
-      const result = await eliminarDocumentoEmpleadoAction(doc.id, empleadoId, doc.ruta_archivo);
+      const result = await eliminarDocumentoEmpleadoAction(confirmDoc.id, empleadoId, confirmDoc.ruta_archivo);
       if (!result.error) {
-        const newDocs = docs.filter(d => d.id !== doc.id);
+        const newDocs = docs.filter(d => d.id !== confirmDoc.id);
         setDocs(newDocs);
         onUpdate(newDocs);
       }
@@ -647,6 +743,16 @@ function DocumentosSection({
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={confirmDoc !== null}
+        title="Eliminar documento"
+        message={`¿Eliminar "${confirmDoc?.nombre}"? Esta acción no se puede deshacer.`}
+        confirmLabel="Eliminar"
+        danger
+        onConfirm={doEliminar}
+        onCancel={() => setConfirmDoc(null)}
+      />
     </>
   );
 }

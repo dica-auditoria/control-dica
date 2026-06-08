@@ -27,7 +27,7 @@ export default async function SolicitudesPage() {
     .eq("id", user.id)
     .single() as { data: PerfilRow | null; error: unknown };
 
-  if (!perfil || perfil.rol === "cliente") redirect("/dashboard");
+  if (!perfil || !["admin", "superadmin"].includes(perfil.rol)) redirect("/dashboard");
 
   const { data: raw } = await supabase
     .from("solicitudes_eliminacion")

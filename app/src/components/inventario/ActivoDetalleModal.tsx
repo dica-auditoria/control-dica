@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useTransition } from "react";
 import { createClient } from "@/lib/supabase/client";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import {
   fetchLogActivoAction,
   fetchArchivosActivoAction,
@@ -39,6 +40,8 @@ export default function ActivoDetalleModal({ activo, onClose }: Props) {
   const [uploading, setUploading]   = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmArch, setConfirmArch] = useState<ActivoArchivo | null>(null);
 
   useEffect(() => {
     if (tab === "log" && !loadedLog) {
@@ -73,10 +76,17 @@ export default function ActivoDetalleModal({ activo, onClose }: Props) {
   };
 
   const handleEliminarArchivo = (arch: ActivoArchivo) => {
-    if (!window.confirm(`¿Eliminar "${arch.nombre}"?`)) return;
+    setConfirmArch(arch);
+    setConfirmOpen(true);
+  };
+
+  const doEliminarArchivo = () => {
+    if (!confirmArch) return;
+    setConfirmOpen(false);
     startTransition(async () => {
-      await eliminarArchivoActivoAction(arch.id, activo.id, arch.ruta);
-      setArchivos(prev => prev.filter(a => a.id !== arch.id));
+      await eliminarArchivoActivoAction(confirmArch.id, activo.id, confirmArch.ruta);
+      setArchivos(prev => prev.filter(a => a.id !== confirmArch.id));
+      setConfirmArch(null);
     });
   };
 
@@ -132,6 +142,16 @@ export default function ActivoDetalleModal({ activo, onClose }: Props) {
           {tab === "log" && <TabLog log={log} cargado={loadedLog} isPending={isPending} />}
         </div>
       </div>
+
+      <ConfirmDialog
+        open={confirmOpen}
+        title="Eliminar archivo"
+        message={`¿Eliminar "${confirmArch?.nombre}"? Esta acción no se puede deshacer.`}
+        confirmLabel="Eliminar"
+        danger
+        onConfirm={doEliminarArchivo}
+        onCancel={() => { setConfirmOpen(false); setConfirmArch(null); }}
+      />
     </div>
   );
 }

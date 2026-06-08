@@ -15,32 +15,47 @@ interface Usuario {
 interface SidebarProps {
   usuario: Usuario;
   solicitudesPendientes?: number;
+  requerimientosPendientes?: number;
 }
 
 const NAV_ADMIN = [
   { href: "/dashboard", label: "Dashboard", icon: "shield" },
+  { href: "/dashboard/buscar", label: "Búsqueda", icon: "search" },
   { href: "/dashboard/empleados", label: "Empleados", icon: "users" },
   { href: "/dashboard/archivos", label: "Archivos", icon: "files" },
-  { href: "/dashboard/entidades", label: "Clientes", icon: "building" },
+  { href: "/dashboard/clientes", label: "Clientes", icon: "building" },
   { href: "/dashboard/directorio", label: "Directorio", icon: "map" },
   { href: "/dashboard/asistencia", label: "Asistencia", icon: "clock" },
+  { href: "/dashboard/mi-asistencia", label: "Mi Check-in", icon: "checkin" },
   { href: "/dashboard/inventario", label: "Inventario", icon: "box" },
   { href: "/dashboard/usuarios", label: "Acceso", icon: "users" },
   { href: "/dashboard/solicitudes", label: "Solicitudes", icon: "alert" },
   { href: "/dashboard/audit-log", label: "Audit Log", icon: "log" },
 ];
 
-const NAV_CLIENTE = [
-  { href: "/dashboard", label: "Mis Archivos", icon: "files" },
-  { href: "/dashboard/subir", label: "Subir Archivo", icon: "upload" },
+const NAV_EMPLEADO = [
+  { href: "/dashboard", label: "Dashboard", icon: "shield" },
+  { href: "/dashboard/mi-expediente", label: "Mi Expediente", icon: "user" },
+  { href: "/dashboard/mi-asistencia", label: "Mi Check-in", icon: "checkin" },
+  { href: "/dashboard/buscar", label: "Búsqueda", icon: "search" },
+  { href: "/dashboard/clientes", label: "Clientes", icon: "building" },
+  { href: "/dashboard/directorio", label: "Directorio", icon: "map" },
+  { href: "/dashboard/asistencia", label: "Asistencia", icon: "clock" },
+  { href: "/dashboard/empleados", label: "Mi Equipo", icon: "users" },
 ];
 
-export default function Sidebar({ usuario, solicitudesPendientes = 0 }: SidebarProps) {
+const NAV_CLIENTE = [
+  { href: "/dashboard", label: "Mi Portal", icon: "files" },
+];
+
+export default function Sidebar({ usuario, solicitudesPendientes = 0, requerimientosPendientes = 0 }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const supabase = createClient();
 
-  const navItems = usuario.rol === "cliente" ? NAV_CLIENTE : NAV_ADMIN;
+  const navItems = usuario.rol === "cliente" ? NAV_CLIENTE
+    : usuario.rol === "empleado" ? NAV_EMPLEADO
+    : NAV_ADMIN;
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -91,7 +106,11 @@ export default function Sidebar({ usuario, solicitudesPendientes = 0 }: SidebarP
           Navegación
         </div>
         {navItems.map(item => {
-          const isActive = pathname === item.href;
+          const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href + "/"));
+          const badge =
+            item.href === "/dashboard/solicitudes" && solicitudesPendientes > 0 ? solicitudesPendientes
+            : item.href === "/dashboard" && usuario.rol === "cliente" && requerimientosPendientes > 0 ? requerimientosPendientes
+            : null;
           return (
             <Link key={item.href} href={item.href} style={{
               display: "flex", alignItems: "center", gap: 10,
@@ -111,14 +130,14 @@ export default function Sidebar({ usuario, solicitudesPendientes = 0 }: SidebarP
                 }} />
               )}
               {item.label}
-              {item.href === "/dashboard/solicitudes" && solicitudesPendientes > 0 && (
+              {badge !== null && (
                 <span style={{
                   marginLeft: "auto",
                   background: "var(--accent)", color: "white",
                   fontSize: 10, fontWeight: 700, padding: "1px 6px",
                   borderRadius: 100, fontFamily: "'DM Mono', monospace",
                 }}>
-                  {solicitudesPendientes}
+                  {badge}
                 </span>
               )}
             </Link>
