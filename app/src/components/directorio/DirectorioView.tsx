@@ -25,7 +25,6 @@ export interface EmpresaDirectorioItem {
 
 interface Props {
   oficinas: Ubicacion[];
-  zonas: Ubicacion[];
   entidades: EntidadOption[];
   empresas: EmpresaDirectorioItem[];
   rolActual: string;
@@ -55,7 +54,7 @@ const EMPTY_FORM: CrearUbicacionInput = {
 
 type TabActual = UbicacionTipo | "empresas";
 
-export default function DirectorioView({ oficinas, zonas, entidades, empresas: initialEmpresas, rolActual }: Props) {
+export default function DirectorioView({ oficinas, entidades, empresas: initialEmpresas, rolActual }: Props) {
   const [tab, setTab] = useState<TabActual>("oficina");
   const [modalOpen, setModalOpen] = useState(false);
   const [editando, setEditando] = useState<Ubicacion | null>(null);
@@ -76,7 +75,7 @@ export default function DirectorioView({ oficinas, zonas, entidades, empresas: i
   const [confirmAction, setConfirmAction] = useState<(() => void) | null>(null);
 
   const puedeEditar = ["admin", "superadmin"].includes(rolActual);
-  const lista = tab === "oficina" ? oficinas : zonas;
+  const lista = oficinas;
 
   const abrirNuevo = () => {
     setForm({ ...EMPTY_FORM, tipo: tab as UbicacionTipo });
@@ -181,7 +180,7 @@ export default function DirectorioView({ oficinas, zonas, entidades, empresas: i
             Directorio de Direcciones
           </h1>
           <p style={{ fontSize: 13, color: "rgba(15,17,23,0.45)", marginTop: 4 }}>
-            Oficinas · Zonas de clientes · Empresas y contratos
+            Oficinas DICA · Empresas y contratos
           </p>
         </div>
         {puedeEditar && tab !== "empresas" && (
@@ -197,9 +196,9 @@ export default function DirectorioView({ oficinas, zonas, entidades, empresas: i
       <div style={{ padding: "28px 32px" }}>
         {/* Tabs */}
         <div style={{ display: "flex", gap: 4, marginBottom: 24, borderBottom: "1px solid var(--border)" }}>
-          {(["oficina", "zona_cliente", "empresas"] as TabActual[]).map(t => {
-            const labels: Record<TabActual, string> = { oficina: "🏢 Oficinas DICA", zona_cliente: "📍 Zonas de Clientes", empresas: "🏛 Empresas" };
-            const counts: Record<TabActual, number> = { oficina: oficinas.length, zona_cliente: zonas.length, empresas: empresas.length };
+          {(["oficina", "empresas"] as TabActual[]).map(t => {
+            const labels: Record<string, string> = { oficina: "🏢 Oficinas DICA", empresas: "🏛 Empresas" };
+            const counts: Record<string, number> = { oficina: oficinas.length, empresas: empresas.length };
             return (
               <button key={t} onClick={() => setTab(t)} style={{
                 padding: "10px 20px", border: "none",
@@ -308,7 +307,7 @@ export default function DirectorioView({ oficinas, zonas, entidades, empresas: i
             {/* Modal header */}
             <div style={{ padding: "18px 24px", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <h2 style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>
-                {editando ? "Editar ubicación" : `Nueva ${form.tipo === "oficina" ? "oficina" : "zona de cliente"}`}
+                {editando ? "Editar oficina" : "Nueva oficina"}
               </h2>
               <button onClick={() => setModalOpen(false)} style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "rgba(15,17,23,0.4)", lineHeight: 1 }}>×</button>
             </div>
@@ -337,16 +336,6 @@ export default function DirectorioView({ oficinas, zonas, entidades, empresas: i
               <F label="Nombre" required>
                 <input style={iStyle} value={form.nombre} onChange={e => set("nombre", e.target.value)} placeholder={form.tipo === "oficina" ? "Ej. Oficina Central CDMX" : "Ej. Zona Norte Monterrey"} />
               </F>
-
-              {/* Entidad (zona_cliente) */}
-              {form.tipo === "zona_cliente" && (
-                <F label="Entidad / Cliente">
-                  <select style={iStyle} value={form.entidad_id ?? ""} onChange={e => set("entidad_id", e.target.value || null)}>
-                    <option value="">Sin entidad asociada</option>
-                    {entidades.map(e => <option key={e.id} value={e.id}>{e.nombre}</option>)}
-                  </select>
-                </F>
-              )}
 
               {/* Dirección */}
               <div>

@@ -23,9 +23,8 @@ export default async function DirectorioPage() {
   if (!perfil || perfil.rol === "cliente") redirect("/dashboard");
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [rOficinas, rZonas, rEntidades, rContratos] = await Promise.all([
+  const [rOficinas, rEntidades, rContratos] = await Promise.all([
     fetchUbicacionesAction("oficina"),
-    fetchUbicacionesAction("zona_cliente"),
     (supabase.from("entidades") as any)
       .select("id, nombre, activo, created_at")
       .order("nombre") as Promise<{ data: EntidadRow[] | null; error: unknown }>,
@@ -58,7 +57,6 @@ export default async function DirectorioPage() {
   return (
     <DirectorioView
       oficinas={rOficinas.data ?? []}
-      zonas={rZonas.data ?? []}
       entidades={entidades}
       empresas={empresas}
       rolActual={perfil.rol}
