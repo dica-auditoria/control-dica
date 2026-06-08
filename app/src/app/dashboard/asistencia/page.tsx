@@ -26,7 +26,7 @@ export default async function AsistenciaPage() {
     .eq("id", user.id)
     .single() as { data: PerfilRow | null; error: unknown };
 
-  if (!perfil || perfil.rol === "cliente") redirect("/dashboard");
+  if (!perfil || perfil.rol === "cliente" || perfil.rol === "empleado") redirect("/dashboard/mi-asistencia");
 
   const hoy = new Date().toISOString().split("T")[0];
 

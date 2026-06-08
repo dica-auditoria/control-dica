@@ -42,10 +42,7 @@ const NAV_EMPLEADO = [
   { href: "/dashboard", label: "Dashboard", icon: "shield" },
   { href: "/dashboard/mi-expediente", label: "Mi Expediente", icon: "user" },
   { href: "/dashboard/mi-asistencia", label: "Mi Check-in", icon: "checkin" },
-  { href: "/dashboard/buscar", label: "Búsqueda", icon: "search" },
-  { href: "/dashboard/clientes", label: "Clientes", icon: "building" },
   { href: "/dashboard/directorio", label: "Directorio", icon: "map" },
-  { href: "/dashboard/asistencia", label: "Asistencia", icon: "clock" },
   { href: "/dashboard/empleados", label: "Mi Equipo", icon: "users" },
 ];
 
