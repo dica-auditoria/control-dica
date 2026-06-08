@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import DashboardShell from "@/components/layout/DashboardShell";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -21,6 +22,20 @@ export default async function DashboardLayout({ children }: { children: React.Re
   // Clientes sin aviso de privacidad aceptado → intercepción
   if (perfil.rol === "cliente" && !perfil.privacidad_aceptada_at) {
     redirect("/cliente/privacidad");
+  }
+
+  // Empleados / RRHH sin aviso de privacidad aceptado → intercepción
+  if ((perfil.rol === "empleado" || perfil.rol === "rrhh") && user.email) {
+    const admin = createAdminClient();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: emp } = await (admin.from("empleados") as any)
+      .select("id, empleado_privacidad(id)")
+      .eq("email_institucional", user.email)
+      .maybeSingle() as { data: { id: string; empleado_privacidad: { id: string }[] } | null };
+
+    if (emp && (!emp.empleado_privacidad || emp.empleado_privacidad.length === 0)) {
+      redirect("/empleado/aviso-privacidad");
+    }
   }
 
   // Badge: solicitudes pendientes para admin/superadmin

@@ -511,6 +511,53 @@ export async function getFotoUrlAction(ruta: string) {
   return data?.signedUrl ?? null;
 }
 
+// ---------- ACEPTAR PRIVACIDAD (empleado autenticado, sin token) ----------
+
+export async function aceptarPrivacidadEmpleadoAuthAction(
+  aceptaAviso: boolean,
+  aceptaSensibles: boolean,
+) {
+  if (!aceptaAviso) return { error: "Debe aceptar el aviso de privacidad" };
+
+  const supabase = createClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user?.email) return { error: "No autenticado" };
+
+  const admin = createAdminClient();
+
+  const { data: emp } = await admin
+    .from("empleados")
+    .select("id, estado")
+    .eq("email_institucional", user.email)
+    .maybeSingle() as { data: { id: string; estado: string } | null };
+
+  if (!emp) return { error: "Expediente de empleado no encontrado. Contacta a RRHH." };
+
+  const { data: existing } = await admin
+    .from("empleado_privacidad")
+    .select("id")
+    .eq("empleado_id", emp.id)
+    .limit(1);
+
+  if (existing && existing.length > 0) return { success: true };
+
+  const { error: privErr } = await admin
+    .from("empleado_privacidad")
+    .insert({ empleado_id: emp.id, acepta_aviso: true, acepta_sensibles: aceptaSensibles });
+
+  if (privErr) return { error: "Error al registrar la aceptación" };
+
+  if (emp.estado === "pendiente") {
+    await admin
+      .from("empleados")
+      .update({ estado: "activo", progreso_perfil: 15 })
+      .eq("id", emp.id);
+  }
+
+  revalidatePath("/dashboard");
+  return { success: true };
+}
+
 // ---------- MI EXPEDIENTE (empleado ve su propio perfil) ----------
 
 export async function fetchMiExpedienteAction() {
