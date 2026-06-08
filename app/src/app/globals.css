@@ -26,6 +26,23 @@
   --border-strong: rgba(15, 17, 23, 0.18);
 }
 
+/* ── Dark theme ──────────────────────────── */
+[data-theme="dark"] {
+  --ink: #e8eaf0;
+  --ink-2: #c0c4d4;
+  --ink-3: #9094a8;
+  --surface: #0f1117;
+  --surface-2: #181b27;
+  --surface-3: #222538;
+  --card: #1a1d2e;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.14);
+  --red-light: rgba(200, 71, 42, 0.18);
+  --green-light: rgba(27, 79, 138, 0.22);
+  --lime-light: rgba(141, 198, 63, 0.15);
+  --amber-light: rgba(181, 86, 14, 0.18);
+}
+
 body {
   font-family: 'DM Sans', sans-serif;
   background: var(--surface);
