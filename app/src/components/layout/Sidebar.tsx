@@ -35,6 +35,7 @@ const NAV_ADMIN = [
   { href: "/dashboard/asistencia", label: "Asistencia", icon: "clock" },
   { href: "/dashboard/mi-asistencia", label: "Mi Check-in", icon: "checkin" },
   { href: "/dashboard/mi-credencial", label: "Mi Credencial", icon: "card" },
+  { href: "/dashboard/cumpleanos", label: "Cumpleaños", icon: "cake" },
   { href: "/dashboard/inventario", label: "Inventario", icon: "box" },
   { href: "/dashboard/usuarios", label: "Acceso", icon: "users" },
   { href: "/dashboard/solicitudes", label: "Solicitudes", icon: "alert" },
@@ -50,6 +51,7 @@ const NAV_EMPLEADO = [
   { href: "/dashboard/mi-asistencia", label: "Mi Check-in", icon: "checkin" },
   { href: "/dashboard/directorio", label: "Directorio", icon: "map" },
   { href: "/dashboard/empleados", label: "Mi Equipo", icon: "users" },
+  { href: "/dashboard/cumpleanos", label: "Cumpleaños", icon: "cake" },
 ];
 
 const NAV_RRHH = [
@@ -62,6 +64,7 @@ const NAV_RRHH = [
   { href: "/dashboard/mi-expediente", label: "Mi Expediente", icon: "user" },
   { href: "/dashboard/mis-vacaciones", label: "Mis Vacaciones", icon: "calendar" },
   { href: "/dashboard/mi-credencial", label: "Mi Credencial", icon: "card" },
+  { href: "/dashboard/cumpleanos", label: "Cumpleaños", icon: "cake" },
   { href: "/dashboard/directorio", label: "Directorio", icon: "map" },
 ];
 
