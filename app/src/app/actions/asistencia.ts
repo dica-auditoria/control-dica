@@ -390,7 +390,7 @@ export async function fetchAsistenciaAction(opts?: { fecha?: string; empleadoId?
 
 export interface ReporteEmpleadoDia {
   fecha: string;
-  status: "a_tiempo" | "tardanza" | "no_registrado";
+  status: "a_tiempo" | "tardanza" | "no_registrado" | "vacaciones" | "permiso";
   entrada: string | null;
   salida: string | null;
   distancia: number | null;
@@ -437,6 +437,29 @@ export async function fetchReporteRangoAction(opts: {
     .lte("created_at", `${opts.fechaFin}T23:59:59`)
     .order("created_at") as { data: Array<{ empleado_id: string; tipo: string; created_at: string; distancia_metros: number | null; dentro_radio: boolean | null }> | null };
 
+  // Vacaciones aprobadas que se solapan con el rango
+  const { data: vacaciones } = await (supabase.from("solicitudes_vacaciones") as any)
+    .select("empleado_id, tipo, fecha_inicio, fecha_fin")
+    .eq("estado", "aprobado")
+    .lte("fecha_inicio", opts.fechaFin)
+    .gte("fecha_fin", opts.fechaInicio) as { data: Array<{ empleado_id: string; tipo: string; fecha_inicio: string; fecha_fin: string }> | null };
+
+  // Índice de días de vacaciones por empleado
+  const vacIdx = new Map<string, Set<string>>();
+  const vacTipoIdx = new Map<string, string>();
+  for (const v of vacaciones ?? []) {
+    const cur = new Date(v.fecha_inicio + "T12:00:00");
+    const fin2 = new Date(v.fecha_fin + "T12:00:00");
+    while (cur <= fin2) {
+      const dia = cur.toISOString().split("T")[0];
+      const key = `${v.empleado_id}__${dia}`;
+      if (!vacIdx.has(v.empleado_id)) vacIdx.set(v.empleado_id, new Set());
+      vacIdx.get(v.empleado_id)!.add(dia);
+      vacTipoIdx.set(key, v.tipo);
+      cur.setDate(cur.getDate() + 1);
+    }
+  }
+
   // Build date range
   const fechas: string[] = [];
   const d = new Date(opts.fechaInicio);
@@ -461,13 +484,21 @@ export async function fetchReporteRangoAction(opts: {
 
   const data: ReporteEmpleado[] = (empleados ?? []).map(e => {
     const dias: Record<string, ReporteEmpleadoDia> = {};
-    let presentes = 0, tardanzas = 0;
+    let presentes = 0, tardanzas = 0, diasVacaciones = 0;
 
     for (const fecha of fechas) {
       const key = `${e.id}__${fecha}`;
       const rec = idx.get(key);
       if (!rec || !rec.entradas.length) {
-        dias[fecha] = { fecha, status: "no_registrado", entrada: null, salida: null, distancia: null, dentroRadio: null };
+        const vacKey = `${e.id}__${fecha}`;
+        const vacTipo = vacTipoIdx.get(vacKey);
+        if (vacTipo) {
+          const status: ReporteEmpleadoDia["status"] = vacTipo === "vacaciones" ? "vacaciones" : "permiso";
+          dias[fecha] = { fecha, status, entrada: null, salida: null, distancia: null, dentroRadio: null };
+          diasVacaciones++;
+        } else {
+          dias[fecha] = { fecha, status: "no_registrado", entrada: null, salida: null, distancia: null, dentroRadio: null };
+        }
       } else {
         const entradaTs = rec.entradas[0];
         const salidaTs  = rec.salidas[rec.salidas.length - 1] ?? null;
@@ -483,7 +514,7 @@ export async function fetchReporteRangoAction(opts: {
       }
     }
 
-    const ausentes = fechas.length - presentes;
+    const ausentes = fechas.length - presentes - diasVacaciones;
     return {
       id: e.id,
       nombre: `${e.nombres} ${e.apellido_paterno} ${e.apellido_materno}`.trim(),

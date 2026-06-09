@@ -5,15 +5,19 @@ import { fetchReporteRangoAction, type ReporteEmpleado } from "@/app/actions/asi
 import { DEPARTAMENTOS } from "@/lib/empleados/constants";
 
 const STATUS_LABEL: Record<string, string> = {
-  a_tiempo: "A Tiempo",
-  tardanza: "Tardanza",
+  a_tiempo:      "A Tiempo",
+  tardanza:      "Tardanza",
   no_registrado: "No Reg.",
+  vacaciones:    "Vacaciones",
+  permiso:       "Permiso",
 };
 
 const STATUS_COLOR: Record<string, { bg: string; color: string }> = {
-  a_tiempo:      { bg: "rgba(34,197,94,0.12)",  color: "#16a34a" },
-  tardanza:      { bg: "rgba(234,179,8,0.15)",  color: "#a16207" },
-  no_registrado: { bg: "rgba(15,17,23,0.06)",   color: "var(--muted)" },
+  a_tiempo:      { bg: "rgba(34,197,94,0.12)",   color: "#16a34a" },
+  tardanza:      { bg: "rgba(234,179,8,0.15)",   color: "#a16207" },
+  no_registrado: { bg: "rgba(15,17,23,0.06)",    color: "var(--muted)" },
+  vacaciones:    { bg: "rgba(14,165,233,0.12)",  color: "#0369a1" },
+  permiso:       { bg: "rgba(139,92,246,0.12)",  color: "#7c3aed" },
 };
 
 function exportCSV(empleados: ReporteEmpleado[], fechas: string[], seleccionados: Set<string>, horaEntrada: string) {
@@ -28,7 +32,7 @@ function exportCSV(empleados: ReporteEmpleado[], fechas: string[], seleccionados
     const row: string[] = [e.nombre, e.codigo ?? "", e.departamento];
     for (const f of fechas) {
       const d = e.dias[f];
-      row.push(d ? STATUS_LABEL[d.status] : "");
+      row.push(d ? (STATUS_LABEL[d.status] ?? d.status) : "");
     }
     row.push(String(e.presentes), String(e.tardanzas), String(e.ausentes), `${e.porcentaje}%`);
     filas.push(row);
@@ -201,7 +205,7 @@ export default function ReportesView() {
                         return (
                           <td key={f} style={{ ...tdSt, textAlign: "center", padding: "10px 6px" }} title={d?.entrada ? `Entrada: ${new Date(d.entrada).toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" })}` : ""}>
                             <span style={{ display: "inline-block", padding: "2px 6px", borderRadius: 4, fontSize: 10, fontWeight: 600, background: c.bg, color: c.color, whiteSpace: "nowrap" }}>
-                              {STATUS_LABEL[s].replace("No Reg.", "—")}
+                              {s === "no_registrado" ? "—" : STATUS_LABEL[s]}
                             </span>
                           </td>
                         );
