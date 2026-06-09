@@ -26,7 +26,6 @@ const TIPO_LABEL: Record<TipoVacacion, string> = {
   permiso_con_goce:  "Permiso con goce",
   permiso_sin_goce:  "Permiso sin goce",
 };
-export { TIPO_LABEL };
 
 function calcDiasHabiles(inicio: string, fin: string): number {
   let count = 0;

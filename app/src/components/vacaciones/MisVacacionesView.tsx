@@ -3,8 +3,9 @@
 import { useState, useTransition } from "react";
 import {
   solicitarVacacionesAction, cancelarVacacionesAction,
-  type SolicitudVacacion, type TipoVacacion, TIPO_LABEL,
+  type SolicitudVacacion, type TipoVacacion,
 } from "@/app/actions/vacaciones";
+import { TIPO_LABEL } from "@/lib/vacaciones/constants";
 
 const ESTADO_STYLE: Record<string, { bg: string; color: string; label: string }> = {
   pendiente: { bg: "rgba(234,179,8,0.12)",  color: "#a16207", label: "Pendiente" },
