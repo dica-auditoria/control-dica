@@ -2,11 +2,6 @@
 
 import QRCode from "react-qr-code";
 import type { EmpleadoDetalle } from "@/types/empleados";
-import { TIPOS_CONTRATO } from "@/lib/empleados/constants";
-
-const LABEL_CONTRATO: Record<string, string> = Object.fromEntries(
-  TIPOS_CONTRATO.map(t => [t.value, t.label])
-);
 
 export default function CredencialDigital({ empleado }: { empleado: EmpleadoDetalle }) {
   const nombreCompleto = `${empleado.nombres} ${empleado.apellido_paterno} ${empleado.apellido_materno}`.trim();
@@ -85,7 +80,6 @@ export default function CredencialDigital({ empleado }: { empleado: EmpleadoDeta
         {/* Datos */}
         <div style={{ margin: "0 16px 16px", background: "rgba(255,255,255,0.06)", borderRadius: 10, overflow: "hidden" }}>
           <DataRow label="Departamento" value={empleado.departamento} />
-          <DataRow label="Contrato" value={LABEL_CONTRATO[empleado.tipo_contrato] ?? empleado.tipo_contrato} />
           {empleado.codigo_empleado && (
             <DataRow label="Clave" value={empleado.codigo_empleado} mono />
           )}
