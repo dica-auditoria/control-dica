@@ -22,7 +22,7 @@ interface Resumen {
   ultimoTipo: "entrada" | "salida" | null;
 }
 
-type LatLng = { lat: number; lng: number };
+type LatLng = { lat: number; lng: number; accuracy?: number };
 type MapLike = { setCenter: (p: LatLng) => void };
 type MarkerLike = { setPosition: (p: LatLng) => void };
 type GMaps = {
@@ -225,7 +225,7 @@ export default function EmpleadoCheckinView({
     if (!navigator.geolocation) { setGeoState("error"); return; }
     setGeoState("loading");
     navigator.geolocation.getCurrentPosition(
-      p => { setCoords({ lat: p.coords.latitude, lng: p.coords.longitude }); setGeoState("ok"); },
+      p => { setCoords({ lat: p.coords.latitude, lng: p.coords.longitude, accuracy: p.coords.accuracy }); setGeoState("ok"); },
       () => setGeoState("error"),
       { enableHighAccuracy: true, timeout: 12000 },
     );
@@ -266,6 +266,7 @@ export default function EmpleadoCheckinView({
       const r = await registrarCheckinPublicoAction({
         empleado_id: empleado.id!, tipo: proxTipo,
         lat: coords?.lat ?? null, lng: coords?.lng ?? null,
+        accuracy: coords?.accuracy ?? null,
       });
       if (r.error) { setRegError(r.error); return; }
       setFlash({ tipo: proxTipo, dentroRadio: r.dentroRadio ?? null, distancia: r.distancia ?? null });

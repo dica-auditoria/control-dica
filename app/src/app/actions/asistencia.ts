@@ -275,6 +275,7 @@ export async function registrarCheckinPublicoAction(input: {
   tipo: "entrada" | "salida";
   lat?: number | null;
   lng?: number | null;
+  accuracy?: number | null;
 }) {
   const supabase = createClient();
 
@@ -292,6 +293,11 @@ export async function registrarCheckinPublicoAction(input: {
 
   const headersList = await headers();
   const ip = headersList.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;
+
+  // Rechazar GPS con precisión sospechosa (spoofers frecuentemente reportan 0 o valores irreales)
+  if (input.accuracy !== null && input.accuracy !== undefined && input.accuracy > 500) {
+    return { error: "La precisión del GPS es demasiado baja para registrar tu ubicación. Intenta en un área con mejor señal." };
+  }
 
   let geo = { ubicacionId: null as string | null, distancia: null as number | null, dentroRadio: null as boolean | null };
   if (input.lat && input.lng) geo = await calcularGeofencing(supabase, input.lat, input.lng, null);
