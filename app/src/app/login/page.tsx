@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import { registrarLoginAction } from "@/app/actions/audit";
 import { DicaLogo } from "@/components/ui/DicaLogo";
 
 export default function LoginPage() {
@@ -26,6 +27,7 @@ export default function LoginPage() {
       return;
     }
 
+    await registrarLoginAction().catch(() => {});
     router.push("/dashboard");
     router.refresh();
   };

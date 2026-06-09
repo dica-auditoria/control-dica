@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { DicaLogo } from "@/components/ui/DicaLogo";
 import ThemeSelector from "@/components/ui/ThemeSelector";
+import { registrarLogoutAction } from "@/app/actions/audit";
 
 interface Usuario {
   id: string;
@@ -83,6 +84,7 @@ export default function Sidebar({ usuario, solicitudesPendientes = 0, requerimie
     : NAV_ADMIN;
 
   const handleLogout = async () => {
+    await registrarLogoutAction().catch(() => {});
     await supabase.auth.signOut();
     router.push("/login");
     router.refresh();

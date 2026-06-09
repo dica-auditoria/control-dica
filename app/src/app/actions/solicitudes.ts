@@ -2,6 +2,12 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
+
+async function getIp(): Promise<string | null> {
+  const h = await headers();
+  return h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;
+}
 
 const PATHS = ["/dashboard", "/dashboard/archivos", "/dashboard/solicitudes"];
 
@@ -67,6 +73,7 @@ export async function aprobarSolicitudAction(solicitudId: string) {
     entidad_id: archivo.entidad_id,
     accion: "APPROVE_DELETE",
     recurso_id: archivo.id,
+    ip: await getIp(),
     detalle_json: { solicitud_id: solicitudId },
   });
 
@@ -114,6 +121,7 @@ export async function rechazarSolicitudAction(solicitudId: string) {
     entidad_id: archivo.entidad_id,
     accion: "REJECT_DELETE",
     recurso_id: archivo.id,
+    ip: await getIp(),
     detalle_json: { solicitud_id: solicitudId },
   });
 

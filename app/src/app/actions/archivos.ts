@@ -4,6 +4,12 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
 import { deleteWasabiFileAction } from "@/app/actions/storage";
+import { headers } from "next/headers";
+
+async function getIp(): Promise<string | null> {
+  const h = await headers();
+  return h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;
+}
 
 export interface InsertArchivoArgs {
   nombre: string;
@@ -71,6 +77,7 @@ export async function insertArchivoAction(args: InsertArchivoArgs) {
     entidad_id: args.entidad_id,
     accion: "UPLOAD",
     recurso_id: archivo.id,
+    ip: await getIp(),
     detalle_json: {
       nombre: args.nombre,
       hash_sha256: args.hash_sha256,
@@ -216,6 +223,7 @@ export async function deleteArchivoAction(archivoId: string) {
     entidad_id: archivo.entidad_id,
     accion: "APPROVE_DELETE",
     recurso_id: archivoId,
+    ip: await getIp(),
     detalle_json: { nombre: archivo.nombre },
   });
 
@@ -337,6 +345,7 @@ export async function bulkDeleteArchivosAction(archivoIds: string[]) {
     usuario_id: user.id,
     entidad_id: entidadId,
     accion: "APPROVE_DELETE",
+    ip: await getIp(),
     detalle_json: { ids: archivoIds, cantidad: archivoIds.length },
   });
 
