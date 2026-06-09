@@ -444,10 +444,10 @@ export async function fetchReporteRangoAction(opts: {
     .lte("fecha_inicio", opts.fechaFin)
     .gte("fecha_fin", opts.fechaInicio) as { data: Array<{ empleado_id: string; tipo: string; fecha_inicio: string; fecha_fin: string }> | null };
 
-  // Comisiones y permisos aprobados por RH
+  // Comisiones y permisos activos (desde que supervisor autoriza, sin esperar RH)
   const { data: otrosAprobados } = await (supabase.from("solicitudes_otros") as any)
     .select("empleado_id, tipo, fecha_inicio, fecha_fin")
-    .eq("estado", "aprobado_rh")
+    .in("estado", ["pendiente_rh", "aprobado_rh"])
     .lte("fecha_inicio", opts.fechaFin)
     .gte("fecha_fin", opts.fechaInicio) as { data: Array<{ empleado_id: string; tipo: string; fecha_inicio: string; fecha_fin: string }> | null };
 
