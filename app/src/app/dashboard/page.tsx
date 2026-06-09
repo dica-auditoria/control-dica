@@ -5,6 +5,8 @@ import ClienteArchivosTable, { type ClienteArchivo } from "@/components/archivos
 import { fetchRequerimientosClienteAction } from "@/app/actions/requerimientos";
 import RequerimientosClienteSection from "@/components/requerimientos/RequerimientosClienteSection";
 import { fetchMiExpedienteAction } from "@/app/actions/empleados";
+import { fetchComunicadosAction } from "@/app/actions/comunicados";
+import { AsistenciaBarChart, DepartamentosChart } from "@/components/dashboard/DashboardCharts";
 
 interface PerfilRow { rol: UserRole; entidad_id: string | null }
 interface ArchivoRow { id: string; nombre: string; tipo: string; estado: ArchivoEstado; created_at: string; size_bytes: number; entidades: { nombre: string } | null }
@@ -19,23 +21,154 @@ export default async function DashboardPage() {
     .eq("id", user!.id)
     .single() as { data: PerfilRow | null; error: unknown };
 
-  const isAdmin = perfil?.rol === "admin" || perfil?.rol === "superadmin";
+  const isAdmin    = perfil?.rol === "admin" || perfil?.rol === "superadmin";
+  const isRrhh     = perfil?.rol === "rrhh";
   const isEmpleado = perfil?.rol === "empleado";
 
+  // ── Vista RRHH ─────────────────────────────────────────────────────────────
+  if (isRrhh) {
+    const hoy  = new Date().toISOString().split("T")[0];
+    const hace7 = new Date(Date.now() - 6 * 86400000).toISOString().split("T")[0];
+    const en30  = new Date(Date.now() + 30 * 86400000).toISOString().split("T")[0];
+
+    const [
+      { count: totalEmp },
+      { count: empActivos },
+      { count: pendientesVac },
+      { data: asistSemana },
+      { data: deptoData },
+      { count: docsPorVencer },
+      { data: comunicados },
+    ] = await Promise.all([
+      supabase.from("empleados").select("*", { count: "exact", head: true }),
+      supabase.from("empleados").select("*", { count: "exact", head: true }).eq("estado", "activo"),
+      supabase.from("solicitudes_vacaciones" as never).select("*", { count: "exact", head: true }).eq("estado", "pendiente"),
+      supabase.from("empleado_asistencia" as never).select("fecha, empleado_id").gte("fecha", hace7).lte("fecha", hoy),
+      supabase.from("empleados").select("departamento").eq("estado", "activo"),
+      supabase.from("empleado_documentos" as never).select("*", { count: "exact", head: true }).lte("fecha_vencimiento", en30).gte("fecha_vencimiento", hoy),
+      supabase.from("comunicados" as never).select("id, titulo, tipo, created_at").eq("activo", true).order("created_at", { ascending: false }).limit(3),
+    ]);
+
+    // Calcular asistencia por día
+    const diasMap: Record<string, { presentes: number; total: number }> = {};
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(Date.now() - (6 - i) * 86400000).toISOString().split("T")[0];
+      diasMap[d] = { presentes: 0, total: 0 };
+    }
+    if (asistSemana) {
+      const byDate: Record<string, Set<string>> = {};
+      for (const r of asistSemana as unknown as { fecha: string; empleado_id: string }[]) {
+        if (!byDate[r.fecha]) byDate[r.fecha] = new Set();
+        byDate[r.fecha].add(r.empleado_id);
+      }
+      const actTotal = empActivos ?? 0;
+      for (const [fecha, set] of Object.entries(byDate)) {
+        if (diasMap[fecha] !== undefined) {
+          diasMap[fecha].presentes = set.size;
+          diasMap[fecha].total = actTotal;
+        }
+      }
+      for (const d of Object.keys(diasMap)) {
+        if (diasMap[d].total === 0) diasMap[d].total = actTotal;
+      }
+    }
+    const asistChart = Object.entries(diasMap).map(([fecha, v]) => ({ fecha, ...v }));
+
+    // Contar por departamento
+    const deptoMap: Record<string, number> = {};
+    for (const e of (deptoData ?? []) as unknown as { departamento: string }[]) {
+      deptoMap[e.departamento] = (deptoMap[e.departamento] ?? 0) + 1;
+    }
+    const deptoChart = Object.entries(deptoMap).sort((a, b) => b[1] - a[1]).map(([departamento, count]) => ({ departamento, count }));
+
+    return (
+      <div className="page-pad">
+        <div style={{ marginBottom: 24 }}>
+          <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: "var(--ink)" }}>Dashboard RRHH</h1>
+          <p style={{ fontSize: 12, color: "var(--muted)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>Resumen del equipo</p>
+        </div>
+
+        <div className="grid-resp-4" style={{ marginBottom: 24 }}>
+          <StatCard label="Total empleados" value={totalEmp ?? 0} meta="En el sistema" accent="var(--accent)" tint="var(--tint-red)" icon={<IconUsers />} />
+          <StatCard label="Activos" value={empActivos ?? 0} meta="Estado activo" accent="var(--green)" tint="var(--tint-blue)" icon={<IconUser />} />
+          <StatCard label="Vac. pendientes" value={pendientesVac ?? 0} meta="Por revisar" accent="var(--amber)" tint="var(--tint-amber)" icon={<IconAlert />} />
+          <StatCard label="Docs por vencer" value={docsPorVencer ?? 0} meta="Próximos 30 días" accent="#dc2626" tint="var(--tint-red)" icon={<IconAlert />} />
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
+          <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, padding: "18px 20px" }}>
+            <AsistenciaBarChart datos={asistChart} />
+          </div>
+          <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, padding: "18px 20px" }}>
+            <DepartamentosChart datos={deptoChart} />
+          </div>
+        </div>
+
+        {(comunicados as unknown as { id: string; titulo: string; tipo: string; created_at: string }[] | null)?.length ? (
+          <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, padding: "16px 20px" }}>
+            <div style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "var(--muted)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 10 }}>Comunicados recientes</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {(comunicados as unknown as { id: string; titulo: string; tipo: string; created_at: string }[]).map(c => (
+                <div key={c.id} style={{ fontSize: 13, color: "var(--ink)" }}>• {c.titulo}</div>
+              ))}
+            </div>
+          </div>
+        ) : null}
+      </div>
+    );
+  }
+
+  // ── Vista Admin ────────────────────────────────────────────────────────────
   if (isAdmin) {
+    const hoy   = new Date().toISOString().split("T")[0];
+    const hace7 = new Date(Date.now() - 6 * 86400000).toISOString().split("T")[0];
+    const en30  = new Date(Date.now() + 30 * 86400000).toISOString().split("T")[0];
+
     const [
       { count: totalArchivos },
       { count: totalEntidades },
       { count: totalSolicitudes },
       { count: archivosVerificados },
+      { count: totalEmp },
+      { count: docsPorVencer },
+      { data: asistSemana },
+      { data: deptoData },
     ] = await Promise.all([
       supabase.from("archivos").select("*", { count: "exact", head: true }).neq("estado", "eliminado").neq("tipo", "carpeta"),
       supabase.from("entidades").select("*", { count: "exact", head: true }).eq("activo", true),
       supabase.from("solicitudes_eliminacion").select("*", { count: "exact", head: true }).eq("estado", "pendiente"),
       supabase.from("archivos").select("*", { count: "exact", head: true }).neq("estado", "eliminado").neq("tipo", "carpeta").neq("hash_sha256", "0000000000000000000000000000000000000000000000000000000000000000"),
+      supabase.from("empleados").select("*", { count: "exact", head: true }).eq("estado", "activo"),
+      supabase.from("empleado_documentos" as never).select("*", { count: "exact", head: true }).lte("fecha_vencimiento", en30).gte("fecha_vencimiento", hoy),
+      supabase.from("empleado_asistencia" as never).select("fecha, empleado_id").gte("fecha", hace7).lte("fecha", hoy),
+      supabase.from("empleados").select("departamento").eq("estado", "activo"),
     ]);
 
     const integridadPct = totalArchivos ? Math.round(((archivosVerificados ?? 0) / (totalArchivos ?? 1)) * 100) : 100;
+
+    // Gráfica asistencia
+    const diasMap: Record<string, { presentes: number; total: number }> = {};
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(Date.now() - (6 - i) * 86400000).toISOString().split("T")[0];
+      diasMap[d] = { presentes: 0, total: totalEmp ?? 0 };
+    }
+    if (asistSemana) {
+      const byDate: Record<string, Set<string>> = {};
+      for (const r of asistSemana as unknown as { fecha: string; empleado_id: string }[]) {
+        if (!byDate[r.fecha]) byDate[r.fecha] = new Set();
+        byDate[r.fecha].add(r.empleado_id);
+      }
+      for (const [fecha, set] of Object.entries(byDate)) {
+        if (diasMap[fecha]) diasMap[fecha].presentes = set.size;
+      }
+    }
+    const asistChart = Object.entries(diasMap).map(([fecha, v]) => ({ fecha, ...v }));
+
+    const deptoMap: Record<string, number> = {};
+    for (const e of (deptoData ?? []) as unknown as { departamento: string }[]) {
+      deptoMap[e.departamento] = (deptoMap[e.departamento] ?? 0) + 1;
+    }
+    const deptoChart = Object.entries(deptoMap).sort((a, b) => b[1] - a[1]).map(([departamento, count]) => ({ departamento, count }));
 
     const { data: archivosRecientes } = await supabase
       .from("archivos")
@@ -53,8 +186,8 @@ export default async function DashboardPage() {
           </p>
         </div>
 
-        {/* Stats */}
-        <div className="grid-resp-4" style={{ marginBottom: 28 }}>
+        {/* Stats documentales */}
+        <div className="grid-resp-4" style={{ marginBottom: 20 }}>
           <StatCard label="Total archivos" value={totalArchivos ?? 0} meta="En custodia activa"
             accent="var(--accent)" tint="var(--tint-red)" icon={<IconFiles />} />
           <StatCard label="Entidades" value={totalEntidades ?? 0} meta="Clientes activos"
@@ -63,6 +196,24 @@ export default async function DashboardPage() {
             accent="var(--amber)" tint="var(--tint-amber)" icon={<IconAlert />} />
           <StatCard label="Integridad" value={`${integridadPct}%`} meta="SHA-256 verificado"
             accent="#2d7a3a" tint="var(--tint-green)" icon={<IconShieldCheck />} />
+        </div>
+
+        {/* Stats RRHH */}
+        <div className="grid-resp-4" style={{ marginBottom: 20 }}>
+          <StatCard label="Empleados activos" value={totalEmp ?? 0} meta="En el sistema"
+            accent="#1B4F8A" tint="var(--tint-blue)" icon={<IconUsers />} />
+          <StatCard label="Docs por vencer" value={docsPorVencer ?? 0} meta="Próximos 30 días"
+            accent="#dc2626" tint="var(--tint-red)" icon={<IconAlert />} />
+        </div>
+
+        {/* Gráficas */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
+          <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, padding: "18px 20px" }}>
+            <AsistenciaBarChart datos={asistChart} />
+          </div>
+          <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, padding: "18px 20px" }}>
+            <DepartamentosChart datos={deptoChart} />
+          </div>
         </div>
 
         {/* Tabla archivos recientes */}
@@ -110,7 +261,10 @@ export default async function DashboardPage() {
 
   // Vista empleado
   if (isEmpleado) {
-    const { data: emp } = await fetchMiExpedienteAction();
+    const [{ data: emp }, { data: comuns }] = await Promise.all([
+      fetchMiExpedienteAction(),
+      fetchComunicadosAction(),
+    ]);
 
     return (
       <div className="page-pad">
@@ -148,32 +302,34 @@ export default async function DashboardPage() {
           )}
         </div>
 
-        <div className="grid-resp-2">
-          <AccesoRapido
-            href="/dashboard/mi-expediente"
-            titulo="Mi Expediente"
-            desc="Ver tus datos personales, documentos y más"
-            color="var(--green)"
-          />
-          <AccesoRapido
-            href="/dashboard/mi-asistencia"
-            titulo="Mi Check-in"
-            desc="Registrar entrada / salida del día"
-            color="var(--gold)"
-          />
-          <AccesoRapido
-            href="/dashboard/directorio"
-            titulo="Directorio"
-            desc="Ubicaciones de oficinas y zonas cliente"
-            color="var(--accent)"
-          />
-          <AccesoRapido
-            href="/dashboard/buscar"
-            titulo="Búsqueda"
-            desc="Buscar archivos, clientes y contratos"
-            color="rgba(15,17,23,0.5)"
-          />
+        <div className="grid-resp-2" style={{ marginBottom: 20 }}>
+          <AccesoRapido href="/dashboard/mi-expediente" titulo="Mi Expediente" desc="Ver tus datos personales, documentos y más" color="var(--green)" />
+          <AccesoRapido href="/dashboard/mi-asistencia" titulo="Mi Check-in" desc="Registrar entrada / salida del día" color="var(--gold)" />
+          <AccesoRapido href="/dashboard/mis-vacaciones" titulo="Mis Vacaciones" desc="Solicitar días de vacaciones o permisos" color="#1B4F8A" />
+          <AccesoRapido href="/dashboard/mi-credencial" titulo="Mi Credencial" desc="Credencial digital con código QR" color="var(--accent)" />
         </div>
+
+        {/* Comunicados activos */}
+        {(comuns?.length ?? 0) > 0 && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <div style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "var(--muted)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+              Comunicados
+            </div>
+            {comuns!.map(c => {
+              const colors: Record<string, string> = { info: "#1B4F8A", urgente: "#dc2626", recordatorio: "#a16207" };
+              const color = colors[c.tipo] ?? "#1B4F8A";
+              return (
+                <div key={c.id} style={{
+                  background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8,
+                  padding: "12px 16px", borderLeft: `4px solid ${color}`,
+                }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", marginBottom: 3 }}>{c.titulo}</div>
+                  <div style={{ fontSize: 12, color: "var(--muted-2)", lineHeight: 1.5 }}>{c.contenido}</div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     );
   }
@@ -299,5 +455,8 @@ function IconBriefcase() {
 }
 function IconUser() {
   return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>;
+}
+function IconUsers() {
+  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>;
 }
 

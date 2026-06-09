@@ -10,6 +10,7 @@ import {
   calcularProgresoPerfil,
 } from "@/lib/empleados/utils";
 import type { CrearEmpleadoInput } from "@/types/empleados";
+import { sendBienvenidaEmpleadoEmail } from "@/lib/email";
 
 interface PerfilRow { rol: string; id: string }
 type SupabaseServer = ReturnType<typeof createClient>;
@@ -129,6 +130,16 @@ export async function crearEmpleadoAction(input: CrearEmpleadoInput) {
   if (invitacion.error) {
     return { empleadoId: empleado.id, error: invitacion.error, token: null };
   }
+
+  // Email de bienvenida (no bloquea el flujo)
+  sendBienvenidaEmpleadoEmail({
+    email: email,
+    nombre: `${input.nombres.trim()} ${input.apellido_paterno.trim()}`,
+    puesto: input.puesto.trim(),
+    departamento: input.departamento,
+    codigoEmpleado: codigo,
+    linkPrivacidad: invitacion.invitacionUrl ?? undefined,
+  }).catch(() => {});
 
   revalidateEmpleados();
   revalidatePath(`/dashboard/empleados/${empleado.id}`);
