@@ -390,7 +390,7 @@ export async function fetchAsistenciaAction(opts?: { fecha?: string; empleadoId?
 
 export interface ReporteEmpleadoDia {
   fecha: string;
-  status: "a_tiempo" | "tardanza" | "no_registrado" | "vacaciones" | "permiso";
+  status: "a_tiempo" | "tardanza" | "no_registrado" | "vacaciones" | "permiso" | "comision";
   entrada: string | null;
   salida: string | null;
   distancia: number | null;
@@ -437,28 +437,35 @@ export async function fetchReporteRangoAction(opts: {
     .lte("created_at", `${opts.fechaFin}T23:59:59`)
     .order("created_at") as { data: Array<{ empleado_id: string; tipo: string; created_at: string; distancia_metros: number | null; dentro_radio: boolean | null }> | null };
 
-  // Vacaciones aprobadas que se solapan con el rango
+  // Vacaciones aprobadas (tabla legacy)
   const { data: vacaciones } = await (supabase.from("solicitudes_vacaciones") as any)
     .select("empleado_id, tipo, fecha_inicio, fecha_fin")
     .eq("estado", "aprobado")
     .lte("fecha_inicio", opts.fechaFin)
     .gte("fecha_fin", opts.fechaInicio) as { data: Array<{ empleado_id: string; tipo: string; fecha_inicio: string; fecha_fin: string }> | null };
 
-  // Índice de días de vacaciones por empleado
-  const vacIdx = new Map<string, Set<string>>();
+  // Comisiones y permisos aprobados por RH
+  const { data: otrosAprobados } = await (supabase.from("solicitudes_otros") as any)
+    .select("empleado_id, tipo, fecha_inicio, fecha_fin")
+    .eq("estado", "aprobado_rh")
+    .lte("fecha_inicio", opts.fechaFin)
+    .gte("fecha_fin", opts.fechaInicio) as { data: Array<{ empleado_id: string; tipo: string; fecha_inicio: string; fecha_fin: string }> | null };
+
+  // Índice unificado por empleado+fecha → status
   const vacTipoIdx = new Map<string, string>();
-  for (const v of vacaciones ?? []) {
-    const cur = new Date(v.fecha_inicio + "T12:00:00");
-    const fin2 = new Date(v.fecha_fin + "T12:00:00");
-    while (cur <= fin2) {
-      const dia = cur.toISOString().split("T")[0];
-      const key = `${v.empleado_id}__${dia}`;
-      if (!vacIdx.has(v.empleado_id)) vacIdx.set(v.empleado_id, new Set());
-      vacIdx.get(v.empleado_id)!.add(dia);
-      vacTipoIdx.set(key, v.tipo);
-      cur.setDate(cur.getDate() + 1);
+  const indexarRango = (items: Array<{ empleado_id: string; tipo: string; fecha_inicio: string; fecha_fin: string }>) => {
+    for (const v of items) {
+      const cur = new Date(v.fecha_inicio + "T12:00:00");
+      const fin2 = new Date(v.fecha_fin + "T12:00:00");
+      while (cur <= fin2) {
+        const dia = cur.toISOString().split("T")[0];
+        vacTipoIdx.set(`${v.empleado_id}__${dia}`, v.tipo);
+        cur.setDate(cur.getDate() + 1);
+      }
     }
-  }
+  };
+  indexarRango(vacaciones ?? []);
+  indexarRango(otrosAprobados ?? []);
 
   // Build date range
   const fechas: string[] = [];
@@ -493,7 +500,11 @@ export async function fetchReporteRangoAction(opts: {
         const vacKey = `${e.id}__${fecha}`;
         const vacTipo = vacTipoIdx.get(vacKey);
         if (vacTipo) {
-          const status: ReporteEmpleadoDia["status"] = vacTipo === "vacaciones" ? "vacaciones" : "permiso";
+          const statusMap: Record<string, ReporteEmpleadoDia["status"]> = {
+            vacaciones: "vacaciones", permiso_con_goce: "permiso", permiso_sin_goce: "permiso",
+            permiso: "permiso", comision: "comision",
+          };
+          const status: ReporteEmpleadoDia["status"] = statusMap[vacTipo] ?? "no_registrado";
           dias[fecha] = { fecha, status, entrada: null, salida: null, distancia: null, dentroRadio: null };
           diasVacaciones++;
         } else {

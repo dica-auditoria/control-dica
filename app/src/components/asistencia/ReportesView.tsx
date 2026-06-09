@@ -10,6 +10,7 @@ const STATUS_LABEL: Record<string, string> = {
   no_registrado: "No Reg.",
   vacaciones:    "Vacaciones",
   permiso:       "Permiso",
+  comision:      "Comisión",
 };
 
 const STATUS_COLOR: Record<string, { bg: string; color: string }> = {
@@ -18,6 +19,7 @@ const STATUS_COLOR: Record<string, { bg: string; color: string }> = {
   no_registrado: { bg: "rgba(15,17,23,0.06)",    color: "var(--muted)" },
   vacaciones:    { bg: "rgba(14,165,233,0.12)",  color: "#0369a1" },
   permiso:       { bg: "rgba(139,92,246,0.12)",  color: "#7c3aed" },
+  comision:      { bg: "rgba(249,115,22,0.12)",  color: "#ea580c" },
 };
 
 function exportCSV(empleados: ReporteEmpleado[], fechas: string[], seleccionados: Set<string>, horaEntrada: string) {
