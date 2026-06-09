@@ -183,7 +183,7 @@ export async function aprobarVacacionesAction(id: string, comentario?: string) {
 
 // ─── ADMIN/RRHH: Rechazar ────────────────────────────────────────────────────
 export async function rechazarVacacionesAction(id: string, comentario: string) {
-  const { supabase, rol } = await getRole();
+  const { supabase, user, rol } = await getRole();
   if (!["admin", "superadmin", "rrhh"].includes(rol ?? "")) return { error: "Sin permisos" };
 
   const { data: sol } = await supabase
@@ -214,8 +214,7 @@ export async function rechazarVacacionesAction(id: string, comentario: string) {
 
   revalidatePath("/dashboard/vacaciones");
   revalidatePath("/dashboard/mis-vacaciones");
-  const { user: u2 } = await getRole();
-  if (u2) await logAudit(u2.id, "VACACION_RECHAZAR", id, {
+  if (user) await logAudit(user.id, "VACACION_RECHAZAR", id, {
     empleado: sol?.empleado ? `${sol.empleado.nombres} ${sol.empleado.apellido_paterno}` : null,
     tipo: sol?.tipo, fechaInicio: sol?.fecha_inicio, fechaFin: sol?.fecha_fin, comentario,
   });

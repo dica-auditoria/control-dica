@@ -186,10 +186,9 @@ export async function crearComisionAction(input: {
     fecha_inicio:           input.fecha_inicio,
     fecha_fin:              input.fecha_fin,
     motivo:                 input.motivo.trim(),
-    estado:                 "pendiente_rh",
-    creado_por:             user.id,
-    supervisor_empleado_id: empleado.id,
-    aprobado_supervisor_por: user.id,
+    estado:                    "pendiente_rh",
+    creado_por:                user.id,
+    supervisor_empleado_id:    empleado.id,
     fecha_decision_supervisor: new Date().toISOString(),
   });
 

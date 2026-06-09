@@ -35,6 +35,7 @@ export default async function DashboardPage() {
       { count: totalEmp },
       { count: empActivos },
       { count: pendientesVac },
+      { count: pendientesOtros },
       { data: asistSemana },
       { data: deptoData },
       { count: docsPorVencer },
@@ -43,6 +44,7 @@ export default async function DashboardPage() {
       supabase.from("empleados").select("*", { count: "exact", head: true }),
       supabase.from("empleados").select("*", { count: "exact", head: true }).eq("estado", "activo"),
       supabase.from("solicitudes_vacaciones" as never).select("*", { count: "exact", head: true }).eq("estado", "pendiente"),
+      (supabase.from("solicitudes_otros") as any).select("*", { count: "exact", head: true }).eq("estado", "pendiente_rh") as Promise<{ count: number | null }>,
       supabase.from("empleado_asistencia" as never).select("fecha, empleado_id").gte("fecha", hace7).lte("fecha", hoy),
       supabase.from("empleados").select("departamento").eq("estado", "activo"),
       supabase.from("empleado_documentos" as never).select("*", { count: "exact", head: true }).lte("fecha_vencimiento", en30).gte("fecha_vencimiento", hoy),
@@ -92,6 +94,7 @@ export default async function DashboardPage() {
           <StatCard label="Total empleados" value={totalEmp ?? 0} meta="En el sistema" accent="var(--accent)" tint="var(--tint-red)" icon={<IconUsers />} />
           <StatCard label="Activos" value={empActivos ?? 0} meta="Estado activo" accent="var(--green)" tint="var(--tint-blue)" icon={<IconUser />} />
           <StatCard label="Vac. pendientes" value={pendientesVac ?? 0} meta="Por revisar" accent="var(--amber)" tint="var(--tint-amber)" icon={<IconAlert />} />
+          <StatCard label="Otros pendientes" value={pendientesOtros ?? 0} meta="Comisiones / permisos" accent="#ea580c" tint="var(--tint-amber)" icon={<IconAlert />} />
           <StatCard label="Docs por vencer" value={docsPorVencer ?? 0} meta="Próximos 30 días" accent="#dc2626" tint="var(--tint-red)" icon={<IconAlert />} />
         </div>
 
