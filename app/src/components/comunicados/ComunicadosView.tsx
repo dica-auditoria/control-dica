@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useRef } from "react";
 import { crearComunicadoAction, desactivarComunicadoAction, type Comunicado } from "@/app/actions/comunicados";
 
 const TIPO_STYLE: Record<string, { bg: string; color: string; label: string }> = {
@@ -10,21 +10,41 @@ const TIPO_STYLE: Record<string, { bg: string; color: string; label: string }> =
 };
 
 export default function ComunicadosView({ comunicados: inicial, esAdmin }: { comunicados: Comunicado[]; esAdmin: boolean }) {
-  const [lista, setLista]       = useState(inicial);
-  const [showForm, setShowForm] = useState(false);
-  const [titulo, setTitulo]     = useState("");
+  const [lista, setLista]         = useState(inicial);
+  const [showForm, setShowForm]   = useState(false);
+  const [titulo, setTitulo]       = useState("");
   const [contenido, setContenido] = useState("");
-  const [tipo, setTipo]         = useState<Comunicado["tipo"]>("info");
+  const [tipo, setTipo]           = useState<Comunicado["tipo"]>("info");
+  const [imagenPreview, setImagenPreview] = useState<string | null>(null);
+  const [imagenFile, setImagenFile]       = useState<File | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const handleImagenChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { setFormError("La imagen no puede superar 5 MB"); return; }
+    setImagenFile(file);
+    const reader = new FileReader();
+    reader.onload = ev => setImagenPreview(ev.target?.result as string);
+    reader.readAsDataURL(file);
+  };
 
   const handleCrear = () => {
     if (!titulo.trim() || !contenido.trim()) { setFormError("Título y contenido son obligatorios"); return; }
     setFormError(null);
     startTransition(async () => {
-      const r = await crearComunicadoAction({ titulo, contenido, tipo });
+      let imagenFormData: FormData | undefined;
+      if (imagenFile) {
+        imagenFormData = new FormData();
+        imagenFormData.append("imagen", imagenFile);
+      }
+      const r = await crearComunicadoAction({ titulo, contenido, tipo, imagenFormData });
       if (r.error) { setFormError(r.error); return; }
-      setShowForm(false); setTitulo(""); setContenido(""); setTipo("info");
+      setShowForm(false);
+      setTitulo(""); setContenido(""); setTipo("info");
+      setImagenFile(null); setImagenPreview(null);
     });
   };
 
@@ -80,6 +100,36 @@ export default function ComunicadosView({ comunicados: inicial, esAdmin }: { com
             <label style={lbl}>Contenido</label>
             <textarea style={{ ...inp, height: 100, resize: "vertical" }} value={contenido} onChange={e => setContenido(e.target.value)} placeholder="Escribe el mensaje para el equipo..." />
           </div>
+
+          {/* Upload imagen */}
+          <div style={{ marginBottom: 14 }}>
+            <label style={lbl}>Imagen (opcional)</label>
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/png,image/jpeg,image/webp,image/gif"
+              style={{ display: "none" }}
+              onChange={handleImagenChange}
+            />
+            {imagenPreview ? (
+              <div style={{ position: "relative", display: "inline-block" }}>
+                <img src={imagenPreview} alt="preview" style={{ maxWidth: "100%", maxHeight: 200, borderRadius: 6, border: "1px solid var(--border)", display: "block" }} />
+                <button
+                  onClick={() => { setImagenFile(null); setImagenPreview(null); if (fileRef.current) fileRef.current.value = ""; }}
+                  style={{ position: "absolute", top: 6, right: 6, background: "rgba(0,0,0,0.55)", color: "white", border: "none", borderRadius: "50%", width: 24, height: 24, cursor: "pointer", fontSize: 14, display: "flex", alignItems: "center", justifyContent: "center" }}
+                >×</button>
+              </div>
+            ) : (
+              <button
+                onClick={() => fileRef.current?.click()}
+                style={{ padding: "8px 14px", background: "var(--surface)", border: "1.5px dashed var(--border-strong)", borderRadius: 6, fontSize: 12, cursor: "pointer", color: "var(--muted)", display: "flex", alignItems: "center", gap: 6 }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                Agregar imagen
+              </button>
+            )}
+          </div>
+
           {formError && <div style={{ padding: "8px 12px", background: "rgba(239,68,68,0.08)", color: "#dc2626", borderRadius: 4, fontSize: 12, marginBottom: 12 }}>{formError}</div>}
           <button onClick={handleCrear} disabled={isPending} style={{
             padding: "9px 20px", background: "#1B4F8A", color: "white",
@@ -102,8 +152,7 @@ export default function ComunicadosView({ comunicados: inicial, esAdmin }: { com
             return (
               <div key={c.id} style={{
                 background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8,
-                padding: "16px 20px",
-                borderLeft: `4px solid ${st.color}`,
+                padding: "16px 20px", borderLeft: `4px solid ${st.color}`,
               }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
                   <div style={{ flex: 1 }}>
@@ -116,7 +165,16 @@ export default function ComunicadosView({ comunicados: inicial, esAdmin }: { com
                       </span>
                     </div>
                     <div style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)", marginBottom: 6 }}>{c.titulo}</div>
-                    <div style={{ fontSize: 13, color: "var(--muted-2)", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{c.contenido}</div>
+                    <div style={{ fontSize: 13, color: "var(--muted-2)", lineHeight: 1.6, whiteSpace: "pre-wrap", marginBottom: c.imagen_signed ? 12 : 0 }}>
+                      {c.contenido}
+                    </div>
+                    {c.imagen_signed && (
+                      <img
+                        src={c.imagen_signed}
+                        alt={c.titulo}
+                        style={{ maxWidth: "100%", maxHeight: 320, borderRadius: 6, border: "1px solid var(--border)", display: "block" }}
+                      />
+                    )}
                   </div>
                   {esAdmin && (
                     <button onClick={() => handleArchivar(c.id)} title="Archivar" style={{
