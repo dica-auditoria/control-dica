@@ -1,8 +1,19 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { sendVacacionesNotifEmail } from "@/lib/email";
+
+async function logAudit(userId: string, accion: "VACACION_APROBAR" | "VACACION_RECHAZAR", recurso_id: string, detalle: Record<string, unknown>) {
+  try {
+    const admin = createAdminClient();
+    const h = await headers();
+    const ip = h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;
+    await (admin.from("audit_log") as any).insert({ usuario_id: userId, accion, recurso_id, ip, detalle_json: detalle });
+  } catch { /* non-critical */ }
+}
 
 export type TipoVacacion = "vacaciones" | "permiso_con_goce" | "permiso_sin_goce";
 export type EstadoVacacion = "pendiente" | "aprobado" | "rechazado" | "cancelado";
@@ -163,6 +174,10 @@ export async function aprobarVacacionesAction(id: string, comentario?: string) {
 
   revalidatePath("/dashboard/vacaciones");
   revalidatePath("/dashboard/mis-vacaciones");
+  await logAudit(user!.id, "VACACION_APROBAR", id, {
+    empleado: sol?.empleado ? `${sol.empleado.nombres} ${sol.empleado.apellido_paterno}` : null,
+    tipo: sol?.tipo, fechaInicio: sol?.fecha_inicio, fechaFin: sol?.fecha_fin,
+  });
   return { success: true };
 }
 
@@ -199,5 +214,10 @@ export async function rechazarVacacionesAction(id: string, comentario: string) {
 
   revalidatePath("/dashboard/vacaciones");
   revalidatePath("/dashboard/mis-vacaciones");
+  const { user: u2 } = await getRole();
+  if (u2) await logAudit(u2.id, "VACACION_RECHAZAR", id, {
+    empleado: sol?.empleado ? `${sol.empleado.nombres} ${sol.empleado.apellido_paterno}` : null,
+    tipo: sol?.tipo, fechaInicio: sol?.fecha_inicio, fechaFin: sol?.fecha_fin, comentario,
+  });
   return { success: true };
 }

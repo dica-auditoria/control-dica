@@ -14,40 +14,64 @@ export interface AuditLogItem {
 }
 
 type Filtro =
-  | "TODAS"
-  | "UPLOAD"
-  | "REQUEST_DELETE"
-  | "APPROVE_DELETE"
-  | "REJECT_DELETE"
-  | "USER_CREATE"
-  | "USER_ROLE_UPDATE"
-  | "USER_ENTITY_UPDATE"
-  | "LOGIN"
-  | "LOGOUT";
+  | "TODAS" | "UPLOAD" | "REQUEST_DELETE" | "APPROVE_DELETE" | "REJECT_DELETE"
+  | "USER_CREATE" | "USER_ROLE_UPDATE" | "USER_ENTITY_UPDATE"
+  | "LOGIN" | "LOGOUT"
+  | "EMPLEADO_CREAR" | "EMPLEADO_ACTUALIZAR"
+  | "VACACION_APROBAR" | "VACACION_RECHAZAR"
+  | "COMISION_CREAR" | "PERMISO_APROBAR" | "PERMISO_RECHAZAR" | "PERMISO_VALIDAR_RH"
+  | "COMUNICADO_CREAR" | "COMUNICADO_ARCHIVAR"
+  | "CONTRATO_CREAR" | "CONTRATO_ACTUALIZAR" | "CONTRATO_ELIMINAR";
 
 const FILTROS: { key: Filtro; label: string }[] = [
-  { key: "TODAS",          label: "Todas" },
-  { key: "UPLOAD",         label: "Upload" },
-  { key: "REQUEST_DELETE", label: "Solicitud" },
-  { key: "APPROVE_DELETE", label: "Aprobación" },
-  { key: "REJECT_DELETE",  label: "Rechazo" },
-  { key: "USER_CREATE",    label: "Crear usuario" },
-  { key: "USER_ROLE_UPDATE", label: "Cambiar rol" },
-  { key: "USER_ENTITY_UPDATE", label: "Cambiar entidad" },
-  { key: "LOGIN",          label: "Login" },
-  { key: "LOGOUT",         label: "Logout" },
+  { key: "TODAS",               label: "Todas" },
+  { key: "LOGIN",               label: "Login" },
+  { key: "LOGOUT",              label: "Logout" },
+  { key: "UPLOAD",              label: "Upload" },
+  { key: "REQUEST_DELETE",      label: "Sol. eliminar" },
+  { key: "APPROVE_DELETE",      label: "Aprobó eliminar" },
+  { key: "REJECT_DELETE",       label: "Rechazó eliminar" },
+  { key: "USER_CREATE",         label: "Crear usuario" },
+  { key: "USER_ROLE_UPDATE",    label: "Cambiar rol" },
+  { key: "USER_ENTITY_UPDATE",  label: "Cambiar entidad" },
+  { key: "EMPLEADO_CREAR",      label: "Empleado creado" },
+  { key: "EMPLEADO_ACTUALIZAR", label: "Empleado actualizado" },
+  { key: "VACACION_APROBAR",    label: "Vacación aprobada" },
+  { key: "VACACION_RECHAZAR",   label: "Vacación rechazada" },
+  { key: "COMISION_CREAR",      label: "Comisión" },
+  { key: "PERMISO_APROBAR",     label: "Permiso aprobado" },
+  { key: "PERMISO_RECHAZAR",    label: "Permiso rechazado" },
+  { key: "PERMISO_VALIDAR_RH",  label: "Validación RH" },
+  { key: "COMUNICADO_CREAR",    label: "Comunicado" },
+  { key: "COMUNICADO_ARCHIVAR", label: "Com. archivado" },
+  { key: "CONTRATO_CREAR",      label: "Contrato creado" },
+  { key: "CONTRATO_ACTUALIZAR", label: "Contrato actualizado" },
+  { key: "CONTRATO_ELIMINAR",   label: "Contrato eliminado" },
 ];
 
 const ACCION_CFG: Record<string, { label: string; bg: string; color: string }> = {
-  UPLOAD:         { label: "UPLOAD",         bg: "#e8f5e9", color: "#2e7d32" },
-  REQUEST_DELETE: { label: "REQUEST_DELETE", bg: "#fff3e0", color: "#b5560e" },
-  APPROVE_DELETE: { label: "APPROVE_DELETE", bg: "#fdecea", color: "#c8472a" },
-  REJECT_DELETE:  { label: "REJECT_DELETE",  bg: "#d8f3dc", color: "#2d6a4f" },
-  USER_CREATE:    { label: "USER_CREATE",    bg: "#e3f2fd", color: "#1565c0" },
-  USER_ROLE_UPDATE: { label: "USER_ROLE_UPDATE", bg: "#fdecea", color: "#c8472a" },
-  USER_ENTITY_UPDATE: { label: "USER_ENTITY_UPDATE", bg: "#fff3e0", color: "#b5560e" },
-  LOGIN:          { label: "LOGIN",          bg: "#e3f2fd", color: "#1565c0" },
-  LOGOUT:         { label: "LOGOUT",         bg: "var(--surface-2)", color: "var(--muted)" },
+  UPLOAD:               { label: "UPLOAD",               bg: "#e8f5e9", color: "#2e7d32" },
+  REQUEST_DELETE:       { label: "REQUEST_DELETE",       bg: "#fff3e0", color: "#b5560e" },
+  APPROVE_DELETE:       { label: "APPROVE_DELETE",       bg: "#fdecea", color: "#c8472a" },
+  REJECT_DELETE:        { label: "REJECT_DELETE",        bg: "#d8f3dc", color: "#2d6a4f" },
+  USER_CREATE:          { label: "USER_CREATE",          bg: "#e3f2fd", color: "#1565c0" },
+  USER_ROLE_UPDATE:     { label: "USER_ROLE_UPDATE",     bg: "#fdecea", color: "#c8472a" },
+  USER_ENTITY_UPDATE:   { label: "USER_ENTITY_UPDATE",   bg: "#fff3e0", color: "#b5560e" },
+  LOGIN:                { label: "LOGIN",                bg: "#e3f2fd", color: "#1565c0" },
+  LOGOUT:               { label: "LOGOUT",               bg: "var(--surface-2)", color: "var(--muted)" },
+  EMPLEADO_CREAR:       { label: "EMPLEADO_CREAR",       bg: "#e3f2fd", color: "#1565c0" },
+  EMPLEADO_ACTUALIZAR:  { label: "EMPLEADO_ACTUALIZAR",  bg: "#ede9fe", color: "#5b21b6" },
+  VACACION_APROBAR:     { label: "VACACION_APROBAR",     bg: "#d1fae5", color: "#065f46" },
+  VACACION_RECHAZAR:    { label: "VACACION_RECHAZAR",    bg: "#fee2e2", color: "#991b1b" },
+  COMISION_CREAR:       { label: "COMISION_CREAR",       bg: "#fff7ed", color: "#c2410c" },
+  PERMISO_APROBAR:      { label: "PERMISO_APROBAR",      bg: "#d1fae5", color: "#065f46" },
+  PERMISO_RECHAZAR:     { label: "PERMISO_RECHAZAR",     bg: "#fee2e2", color: "#991b1b" },
+  PERMISO_VALIDAR_RH:   { label: "PERMISO_VALIDAR_RH",  bg: "#ede9fe", color: "#5b21b6" },
+  COMUNICADO_CREAR:     { label: "COMUNICADO_CREAR",     bg: "#e0f2fe", color: "#0369a1" },
+  COMUNICADO_ARCHIVAR:  { label: "COMUNICADO_ARCHIVAR",  bg: "var(--surface-2)", color: "var(--muted)" },
+  CONTRATO_CREAR:       { label: "CONTRATO_CREAR",       bg: "#e3f2fd", color: "#1565c0" },
+  CONTRATO_ACTUALIZAR:  { label: "CONTRATO_ACTUALIZAR",  bg: "#ede9fe", color: "#5b21b6" },
+  CONTRATO_ELIMINAR:    { label: "CONTRATO_ELIMINAR",    bg: "#fdecea", color: "#c8472a" },
 };
 
 function recursoLabel(item: AuditLogItem): string {
@@ -88,28 +112,20 @@ export default function AuditLogView({ entradas, total }: { entradas: AuditLogIt
           </div>
         </div>
 
-        {/* Filtros */}
-        <div style={{ display: "flex", gap: 4, flexWrap: "wrap", background: "var(--surface-2)", padding: 4, borderRadius: 6 }}>
+        {/* Filtro */}
+        <select
+          value={filtro}
+          onChange={e => setFiltro(e.target.value as Filtro)}
+          style={{
+            padding: "7px 12px", border: "1px solid var(--border-strong)", borderRadius: 6,
+            fontSize: 12, fontFamily: "'DM Mono', monospace", background: "var(--surface)",
+            color: "var(--ink)", cursor: "pointer", minWidth: 200,
+          }}
+        >
           {FILTROS.map(f => (
-            <button
-              key={f.key}
-              onClick={() => setFiltro(f.key)}
-              style={{
-                padding: "5px 12px",
-                background: filtro === f.key ? "white" : "transparent",
-                border: "none", borderRadius: 4,
-                fontSize: 11, fontWeight: 500,
-                color: filtro === f.key ? "var(--ink)" : "var(--muted)",
-                cursor: "pointer",
-                fontFamily: "'DM Mono', monospace",
-                boxShadow: filtro === f.key ? "0 1px 3px rgba(15,17,23,0.08)" : "none",
-                transition: "all 0.12s",
-              }}
-            >
-              {f.label}
-            </button>
+            <option key={f.key} value={f.key}>{f.label}</option>
           ))}
-        </div>
+        </select>
       </div>
 
       {/* Tabla */}

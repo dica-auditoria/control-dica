@@ -1,7 +1,18 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
+
+async function logAudit(userId: string, accion: "COMUNICADO_CREAR" | "COMUNICADO_ARCHIVAR", recurso_id: string, detalle: Record<string, unknown>) {
+  try {
+    const admin = createAdminClient();
+    const h = await headers();
+    const ip = h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;
+    await (admin.from("audit_log") as any).insert({ usuario_id: userId, accion, recurso_id, ip, detalle_json: detalle });
+  } catch { /* non-critical */ }
+}
 
 export interface Comunicado {
   id: string;
@@ -91,6 +102,7 @@ export async function crearComunicadoAction(input: {
 
   revalidatePath("/dashboard/comunicados");
   revalidatePath("/dashboard");
+  await logAudit(user!.id, "COMUNICADO_CREAR", nuevo.id, { titulo: input.titulo.trim(), tipo: input.tipo });
   return { success: true, id: nuevo.id, error: null };
 }
 
@@ -120,7 +132,7 @@ export async function subirImagenComunicadoAction(id: string, formData: FormData
 }
 
 export async function desactivarComunicadoAction(id: string) {
-  const { supabase, ok } = await verificarAdmin();
+  const { supabase, ok, user } = await verificarAdmin();
   if (!ok) return { error: "Sin permisos" };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -131,5 +143,6 @@ export async function desactivarComunicadoAction(id: string) {
 
   revalidatePath("/dashboard/comunicados");
   revalidatePath("/dashboard");
+  if (user) await logAudit(user.id, "COMUNICADO_ARCHIVAR", id, {});
   return { success: true };
 }

@@ -1,7 +1,23 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
+
+async function logAudit(
+  userId: string,
+  accion: "COMISION_CREAR" | "PERMISO_APROBAR" | "PERMISO_RECHAZAR" | "PERMISO_VALIDAR_RH",
+  recurso_id: string,
+  detalle: Record<string, unknown>
+) {
+  try {
+    const admin = createAdminClient();
+    const h = await headers();
+    const ip = h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;
+    await (admin.from("audit_log") as any).insert({ usuario_id: userId, accion, recurso_id, ip, detalle_json: detalle });
+  } catch { /* non-critical */ }
+}
 
 export type TipoOtro = "comision" | "permiso";
 export type EstadoOtro =
@@ -179,6 +195,10 @@ export async function crearComisionAction(input: {
 
   if (error) return { error: "Error al crear comisión" };
   revalidatePath("/dashboard/otros");
+  await logAudit(user.id, "COMISION_CREAR", input.empleado_id, {
+    supervisor: `${empleado.nombres} ${empleado.apellido_paterno}`,
+    fechaInicio: input.fecha_inicio, fechaFin: input.fecha_fin, motivo: input.motivo,
+  });
   return { error: null };
 }
 
@@ -207,6 +227,7 @@ export async function aprobarPermisoSupervisorAction(id: string, comentario?: st
 
   if (error) return { error: "Error al aprobar" };
   revalidatePath("/dashboard/otros");
+  await logAudit(user.id, "PERMISO_APROBAR", id, { rol: "supervisor", comentario: comentario ?? null });
   return { error: null };
 }
 
@@ -232,6 +253,7 @@ export async function rechazarPermisoSupervisorAction(id: string, comentario: st
 
   if (error) return { error: "Error al rechazar" };
   revalidatePath("/dashboard/otros");
+  await logAudit(user.id, "PERMISO_RECHAZAR", id, { rol: "supervisor", comentario });
   return { error: null };
 }
 
@@ -259,6 +281,7 @@ export async function validarRHAction(id: string, aprobado: boolean, comentario?
 
   if (error) return { error: "Error al validar" };
   revalidatePath("/dashboard/otros");
+  await logAudit(user.id, "PERMISO_VALIDAR_RH", id, { aprobado, comentario: comentario ?? null });
   return { error: null };
 }
 

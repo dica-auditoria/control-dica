@@ -13,6 +13,20 @@ import type { CrearEmpleadoInput } from "@/types/empleados";
 import { sendBienvenidaEmpleadoEmail } from "@/lib/email";
 
 interface PerfilRow { rol: string; id: string }
+
+async function logAudit(
+  userId: string,
+  accion: "EMPLEADO_CREAR" | "EMPLEADO_ACTUALIZAR",
+  recurso_id: string,
+  detalle: Record<string, unknown>
+) {
+  try {
+    const admin = createAdminClient();
+    const h = await headers();
+    const ip = h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;
+    await (admin.from("audit_log") as any).insert({ usuario_id: userId, accion, recurso_id, ip, detalle_json: detalle });
+  } catch { /* non-critical */ }
+}
 type SupabaseServer = ReturnType<typeof createClient>;
 type DbQuery = PromiseLike<unknown> & {
   select: (...args: unknown[]) => DbQuery;
@@ -143,6 +157,10 @@ export async function crearEmpleadoAction(input: CrearEmpleadoInput) {
 
   revalidateEmpleados();
   revalidatePath(`/dashboard/empleados/${empleado.id}`);
+  await logAudit(userId!, "EMPLEADO_CREAR", empleado.id, {
+    nombre: `${input.nombres.trim()} ${input.apellido_paterno.trim()}`,
+    puesto: input.puesto.trim(), departamento: input.departamento, codigo: codigo,
+  });
 
   return {
     empleadoId: empleado.id,
@@ -222,6 +240,7 @@ export async function actualizarEmpleadoAction(
 
   revalidateEmpleados();
   revalidatePath(`/dashboard/empleados/${empleadoId}`);
+  await logAudit(userId!, "EMPLEADO_ACTUALIZAR", empleadoId, payload);
   return { success: true };
 }
 
