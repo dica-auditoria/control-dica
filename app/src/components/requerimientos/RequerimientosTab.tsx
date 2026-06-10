@@ -104,8 +104,7 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
   const [enviando, setEnviando]                       = useState<string | null>(null);
   const [busqueda, setBusqueda]                       = useState("");
   const [ordenFiltro, setOrdenFiltro]                 = useState<"numero" | "reciente">("numero");
-  const [extendiendo, setExtendiendo]                 = useState<string | null>(null);
-  const [nuevaFechaExt, setNuevaFechaExt]             = useState("");
+  const [editFechas, setEditFechas]                   = useState<Record<string, string>>({});
 
   const busquedaNorm = busqueda.toLowerCase().trim();
 
@@ -148,11 +147,11 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
     router.refresh();
   };
 
-  const handleExtender = async (itemId: string) => {
-    if (!nuevaFechaExt) return;
-    await extenderFechaItemAction(itemId, nuevaFechaExt);
-    setExtendiendo(null);
-    setNuevaFechaExt("");
+  const handleGuardarFecha = async (itemId: string) => {
+    const fecha = editFechas[itemId];
+    if (!fecha) return;
+    await extenderFechaItemAction(itemId, fecha);
+    setEditFechas(prev => { const n = { ...prev }; delete n[itemId]; return n; });
     router.refresh();
   };
 
@@ -402,49 +401,34 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
                         <div style={{ marginTop: 16, paddingTop: 12, borderTop: "1px solid var(--border)" }}>
                           <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                             <span style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "var(--muted)" }}>Plazo:</span>
-                            <span style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "var(--ink)" }}>
-                              {item.fecha_limite
-                                ? new Date(item.fecha_limite + "T12:00:00").toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "numeric" })
-                                : "Sin fecha"}
-                            </span>
-                            {item.extendida && (
+                            <input
+                              type="date"
+                              value={editFechas[item.id] ?? item.fecha_limite ?? ""}
+                              onChange={e => setEditFechas(prev => ({ ...prev, [item.id]: e.target.value }))}
+                              style={{ height: 28, padding: "0 8px", border: "1px solid var(--border-strong)", borderRadius: 4, fontSize: 12, fontFamily: "'DM Sans', sans-serif", background: "var(--card)", color: "var(--ink)", outline: "none" }}
+                            />
+                            {item.extendida && !(editFechas[item.id] && editFechas[item.id] !== item.fecha_limite) && (
                               <span style={{ fontSize: 10, padding: "2px 7px", borderRadius: 100, background: "rgba(66,153,225,0.12)", color: "#2B6CB0", fontFamily: "'DM Mono', monospace" }}>
                                 Extendida
                               </span>
                             )}
-                            {extendiendo !== item.id && (
+                            {editFechas[item.id] && editFechas[item.id] !== item.fecha_limite && (
                               <button
-                                onClick={e => { e.stopPropagation(); setExtendiendo(item.id); setNuevaFechaExt(item.fecha_limite ?? ""); }}
-                                style={{ fontSize: 11, padding: "2px 10px", background: "var(--surface)", border: "1px solid var(--border-strong)", borderRadius: 4, cursor: "pointer", color: "var(--ink)", fontFamily: "'DM Sans', sans-serif" }}
-                              >
-                                Extender plazo
-                              </button>
-                            )}
-                          </div>
-                          {extendiendo === item.id && (
-                            <div style={{ marginTop: 8, display: "flex", gap: 6, alignItems: "center" }} onClick={e => e.stopPropagation()}>
-                              <input
-                                type="date"
-                                value={nuevaFechaExt}
-                                onChange={e => setNuevaFechaExt(e.target.value)}
-                                min={new Date().toISOString().slice(0, 10)}
-                                style={{ height: 30, padding: "0 8px", border: "1px solid var(--border-strong)", borderRadius: 4, fontSize: 12, fontFamily: "'DM Sans', sans-serif", background: "var(--card)", color: "var(--ink)", outline: "none" }}
-                              />
-                              <button
-                                onClick={() => handleExtender(item.id)}
-                                disabled={!nuevaFechaExt}
-                                style={{ height: 30, padding: "0 14px", background: "var(--ink)", color: "white", border: "none", borderRadius: 4, fontSize: 12, cursor: !nuevaFechaExt ? "not-allowed" : "pointer", opacity: !nuevaFechaExt ? 0.5 : 1 }}
+                                onClick={() => handleGuardarFecha(item.id)}
+                                style={{ height: 28, padding: "0 14px", background: "var(--ink)", color: "white", border: "none", borderRadius: 4, fontSize: 12, cursor: "pointer" }}
                               >
                                 Guardar
                               </button>
+                            )}
+                            {editFechas[item.id] && editFechas[item.id] !== item.fecha_limite && (
                               <button
-                                onClick={() => setExtendiendo(null)}
-                                style={{ height: 30, padding: "0 12px", background: "none", border: "1px solid var(--border)", borderRadius: 4, fontSize: 12, cursor: "pointer", color: "var(--muted)" }}
+                                onClick={() => setEditFechas(prev => { const n = { ...prev }; delete n[item.id]; return n; })}
+                                style={{ height: 28, padding: "0 10px", background: "none", border: "1px solid var(--border)", borderRadius: 4, fontSize: 12, cursor: "pointer", color: "var(--muted)" }}
                               >
-                                Cancelar
+                                ×
                               </button>
-                            </div>
-                          )}
+                            )}
+                          </div>
                         </div>
                       )}
                     </div>
@@ -557,10 +541,11 @@ function ComentariosList({ comentarios, cargando }: { comentarios: Comentario[];
 function ImportarCSVModal({ contratoId, entidadId, onClose, onImported }: {
   contratoId: string; entidadId: string; onClose: () => void; onImported: () => void;
 }) {
-  const [rows, setRows]         = useState<CSVRow[]>([]);
-  const [parseErr, setParseErr] = useState<string | null>(null);
-  const [saving, setSaving]     = useState(false);
-  const [error, setError]       = useState<string | null>(null);
+  const [rows, setRows]               = useState<CSVRow[]>([]);
+  const [parseErr, setParseErr]       = useState<string | null>(null);
+  const [saving, setSaving]           = useState(false);
+  const [error, setError]             = useState<string | null>(null);
+  const [fechaLimite, setFechaLimite] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -585,7 +570,7 @@ function ImportarCSVModal({ contratoId, entidadId, onClose, onImported }: {
   const handleImportar = async () => {
     if (!rows.length || parseErr) return;
     setSaving(true); setError(null);
-    const result = await importarReactivosContratoAction(contratoId, entidadId, rows);
+    const result = await importarReactivosContratoAction(contratoId, entidadId, rows, fechaLimite || undefined);
     if (result.error) { setError(result.error); setSaving(false); return; }
     onImported();
   };
@@ -610,6 +595,23 @@ function ImportarCSVModal({ contratoId, entidadId, onClose, onImported }: {
             <button onClick={descargarPlantilla} style={{ marginTop: 10, fontSize: 12, color: "#1B4F8A", background: "none", border: "none", cursor: "pointer", padding: 0, display: "inline-flex", alignItems: "center", gap: 4, fontFamily: "'DM Sans', sans-serif" }}>
               <DownloadIcon /> Descargar plantilla de ejemplo
             </button>
+          </div>
+
+          {/* Fecha límite */}
+          <div>
+            <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "var(--ink)", marginBottom: 6, fontFamily: "'DM Sans', sans-serif" }}>
+              Fecha límite para los reactivos
+            </label>
+            <input
+              type="date"
+              value={fechaLimite}
+              onChange={e => setFechaLimite(e.target.value)}
+              min={new Date().toISOString().slice(0, 10)}
+              style={{ height: 36, padding: "0 10px", border: "1px solid var(--border-strong)", borderRadius: 6, fontSize: 13, fontFamily: "'DM Sans', sans-serif", background: "var(--card)", color: "var(--ink)", outline: "none", width: "100%", boxSizing: "border-box" }}
+            />
+            <div style={{ fontSize: 11, color: "var(--muted)", fontFamily: "'DM Mono', monospace", marginTop: 4 }}>
+              {fechaLimite ? "Se aplicará a todos los reactivos importados" : "Si no se indica, se usará la fecha del requerimiento"}
+            </div>
           </div>
 
           <div>

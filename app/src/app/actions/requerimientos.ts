@@ -291,7 +291,8 @@ export async function eliminarRequerimientoAction(requerimientoId: string) {
 export async function importarReactivosContratoAction(
   contratoId: string,
   entidadId: string,
-  reactivos: Array<{ orden: number; rubro: string; nombre: string }>
+  reactivos: Array<{ orden: number; rubro: string; nombre: string }>,
+  fechaLimiteInput?: string
 ) {
   const { user, perfil, error: authErr } = await getUser();
   if (authErr || !user || !perfil) return { error: authErr };
@@ -314,7 +315,13 @@ export async function importarReactivosContratoAction(
 
   if (existing) {
     requerimientoId = existing.id;
-    fechaLimiteReq = existing.fecha_limite;
+    fechaLimiteReq = fechaLimiteInput ?? existing.fecha_limite;
+    // Si el usuario proporcionó fecha, actualizar también el requerimiento
+    if (fechaLimiteInput) {
+      await (admin.from("requerimientos") as any)
+        .update({ fecha_limite: fechaLimiteInput })
+        .eq("id", existing.id);
+    }
     // Eliminar todos los items de TODOS los requerimientos del contrato
     const { data: allReqs } = await (admin.from("requerimientos") as any)
       .select("id").eq("contrato_id", contratoId) as { data: Array<{ id: string }> | null; error: unknown };
@@ -324,7 +331,7 @@ export async function importarReactivosContratoAction(
     }
   } else {
     // Crear requerimiento base automáticamente
-    fechaLimiteReq = new Date(Date.now() + 90 * 86400000).toISOString().slice(0, 10);
+    fechaLimiteReq = fechaLimiteInput ?? new Date(Date.now() + 90 * 86400000).toISOString().slice(0, 10);
     const { data: nuevo } = await (admin.from("requerimientos") as any)
       .insert({
         contrato_id: contratoId,
