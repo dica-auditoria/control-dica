@@ -692,12 +692,12 @@ function ItemDeadlineBadge({ fecha, extendida }: { fecha: string | null; extendi
   if (!fecha) return null;
   const dias = Math.ceil((new Date(fecha + "T23:59:59").getTime() - Date.now()) / 86400000);
   const ext = extendida ? "Ext · " : "";
-  if (dias > 7)
+  if (dias > 3)
     return <span style={{ fontSize: 10, padding: "2px 7px", borderRadius: 100, background: "rgba(45,166,95,0.12)", color: "#1B7A3E", fontFamily: "'DM Mono', monospace" }}>{ext}A tiempo</span>;
   if (dias >= 1)
     return <span style={{ fontSize: 10, padding: "2px 7px", borderRadius: 100, background: "rgba(251,191,36,0.18)", color: "#92400E", fontFamily: "'DM Mono', monospace" }}>{ext}Próx. vencer</span>;
   if (dias === 0)
-    return <span style={{ fontSize: 10, padding: "2px 7px", borderRadius: 100, background: "rgba(200,71,42,0.12)", color: "#C8472A", fontFamily: "'DM Mono', monospace" }}>Vence hoy</span>;
+    return <span style={{ fontSize: 10, padding: "2px 7px", borderRadius: 100, background: "rgba(251,191,36,0.18)", color: "#92400E", fontFamily: "'DM Mono', monospace" }}>Vence hoy</span>;
   return <span style={{ fontSize: 10, padding: "2px 7px", borderRadius: 100, background: "rgba(200,71,42,0.12)", color: "#C8472A", fontFamily: "'DM Mono', monospace" }}>{ext}En retraso</span>;
 }
 
