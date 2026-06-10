@@ -344,6 +344,53 @@ export async function agregarItemContratoAction(
   return { success: true, id: newItem.id };
 }
 
+// ── EDITAR ITEM ───────────────────────────────────────────────────────────────
+
+export async function editarItemAction(itemId: string, datos: { nombre: string; rubro?: string }) {
+  const { perfil, error: authErr } = await getUser();
+  if (authErr || !perfil) return { error: authErr };
+  if (!["admin", "superadmin", "rrhh", "empleado"].includes(perfil.rol)) return { error: "No autorizado" };
+
+  const admin = createAdminClient();
+  const { data: item } = await (admin.from("requerimiento_items") as any)
+    .select("requerimiento_id").eq("id", itemId).single() as { data: { requerimiento_id: string } | null; error: unknown };
+  if (!item) return { error: "Reactivo no encontrado" };
+
+  await (admin.from("requerimiento_items") as any)
+    .update({ nombre: datos.nombre.trim(), rubro: datos.rubro?.trim() || null })
+    .eq("id", itemId);
+
+  const { data: req } = await (admin.from("requerimientos") as any)
+    .select("entidad_id, contrato_id").eq("id", item.requerimiento_id).single() as { data: { entidad_id: string; contrato_id: string | null } | null; error: unknown };
+  if (req) revalidate(req.entidad_id, req.contrato_id ?? undefined);
+  return { success: true };
+}
+
+// ── ELIMINAR ITEM ─────────────────────────────────────────────────────────────
+
+export async function eliminarItemAction(itemId: string) {
+  const { perfil, error: authErr } = await getUser();
+  if (authErr || !perfil) return { error: authErr };
+  if (!["admin", "superadmin", "rrhh", "empleado"].includes(perfil.rol)) return { error: "No autorizado" };
+
+  const admin = createAdminClient();
+  const { data: item } = await (admin.from("requerimiento_items") as any)
+    .select("requerimiento_id").eq("id", itemId).single() as { data: { requerimiento_id: string } | null; error: unknown };
+  if (!item) return { error: "Reactivo no encontrado" };
+
+  // Desvincular archivos (no eliminarlos)
+  await (admin.from("archivos") as any)
+    .update({ requerimiento_item_id: null })
+    .eq("requerimiento_item_id", itemId);
+
+  await (admin.from("requerimiento_items") as any).delete().eq("id", itemId);
+
+  const { data: req } = await (admin.from("requerimientos") as any)
+    .select("entidad_id, contrato_id").eq("id", item.requerimiento_id).single() as { data: { entidad_id: string; contrato_id: string | null } | null; error: unknown };
+  if (req) revalidate(req.entidad_id, req.contrato_id ?? undefined);
+  return { success: true };
+}
+
 // ── CHEQUEAR IMPACTO ANTES DE RE-IMPORTAR ────────────────────────────────────
 
 export async function chequearImpactoImportAction(contratoId: string): Promise<{ archivos: number; items: number }> {

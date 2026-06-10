@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import type { Requerimiento, RequerimientoItem } from "@/types/requerimientos";
 import type { ArchivoContratoItem } from "@/app/actions/archivos";
 import type { Comentario } from "@/app/actions/comentarios";
-import { toggleItemCompletoAction, importarReactivosContratoAction, extenderFechaItemAction, chequearImpactoImportAction, agregarItemContratoAction } from "@/app/actions/requerimientos";
+import { toggleItemCompletoAction, importarReactivosContratoAction, extenderFechaItemAction, chequearImpactoImportAction, agregarItemContratoAction, editarItemAction, eliminarItemAction } from "@/app/actions/requerimientos";
 import { deleteArchivoAction } from "@/app/actions/archivos";
 import { fetchComentariosItemAction, agregarComentarioAction } from "@/app/actions/comentarios";
 import UploadZone from "@/components/archivos/UploadZone";
@@ -98,6 +98,8 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
   const [expandedItem, setExpandedItem]               = useState<string | null>(null);
   const [showImport, setShowImport]                   = useState(false);
   const [showAddItem, setShowAddItem]                 = useState(false);
+  const [editingItem, setEditingItem]                 = useState<{ id: string; nombre: string; rubro: string | null } | null>(null);
+  const [eliminandoId, setEliminandoId]               = useState<string | null>(null);
   const [deletingId, setDeletingId]                   = useState<string | null>(null);
   const [comentariosPorItem, setComentariosPorItem]   = useState<Record<string, Comentario[]>>({});
   const [loadingComents, setLoadingComents]           = useState<string | null>(null);
@@ -146,6 +148,14 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
     setDeletingId(archivoId);
     await deleteArchivoAction(archivoId);
     setDeletingId(null);
+    router.refresh();
+  };
+
+  const handleEliminarItem = async (itemId: string) => {
+    if (!confirm("¿Eliminar este reactivo? Los archivos subidos no se borrarán.")) return;
+    setEliminandoId(itemId);
+    await eliminarItemAction(itemId);
+    setEliminandoId(null);
     router.refresh();
   };
 
@@ -319,6 +329,27 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
                     )}
                     <ItemDeadlineBadge fecha={item.fecha_limite} extendida={item.extendida} />
                   </span>
+
+                  {/* Editar / Eliminar */}
+                  {!esCliente && (
+                    <span onClick={e => e.stopPropagation()} style={{ display: "flex", alignItems: "center", gap: 2, flexShrink: 0 }}>
+                      <button
+                        onClick={() => setEditingItem({ id: item.id, nombre: item.nombre, rubro: item.rubro })}
+                        title="Editar reactivo"
+                        style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", padding: 4, display: "flex", borderRadius: 4 }}
+                      >
+                        <EditIcon />
+                      </button>
+                      <button
+                        onClick={() => handleEliminarItem(item.id)}
+                        disabled={eliminandoId === item.id}
+                        title="Eliminar reactivo"
+                        style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", padding: 4, display: "flex", borderRadius: 4, opacity: eliminandoId === item.id ? 0.4 : 1 }}
+                      >
+                        <TrashIcon />
+                      </button>
+                    </span>
+                  )}
 
                   {/* Estado */}
                   <span onClick={e => e.stopPropagation()} style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: 6 }}>
@@ -520,6 +551,14 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
           onAdded={() => { setShowAddItem(false); router.refresh(); }}
         />
       )}
+
+      {editingItem && (
+        <EditarItemModal
+          item={editingItem}
+          onClose={() => setEditingItem(null)}
+          onSaved={() => { setEditingItem(null); router.refresh(); }}
+        />
+      )}
     </>
   );
 }
@@ -634,6 +673,79 @@ function AgregarReactivoModal({ contratoId, entidadId, onClose, onAdded }: {
           <button onClick={handleGuardar} disabled={!nombre.trim() || saving}
             style={{ padding: "8px 20px", background: "var(--ink)", color: "white", border: "none", borderRadius: 4, fontSize: 13, fontWeight: 600, cursor: (!nombre.trim() || saving) ? "not-allowed" : "pointer", opacity: (!nombre.trim() || saving) ? 0.5 : 1 }}>
             {saving ? "Guardando…" : "Agregar"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Editar Item Modal ─────────────────────────────────────────────────────────
+
+function EditarItemModal({ item, onClose, onSaved }: {
+  item: { id: string; nombre: string; rubro: string | null };
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const [nombre, setNombre] = useState(item.nombre);
+  const [rubro, setRubro]   = useState(item.rubro ?? "");
+  const [saving, setSaving] = useState(false);
+  const [error, setError]   = useState<string | null>(null);
+
+  const handleGuardar = async () => {
+    if (!nombre.trim()) return;
+    setSaving(true); setError(null);
+    const result = await editarItemAction(item.id, { nombre, rubro });
+    if (result.error) { setError(result.error); setSaving(false); return; }
+    onSaved();
+  };
+
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 1200, background: "var(--overlay)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div style={{ background: "var(--card)", borderRadius: 10, width: "100%", maxWidth: 420, boxShadow: "0 24px 64px rgba(15,17,23,0.25)", overflow: "hidden" }}>
+        <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", background: "var(--surface)" }}>
+          <div style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)" }}>Editar reactivo</div>
+        </div>
+
+        <div style={{ padding: 20, display: "flex", flexDirection: "column", gap: 14 }}>
+          <div>
+            <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "var(--ink)", marginBottom: 6, fontFamily: "'DM Sans', sans-serif" }}>
+              Nombre <span style={{ color: "var(--accent)" }}>*</span>
+            </label>
+            <input
+              autoFocus
+              type="text"
+              value={nombre}
+              onChange={e => setNombre(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter") handleGuardar(); }}
+              style={{ width: "100%", height: 36, padding: "0 10px", border: "1px solid var(--border-strong)", borderRadius: 6, fontSize: 13, fontFamily: "'DM Sans', sans-serif", background: "var(--surface)", color: "var(--ink)", outline: "none", boxSizing: "border-box" }}
+            />
+          </div>
+
+          <div>
+            <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "var(--ink)", marginBottom: 6, fontFamily: "'DM Sans', sans-serif" }}>
+              Rubro <span style={{ color: "var(--muted)", fontWeight: 400 }}>(opcional)</span>
+            </label>
+            <input
+              type="text"
+              value={rubro}
+              onChange={e => setRubro(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter") handleGuardar(); }}
+              style={{ width: "100%", height: 36, padding: "0 10px", border: "1px solid var(--border-strong)", borderRadius: 6, fontSize: 13, fontFamily: "'DM Sans', sans-serif", background: "var(--surface)", color: "var(--ink)", outline: "none", boxSizing: "border-box" }}
+            />
+          </div>
+
+          {error && (
+            <div style={{ padding: "8px 12px", background: "rgba(200,71,42,0.06)", borderRadius: 4, fontSize: 12, color: "var(--accent)" }}>{error}</div>
+          )}
+        </div>
+
+        <div style={{ padding: "12px 20px", borderTop: "1px solid var(--border)", display: "flex", gap: 8, justifyContent: "flex-end" }}>
+          <button type="button" onClick={onClose} style={{ padding: "8px 16px", border: "1px solid var(--border)", borderRadius: 4, background: "none", cursor: "pointer", fontSize: 13 }}>Cancelar</button>
+          <button onClick={handleGuardar} disabled={!nombre.trim() || saving}
+            style={{ padding: "8px 20px", background: "var(--ink)", color: "white", border: "none", borderRadius: 4, fontSize: 13, fontWeight: 600, cursor: (!nombre.trim() || saving) ? "not-allowed" : "pointer", opacity: (!nombre.trim() || saving) ? 0.5 : 1 }}>
+            {saving ? "Guardando…" : "Guardar"}
           </button>
         </div>
       </div>
@@ -846,6 +958,7 @@ function badgeStyle(color: string, bg: string): React.CSSProperties {
 
 function ChevronIcon()  { return <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6" /></svg>; }
 function PlusIcon()     { return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>; }
+function EditIcon()     { return <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>; }
 function SearchIcon()   { return <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>; }
 function DownloadIcon() { return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>; }
 function UploadIconSm() { return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></svg>; }
