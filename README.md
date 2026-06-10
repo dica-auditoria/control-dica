@@ -1,6 +1,6 @@
 # Control DICA-MX
 
-Plataforma de gestión documental segura y administración de recursos humanos para **DICA México / TKS México**, alineada a ISO 27001 y LFPDPPP.
+Plataforma de gestión documental segura y administración de recursos humanos para **DICA México**, alineada a ISO 27001 y LFPDPPP.
 
 ---
 
