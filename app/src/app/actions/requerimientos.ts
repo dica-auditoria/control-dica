@@ -269,7 +269,74 @@ export async function eliminarRequerimientoAction(requerimientoId: string) {
   return { success: true };
 }
 
-// ── IMPORTAR REACTIVOS DESDE CSV ──────────────────────────────────────────────
+// ── IMPORTAR REACTIVOS DESDE CSV (nivel contrato) ────────────────────────────
+
+export async function importarReactivosContratoAction(
+  contratoId: string,
+  entidadId: string,
+  reactivos: Array<{ orden: number; rubro: string; nombre: string }>
+) {
+  const { user, perfil, error: authErr } = await getUser();
+  if (authErr || !user || !perfil) return { error: authErr };
+  if (!["admin", "superadmin", "rrhh", "empleado"].includes(perfil.rol)) return { error: "No autorizado" };
+
+  if (!reactivos.length) return { error: "El CSV no contiene filas válidas" };
+
+  const admin = createAdminClient();
+
+  // Obtener o crear el requerimiento base del contrato
+  const { data: existing } = await (admin.from("requerimientos") as any)
+    .select("id")
+    .eq("contrato_id", contratoId)
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .single() as { data: { id: string } | null; error: unknown };
+
+  let requerimientoId: string;
+
+  if (existing) {
+    requerimientoId = existing.id;
+    // Eliminar todos los items de TODOS los requerimientos del contrato
+    const { data: allReqs } = await (admin.from("requerimientos") as any)
+      .select("id").eq("contrato_id", contratoId) as { data: Array<{ id: string }> | null; error: unknown };
+    const ids = (allReqs ?? []).map(r => r.id);
+    if (ids.length) {
+      await (admin.from("requerimiento_items") as any).delete().in("requerimiento_id", ids);
+    }
+  } else {
+    // Crear requerimiento base automáticamente
+    const { data: nuevo } = await (admin.from("requerimientos") as any)
+      .insert({
+        contrato_id: contratoId,
+        entidad_id: entidadId,
+        titulo: "Reactivos",
+        fecha_limite: new Date(Date.now() + 90 * 86400000).toISOString().slice(0, 10),
+        estado: "pendiente",
+        creado_por: user.id,
+      })
+      .select("id")
+      .single() as { data: { id: string } | null; error: unknown };
+    if (!nuevo) return { error: "Error al crear contenedor de reactivos" };
+    requerimientoId = nuevo.id;
+  }
+
+  const { error: insertErr } = await (admin.from("requerimiento_items") as any).insert(
+    reactivos.map(r => ({
+      requerimiento_id: requerimientoId,
+      nombre:     r.nombre.trim(),
+      rubro:      r.rubro.trim() || null,
+      orden:      r.orden,
+      obligatorio: true,
+      completado:  false,
+    }))
+  );
+
+  if (insertErr) return { error: "Error al importar reactivos" };
+  revalidate(entidadId, contratoId);
+  return { success: true };
+}
+
+// ── IMPORTAR REACTIVOS DESDE CSV (nivel requerimiento — legacy) ───────────────
 
 export async function importarReactivosAction(
   requerimientoId: string,
@@ -287,7 +354,6 @@ export async function importarReactivosAction(
     .select("entidad_id, contrato_id").eq("id", requerimientoId).single() as { data: { entidad_id: string; contrato_id: string | null } | null; error: unknown };
   if (!req) return { error: "Requerimiento no encontrado" };
 
-  // Reemplazar todos los ítems existentes con los del CSV
   await (admin.from("requerimiento_items") as any).delete().eq("requerimiento_id", requerimientoId);
 
   const { error: insertErr } = await (admin.from("requerimiento_items") as any).insert(
