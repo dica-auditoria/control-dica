@@ -342,33 +342,90 @@ export async function importarReactivosContratoAction(
   let requerimientoId: string;
   let fechaLimiteReq: string;
 
+  // ── Merge inteligente: preservar items que coincidan por nombre ──────────────
+
+  let actualizados = 0, nuevos = 0, eliminados = 0;
+
   if (existing) {
     requerimientoId = existing.id;
     fechaLimiteReq = fechaLimiteInput ?? existing.fecha_limite;
-    // Si el usuario proporcionó fecha, actualizar también el requerimiento
+
     if (fechaLimiteInput) {
       await (admin.from("requerimientos") as any)
         .update({ fecha_limite: fechaLimiteInput })
         .eq("id", existing.id);
     }
-    // Eliminar todos los items de TODOS los requerimientos del contrato
+
+    // Obtener todos los items actuales del contrato
     const { data: allReqs } = await (admin.from("requerimientos") as any)
       .select("id").eq("contrato_id", contratoId) as { data: Array<{ id: string }> | null; error: unknown };
-    const ids = (allReqs ?? []).map(r => r.id);
-    if (ids.length) {
-      // Desvincular archivos antes de borrar (los archivos NO se eliminan)
-      const { data: oldItems } = await (admin.from("requerimiento_items") as any)
-        .select("id").in("requerimiento_id", ids) as { data: Array<{ id: string }> | null; error: unknown };
-      const oldItemIds = (oldItems ?? []).map(i => i.id);
-      if (oldItemIds.length) {
-        await (admin.from("archivos") as any)
-          .update({ requerimiento_item_id: null })
-          .in("requerimiento_item_id", oldItemIds);
+    const reqIds = (allReqs ?? []).map(r => r.id);
+
+    const { data: existingItems } = await (admin.from("requerimiento_items") as any)
+      .select("id, nombre").in("requerimiento_id", reqIds) as { data: Array<{ id: string; nombre: string }> | null; error: unknown };
+
+    // Mapa nombre normalizado → id existente
+    const nameToId = new Map<string, string>();
+    for (const item of existingItems ?? []) {
+      nameToId.set(item.nombre.trim().toLowerCase(), item.id);
+    }
+
+    // Clasificar filas del CSV
+    const toUpdate: Array<{ id: string; orden: number; rubro: string; nombre: string }> = [];
+    const toInsert: Array<{ orden: number; rubro: string; nombre: string }> = [];
+    const matchedIds = new Set<string>();
+
+    for (const row of reactivos) {
+      const key = row.nombre.trim().toLowerCase();
+      const existingId = nameToId.get(key);
+      if (existingId) {
+        toUpdate.push({ id: existingId, ...row });
+        matchedIds.add(existingId);
+      } else {
+        toInsert.push(row);
       }
-      await (admin.from("requerimiento_items") as any).delete().in("requerimiento_id", ids);
+    }
+
+    // Items que desaparecieron del CSV → desvincular archivos y eliminar
+    const toDelete = (existingItems ?? []).map(i => i.id).filter(id => !matchedIds.has(id));
+    if (toDelete.length) {
+      await (admin.from("archivos") as any)
+        .update({ requerimiento_item_id: null })
+        .in("requerimiento_item_id", toDelete);
+      await (admin.from("requerimiento_items") as any).delete().in("id", toDelete);
+      eliminados = toDelete.length;
+    }
+
+    // Actualizar items que coincidieron (sólo orden, rubro, nombre; conservan estado/archivos)
+    for (const item of toUpdate) {
+      await (admin.from("requerimiento_items") as any)
+        .update({
+          nombre: item.nombre.trim(),
+          rubro: item.rubro.trim() || null,
+          orden: item.orden,
+          ...(fechaLimiteInput ? { fecha_limite: fechaLimiteInput } : {}),
+        })
+        .eq("id", item.id);
+    }
+    actualizados = toUpdate.length;
+
+    // Insertar nuevos items
+    if (toInsert.length) {
+      await (admin.from("requerimiento_items") as any).insert(
+        toInsert.map(r => ({
+          requerimiento_id: requerimientoId,
+          nombre: r.nombre.trim(),
+          rubro: r.rubro.trim() || null,
+          orden: r.orden,
+          obligatorio: true,
+          completado: false,
+          fecha_limite: fechaLimiteReq,
+        }))
+      );
+      nuevos = toInsert.length;
     }
   } else {
-    // Crear requerimiento base automáticamente
+    // Primera importación — crear requerimiento base
     fechaLimiteReq = fechaLimiteInput ?? new Date(Date.now() + 90 * 86400000).toISOString().slice(0, 10);
     const { data: nuevo } = await (admin.from("requerimientos") as any)
       .insert({
@@ -383,23 +440,24 @@ export async function importarReactivosContratoAction(
       .single() as { data: { id: string } | null; error: unknown };
     if (!nuevo) return { error: "Error al crear contenedor de reactivos" };
     requerimientoId = nuevo.id;
+
+    const { error: insertErr } = await (admin.from("requerimiento_items") as any).insert(
+      reactivos.map(r => ({
+        requerimiento_id: requerimientoId,
+        nombre: r.nombre.trim(),
+        rubro: r.rubro.trim() || null,
+        orden: r.orden,
+        obligatorio: true,
+        completado: false,
+        fecha_limite: fechaLimiteReq,
+      }))
+    );
+    if (insertErr) return { error: "Error al importar reactivos" };
+    nuevos = reactivos.length;
   }
 
-  const { error: insertErr } = await (admin.from("requerimiento_items") as any).insert(
-    reactivos.map(r => ({
-      requerimiento_id: requerimientoId,
-      nombre:     r.nombre.trim(),
-      rubro:      r.rubro.trim() || null,
-      orden:      r.orden,
-      obligatorio: true,
-      completado:  false,
-      fecha_limite: fechaLimiteReq,
-    }))
-  );
-
-  if (insertErr) return { error: "Error al importar reactivos" };
   revalidate(entidadId, contratoId);
-  return { success: true };
+  return { success: true, actualizados, nuevos, eliminados };
 }
 
 // ── EXTENDER FECHA DE ITEM (empleado/admin) ───────────────────────────────────

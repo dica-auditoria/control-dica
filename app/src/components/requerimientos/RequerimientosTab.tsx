@@ -563,6 +563,7 @@ function ImportarCSVModal({ contratoId, entidadId, onClose, onImported }: {
   const [error, setError]             = useState<string | null>(null);
   const [fechaLimite, setFechaLimite] = useState("");
   const [impacto, setImpacto]         = useState<{ archivos: number; items: number } | null>(null);
+  const [resultado, setResultado]     = useState<{ actualizados: number; nuevos: number; eliminados: number } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -593,7 +594,11 @@ function ImportarCSVModal({ contratoId, entidadId, onClose, onImported }: {
     setSaving(true); setError(null);
     const result = await importarReactivosContratoAction(contratoId, entidadId, rows, fechaLimite || undefined);
     if (result.error) { setError(result.error); setSaving(false); return; }
-    onImported();
+    if ("actualizados" in result) {
+      setResultado({ actualizados: result.actualizados ?? 0, nuevos: result.nuevos ?? 0, eliminados: result.eliminados ?? 0 });
+    }
+    setSaving(false);
+    setTimeout(onImported, 1200);
   };
 
   const thS: React.CSSProperties = { padding: "7px 12px", textAlign: "left", fontSize: 10, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--muted)", fontWeight: 600 };
@@ -609,15 +614,25 @@ function ImportarCSVModal({ contratoId, entidadId, onClose, onImported }: {
 
         <div style={{ flex: 1, overflowY: "auto", padding: 20, display: "flex", flexDirection: "column", gap: 16 }}>
 
-          {/* Aviso de impacto si ya hay reactivos con archivos */}
-          {impacto && impacto.items > 0 && (
-            <div style={{ padding: "10px 14px", background: "rgba(251,191,36,0.1)", border: "1px solid rgba(251,191,36,0.35)", borderRadius: 6, fontSize: 12, color: "#92400E" }}>
+          {/* Resultado de la importación */}
+          {resultado && (
+            <div style={{ padding: "10px 14px", background: "rgba(45,166,95,0.08)", border: "1px solid rgba(45,166,95,0.25)", borderRadius: 6, fontSize: 12, color: "#1B7A3E" }}>
+              ✓ Importación completada —{" "}
+              {resultado.actualizados > 0 && `${resultado.actualizados} actualizado${resultado.actualizados !== 1 ? "s" : ""} `}
+              {resultado.nuevos > 0 && `${resultado.nuevos} nuevo${resultado.nuevos !== 1 ? "s" : ""} `}
+              {resultado.eliminados > 0 && `· ${resultado.eliminados} eliminado${resultado.eliminados !== 1 ? "s" : ""} (archivos conservados)`}
+            </div>
+          )}
+
+          {/* Aviso de impacto si ya hay reactivos */}
+          {!resultado && impacto && impacto.items > 0 && (
+            <div style={{ padding: "10px 14px", background: "rgba(66,153,225,0.08)", border: "1px solid rgba(66,153,225,0.25)", borderRadius: 6, fontSize: 12, color: "#2B6CB0" }}>
               <div style={{ fontWeight: 600, marginBottom: 4 }}>
-                ⚠ Ya existen {impacto.items} reactivo{impacto.items !== 1 ? "s" : ""} en este contrato
+                ℹ Ya existen {impacto.items} reactivo{impacto.items !== 1 ? "s" : ""} en este contrato
               </div>
               {impacto.archivos > 0
-                ? `Al importar, los ${impacto.archivos} archivo${impacto.archivos !== 1 ? "s" : ""} ya subidos perderán su vínculo con los reactivos actuales (no se eliminarán, quedarán como archivos generales del contrato).`
-                : "No hay archivos subidos aún — la importación reemplazará los reactivos sin pérdida de datos."
+                ? `Los reactivos cuyo nombre coincida conservarán sus ${impacto.archivos} archivo${impacto.archivos !== 1 ? "s" : ""} vinculados. Solo los que desaparezcan del CSV perderán el vínculo (los archivos no se eliminan).`
+                : "Los reactivos que coincidan por nombre se actualizarán. Solo se eliminarán los que no estén en el nuevo CSV."
               }
             </div>
           )}
