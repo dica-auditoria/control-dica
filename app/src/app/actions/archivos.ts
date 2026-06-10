@@ -88,10 +88,10 @@ export async function insertArchivoAction(args: InsertArchivoArgs) {
     },
   });
 
-  // Auto-marcar el reactivo como completado cuando se sube un archivo
+  // Cuando se sube un archivo al reactivo, pasa a "en_revision" para que el empleado lo revise
   if (args.requerimiento_item_id) {
     await (admin.from("requerimiento_items") as any)
-      .update({ completado: true })
+      .update({ estado: "en_revision" })
       .eq("id", args.requerimiento_item_id);
   }
 

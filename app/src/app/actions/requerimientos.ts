@@ -3,7 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
-import type { CrearRequerimientoInput, Requerimiento, RequerimientoItem } from "@/types/requerimientos";
+import type { CrearRequerimientoInput, Requerimiento, RequerimientoItem, ItemEstado } from "@/types/requerimientos";
 import { sendRequerimientoEmail } from "@/lib/email";
 
 interface PerfilRow { rol: string; entidad_id: string | null }
@@ -108,7 +108,7 @@ interface RawReq {
   id: string; contrato_id: string | null; entidad_id: string; titulo: string;
   descripcion: string | null; fecha_limite: string; estado: string;
   creado_por: string; notas_cierre: string | null; created_at: string;
-  requerimiento_items: Array<{ id: string; requerimiento_id: string; nombre: string; descripcion: string | null; obligatorio: boolean; completado: boolean; rubro: string | null; orden: number | null; created_at: string }>;
+  requerimiento_items: Array<{ id: string; requerimiento_id: string; nombre: string; descripcion: string | null; obligatorio: boolean; completado: boolean; estado: string; rubro: string | null; orden: number | null; created_at: string }>;
 }
 
 export async function fetchRequerimientosContratoAction(contratoId: string): Promise<{ data: Requerimiento[] | null; error: string | null }> {
@@ -118,7 +118,7 @@ export async function fetchRequerimientosContratoAction(contratoId: string): Pro
 
   const admin = createAdminClient();
   const { data, error } = await (admin.from("requerimientos") as any)
-    .select("*, requerimiento_items(id, nombre, descripcion, obligatorio, completado, rubro, orden, created_at)")
+    .select("*, requerimiento_items(id, nombre, descripcion, obligatorio, completado, estado, rubro, orden, created_at)")
     .eq("contrato_id", contratoId)
     .order("created_at", { ascending: false }) as { data: RawReq[] | null; error: unknown };
 
@@ -132,7 +132,7 @@ export async function fetchRequerimientosContratoAction(contratoId: string): Pro
   const items: Requerimiento[] = (data ?? []).map(r => ({
     ...r,
     estado: (["pendiente", "en_revision"].includes(r.estado) && r.fecha_limite < hoy ? "vencido" : r.estado) as Requerimiento["estado"],
-    items: r.requerimiento_items ?? [],
+    items: (r.requerimiento_items ?? []).map(i => ({ ...i, estado: (i.estado ?? "pendiente") as ItemEstado })),
     archivos_count: 0,
   }));
 
@@ -158,7 +158,7 @@ export async function fetchRequerimientosClienteAction(): Promise<{ data: Requer
 
   const supabase = createClient();
   const { data, error } = await (supabase.from("requerimientos") as any)
-    .select("*, requerimiento_items(id, nombre, descripcion, obligatorio, completado, rubro, orden, created_at)")
+    .select("*, requerimiento_items(id, nombre, descripcion, obligatorio, completado, estado, rubro, orden, created_at)")
     .eq("entidad_id", perfil.entidad_id)
     .neq("estado", "completado")
     .order("fecha_limite", { ascending: true }) as { data: RawReq[] | null; error: unknown };
@@ -169,7 +169,7 @@ export async function fetchRequerimientosClienteAction(): Promise<{ data: Requer
   const items: Requerimiento[] = (data ?? []).map(r => ({
     ...r,
     estado: (["pendiente", "en_revision"].includes(r.estado) && r.fecha_limite < hoy ? "vencido" : r.estado) as Requerimiento["estado"],
-    items: r.requerimiento_items ?? [],
+    items: (r.requerimiento_items ?? []).map(i => ({ ...i, estado: (i.estado ?? "pendiente") as ItemEstado })),
     archivos_count: 0,
   }));
 
@@ -181,10 +181,26 @@ export async function fetchRequerimientosClienteAction(): Promise<{ data: Requer
 export async function toggleItemCompletoAction(itemId: string, completado: boolean) {
   const { perfil, error: authErr } = await getUser();
   if (authErr || !perfil) return { error: authErr };
-  if (!["admin", "superadmin"].includes(perfil.rol)) return { error: "No autorizado" };
+  if (!["admin", "superadmin", "rrhh", "empleado"].includes(perfil.rol)) return { error: "No autorizado" };
 
   const admin = createAdminClient();
-  await (admin.from("requerimiento_items") as any).update({ completado }).eq("id", itemId);
+
+  if (completado) {
+    await (admin.from("requerimiento_items") as any)
+      .update({ completado: true, estado: "completado" })
+      .eq("id", itemId);
+  } else {
+    // Al desmarcar, verificar si tiene archivos para volver a "en_revision" o "pendiente"
+    const { count } = await (admin.from("archivos") as any)
+      .select("id", { count: "exact", head: true })
+      .eq("requerimiento_item_id", itemId)
+      .neq("estado", "eliminado") as { count: number | null };
+
+    await (admin.from("requerimiento_items") as any)
+      .update({ completado: false, estado: count ? "en_revision" : "pendiente" })
+      .eq("id", itemId);
+  }
+
   return { success: true };
 }
 

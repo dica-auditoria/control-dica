@@ -1,5 +1,7 @@
 export type RequerimientoEstado = "pendiente" | "en_revision" | "completado" | "vencido";
 
+export type ItemEstado = "pendiente" | "en_revision" | "completado";
+
 export interface RequerimientoItem {
   id: string;
   requerimiento_id: string;
@@ -7,6 +9,7 @@ export interface RequerimientoItem {
   descripcion: string | null;
   obligatorio: boolean;
   completado: boolean;
+  estado: ItemEstado;
   rubro: string | null;
   orden: number | null;
   created_at: string;

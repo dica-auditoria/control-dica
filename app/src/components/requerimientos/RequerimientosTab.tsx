@@ -91,7 +91,8 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
     .sort((a, b) => (a.orden ?? 9999) - (b.orden ?? 9999));
 
   const totalItems     = todosLosItems.length;
-  const completados    = todosLosItems.filter(i => i.completado).length;
+  const completados    = todosLosItems.filter(i => i.estado === "completado").length;
+  const enRevision     = todosLosItems.filter(i => i.estado === "en_revision").length;
   const porcentaje     = totalItems > 0 ? Math.round((completados / totalItems) * 100) : 0;
 
   const [expandedItem, setExpandedItem]               = useState<string | null>(null);
@@ -197,7 +198,12 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
         <span style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "var(--muted)", flexShrink: 0 }}>
           {busquedaNorm
             ? `${itemsFiltrados.length} de ${totalItems}`
-            : `${totalItems} reactivo${totalItems !== 1 ? "s" : ""}${totalItems > 0 ? ` · ${completados} completado${completados !== 1 ? "s" : ""}` : ""}`
+            : totalItems === 0 ? "0 reactivos"
+            : [
+                `${totalItems} reactivo${totalItems !== 1 ? "s" : ""}`,
+                completados > 0 && `${completados} completado${completados !== 1 ? "s" : ""}`,
+                enRevision > 0  && `${enRevision} en revisión`,
+              ].filter(Boolean).join(" · ")
           }
         </span>
 
@@ -261,7 +267,7 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
                 {/* Fila principal */}
                 <div
                   onClick={() => handleExpand(item.id)}
-                  style={{ display: "flex", alignItems: "center", padding: "0 14px", cursor: "pointer", background: isExpanded ? "rgba(15,17,23,0.025)" : item.completado ? "rgba(45,166,95,0.025)" : "transparent", minHeight: 46 }}
+                  style={{ display: "flex", alignItems: "center", padding: "0 14px", cursor: "pointer", background: isExpanded ? "rgba(15,17,23,0.025)" : item.estado === "completado" ? "rgba(45,166,95,0.025)" : item.estado === "en_revision" ? "rgba(251,191,36,0.04)" : "transparent", minHeight: 46 }}
                 >
                   <span style={{ color: "var(--muted)", marginRight: 10, flexShrink: 0, transition: "transform 0.15s", transform: isExpanded ? "rotate(90deg)" : "none", display: "flex" }}>
                     <ChevronIcon />
@@ -278,7 +284,7 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
                     }
                   </span>
 
-                  <span style={{ flex: 1, fontSize: 13, color: "var(--ink)", textDecoration: item.completado ? "line-through" : "none", opacity: item.completado ? 0.55 : 1 }}>
+                  <span style={{ flex: 1, fontSize: 13, color: "var(--ink)", textDecoration: item.estado === "completado" ? "line-through" : "none", opacity: item.estado === "completado" ? 0.55 : 1 }}>
                     {item.nombre}
                   </span>
 
@@ -297,17 +303,24 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
                   </span>
 
                   {/* Estado */}
-                  <span onClick={e => e.stopPropagation()} style={{ flexShrink: 0, display: "flex", alignItems: "center" }}>
+                  <span onClick={e => e.stopPropagation()} style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: 6 }}>
                     {!esCliente ? (
-                      <input
-                        type="checkbox"
-                        checked={item.completado}
-                        onChange={e => handleToggle(item.id, e.target.checked)}
-                        style={{ width: 15, height: 15, accentColor: "var(--accent)", cursor: "pointer" }}
-                      />
-                    ) : item.completado
+                      <>
+                        {item.estado === "en_revision" && (
+                          <span style={badgeStyle("#92400E", "rgba(251,191,36,0.15)")}>En revisión</span>
+                        )}
+                        <input
+                          type="checkbox"
+                          checked={item.estado === "completado"}
+                          onChange={e => handleToggle(item.id, e.target.checked)}
+                          style={{ width: 15, height: 15, accentColor: "var(--accent)", cursor: "pointer" }}
+                        />
+                      </>
+                    ) : item.estado === "completado"
                       ? <span style={badgeStyle("#1B7A3E", "rgba(45,166,95,0.1)")}>Entregado</span>
-                      : <span style={badgeStyle("#B8860B", "rgba(255,193,7,0.12)")}>Pendiente</span>
+                      : item.estado === "en_revision"
+                      ? <span style={badgeStyle("#92400E", "rgba(251,191,36,0.15)")}>En revisión</span>
+                      : <span style={badgeStyle("#6B7280", "rgba(107,114,128,0.1)")}>Pendiente</span>
                     }
                   </span>
                 </div>
