@@ -45,16 +45,16 @@ const NAV_ADMIN = [
 ];
 
 const NAV_EMPLEADO = [
-  { href: "/dashboard", label: "Dashboard", icon: "shield" },
-  { href: "/dashboard/mi-expediente", label: "Mi Expediente", icon: "user" },
-  { href: "/dashboard/mi-credencial", label: "Mi Credencial", icon: "card" },
-  { href: "/dashboard/otros", label: "Otros", icon: "calendar" },
-  { href: "/dashboard/comunicados", label: "Comunicados", icon: "bell" },
   { href: "/dashboard/mi-asistencia", label: "Mi Check-in", icon: "checkin" },
-  { href: "/dashboard/directorio", label: "Directorio", icon: "map" },
-  { href: "/dashboard/empleados", label: "Mi Equipo", icon: "users" },
-  { href: "/dashboard/cumpleanos", label: "Cumpleaños", icon: "cake" },
+  { href: "/dashboard", label: "Dashboard", icon: "shield" },
   { href: "/dashboard/pendientes", label: "Pendientes", icon: "pending" },
+  { href: "/dashboard/directorio", label: "Directorio", icon: "map" },
+  { href: "/dashboard/comunicados", label: "Comunicados", icon: "bell" },
+  { href: "/dashboard/cumpleanos", label: "Cumpleaños", icon: "cake" },
+  { href: "/dashboard/mi-credencial", label: "Mi Credencial", icon: "card" },
+  { href: "/dashboard/mi-expediente", label: "Mi Expediente", icon: "user" },
+  { href: "/dashboard/empleados", label: "Mi Equipo", icon: "users" },
+  { href: "/dashboard/otros", label: "Otros", icon: "calendar" },
 ];
 
 const NAV_RRHH = [
