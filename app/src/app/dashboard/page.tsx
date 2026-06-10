@@ -349,6 +349,10 @@ export default async function DashboardPage() {
   ]);
 
   const requerimientos = rReqs.data ?? [];
+  const todosArchivos  = (misArchivos ?? []) as (ClienteArchivo & { requerimiento_item_id: string | null })[];
+
+  // Archivos sin reactivo asignado — los que tienen requerimiento_item_id ya se ven en "Documentos requeridos"
+  const archivosGenerales = todosArchivos.filter(a => !a.requerimiento_item_id);
 
   return (
     <div className="page-pad">
@@ -364,14 +368,19 @@ export default async function DashboardPage() {
         <RequerimientosClienteSection
           requerimientos={requerimientos}
           entidadId={perfil!.entidad_id!}
-          archivos={(misArchivos ?? []) as (ClienteArchivo & { requerimiento_item_id: string | null })[]}
+          archivos={todosArchivos}
         />
       )}
 
-      <div style={{ marginBottom: 12 }}>
-        <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, color: "var(--ink)", margin: 0 }}>Mis archivos</h2>
-      </div>
-      <ClienteArchivosTable archivos={misArchivos ?? []} />
+      {/* Mis archivos generales — solo los que no están ligados a un reactivo */}
+      {archivosGenerales.length > 0 && (
+        <>
+          <div style={{ marginBottom: 12 }}>
+            <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, color: "var(--ink)", margin: 0 }}>Mis archivos</h2>
+          </div>
+          <ClienteArchivosTable archivos={archivosGenerales} />
+        </>
+      )}
     </div>
   );
 }
