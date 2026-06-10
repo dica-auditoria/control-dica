@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import type { Requerimiento, RequerimientoItem } from "@/types/requerimientos";
 import type { ArchivoContratoItem } from "@/app/actions/archivos";
 import type { Comentario } from "@/app/actions/comentarios";
-import { toggleItemCompletoAction, importarReactivosContratoAction } from "@/app/actions/requerimientos";
+import { toggleItemCompletoAction, importarReactivosContratoAction, extenderFechaItemAction } from "@/app/actions/requerimientos";
 import { deleteArchivoAction } from "@/app/actions/archivos";
 import { fetchComentariosItemAction, agregarComentarioAction } from "@/app/actions/comentarios";
 import UploadZone from "@/components/archivos/UploadZone";
@@ -104,6 +104,8 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
   const [enviando, setEnviando]                       = useState<string | null>(null);
   const [busqueda, setBusqueda]                       = useState("");
   const [ordenFiltro, setOrdenFiltro]                 = useState<"numero" | "reciente">("numero");
+  const [extendiendo, setExtendiendo]                 = useState<string | null>(null);
+  const [nuevaFechaExt, setNuevaFechaExt]             = useState("");
 
   const busquedaNorm = busqueda.toLowerCase().trim();
 
@@ -143,6 +145,14 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
     setDeletingId(archivoId);
     await deleteArchivoAction(archivoId);
     setDeletingId(null);
+    router.refresh();
+  };
+
+  const handleExtender = async (itemId: string) => {
+    if (!nuevaFechaExt) return;
+    await extenderFechaItemAction(itemId, nuevaFechaExt);
+    setExtendiendo(null);
+    setNuevaFechaExt("");
     router.refresh();
   };
 
@@ -300,6 +310,7 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
                         {comentarios.length} nota{comentarios.length !== 1 ? "s" : ""}
                       </span>
                     )}
+                    <ItemDeadlineBadge fecha={item.fecha_limite} extendida={item.extendida} />
                   </span>
 
                   {/* Estado */}
@@ -383,6 +394,57 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
                       ) : itemArchivos.length === 0 && (
                         <div style={{ fontSize: 12, color: "var(--muted)", fontFamily: "'DM Mono', monospace" }}>
                           Sin documentos subidos aún
+                        </div>
+                      )}
+
+                      {/* Plazo del reactivo (solo para empleados/admin) */}
+                      {!esCliente && (
+                        <div style={{ marginTop: 16, paddingTop: 12, borderTop: "1px solid var(--border)" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                            <span style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "var(--muted)" }}>Plazo:</span>
+                            <span style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "var(--ink)" }}>
+                              {item.fecha_limite
+                                ? new Date(item.fecha_limite + "T12:00:00").toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "numeric" })
+                                : "Sin fecha"}
+                            </span>
+                            {item.extendida && (
+                              <span style={{ fontSize: 10, padding: "2px 7px", borderRadius: 100, background: "rgba(66,153,225,0.12)", color: "#2B6CB0", fontFamily: "'DM Mono', monospace" }}>
+                                Extendida
+                              </span>
+                            )}
+                            {extendiendo !== item.id && (
+                              <button
+                                onClick={e => { e.stopPropagation(); setExtendiendo(item.id); setNuevaFechaExt(item.fecha_limite ?? ""); }}
+                                style={{ fontSize: 11, padding: "2px 10px", background: "var(--surface)", border: "1px solid var(--border-strong)", borderRadius: 4, cursor: "pointer", color: "var(--ink)", fontFamily: "'DM Sans', sans-serif" }}
+                              >
+                                Extender plazo
+                              </button>
+                            )}
+                          </div>
+                          {extendiendo === item.id && (
+                            <div style={{ marginTop: 8, display: "flex", gap: 6, alignItems: "center" }} onClick={e => e.stopPropagation()}>
+                              <input
+                                type="date"
+                                value={nuevaFechaExt}
+                                onChange={e => setNuevaFechaExt(e.target.value)}
+                                min={new Date().toISOString().slice(0, 10)}
+                                style={{ height: 30, padding: "0 8px", border: "1px solid var(--border-strong)", borderRadius: 4, fontSize: 12, fontFamily: "'DM Sans', sans-serif", background: "var(--card)", color: "var(--ink)", outline: "none" }}
+                              />
+                              <button
+                                onClick={() => handleExtender(item.id)}
+                                disabled={!nuevaFechaExt}
+                                style={{ height: 30, padding: "0 14px", background: "var(--ink)", color: "white", border: "none", borderRadius: 4, fontSize: 12, cursor: !nuevaFechaExt ? "not-allowed" : "pointer", opacity: !nuevaFechaExt ? 0.5 : 1 }}
+                              >
+                                Guardar
+                              </button>
+                              <button
+                                onClick={() => setExtendiendo(null)}
+                                style={{ height: 30, padding: "0 12px", background: "none", border: "1px solid var(--border)", borderRadius: 4, fontSize: 12, cursor: "pointer", color: "var(--muted)" }}
+                              >
+                                Cancelar
+                              </button>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -607,6 +669,18 @@ function ImportarCSVModal({ contratoId, entidadId, onClose, onImported }: {
 }
 
 // ── Style / Icon helpers ──────────────────────────────────────────────────────
+
+function ItemDeadlineBadge({ fecha, extendida }: { fecha: string | null; extendida: boolean }) {
+  if (!fecha) return null;
+  const dias = Math.ceil((new Date(fecha + "T23:59:59").getTime() - Date.now()) / 86400000);
+  if (dias > 7)
+    return <span style={{ fontSize: 10, padding: "2px 7px", borderRadius: 100, background: "rgba(45,166,95,0.12)", color: "#1B7A3E", fontFamily: "'DM Mono', monospace" }}>{extendida ? "Ext · " : ""}✓ {dias}d</span>;
+  if (dias >= 1)
+    return <span style={{ fontSize: 10, padding: "2px 7px", borderRadius: 100, background: "rgba(251,191,36,0.18)", color: "#92400E", fontFamily: "'DM Mono', monospace" }}>{extendida ? "Ext · " : ""}⚠ {dias}d</span>;
+  if (dias === 0)
+    return <span style={{ fontSize: 10, padding: "2px 7px", borderRadius: 100, background: "rgba(200,71,42,0.12)", color: "#C8472A", fontFamily: "'DM Mono', monospace" }}>Vence hoy</span>;
+  return <span style={{ fontSize: 10, padding: "2px 7px", borderRadius: 100, background: "rgba(200,71,42,0.12)", color: "#C8472A", fontFamily: "'DM Mono', monospace" }}>{extendida ? "Ext · " : ""}Con retraso</span>;
+}
 
 function FileTypeIcon({ tipo }: { tipo: string }) {
   const colors: Record<string, string> = { pdf: "#E53E3E", xlsx: "#38A169", xls: "#38A169", docx: "#3182CE", doc: "#3182CE", zip: "#D69E2E", png: "#805AD5", jpg: "#805AD5", jpeg: "#805AD5", csv: "#319795" };

@@ -12,6 +12,8 @@ export interface RequerimientoItem {
   estado: ItemEstado;
   rubro: string | null;
   orden: number | null;
+  fecha_limite: string | null;
+  extendida: boolean;
   created_at: string;
 }
 

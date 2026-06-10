@@ -68,6 +68,7 @@ export async function crearRequerimientoAction(input: CrearRequerimientoInput) {
         descripcion: item.descripcion?.trim() ?? null,
         obligatorio: item.obligatorio,
         completado: false,
+        fecha_limite: input.fechaLimite,
       }))
     );
   }
@@ -108,7 +109,7 @@ interface RawReq {
   id: string; contrato_id: string | null; entidad_id: string; titulo: string;
   descripcion: string | null; fecha_limite: string; estado: string;
   creado_por: string; notas_cierre: string | null; created_at: string;
-  requerimiento_items: Array<{ id: string; requerimiento_id: string; nombre: string; descripcion: string | null; obligatorio: boolean; completado: boolean; estado: string; rubro: string | null; orden: number | null; created_at: string }>;
+  requerimiento_items: Array<{ id: string; requerimiento_id: string; nombre: string; descripcion: string | null; obligatorio: boolean; completado: boolean; estado: string; rubro: string | null; orden: number | null; fecha_limite: string | null; extendida: boolean; created_at: string }>;
 }
 
 export async function fetchRequerimientosContratoAction(contratoId: string): Promise<{ data: Requerimiento[] | null; error: string | null }> {
@@ -118,7 +119,7 @@ export async function fetchRequerimientosContratoAction(contratoId: string): Pro
 
   const admin = createAdminClient();
   const { data, error } = await (admin.from("requerimientos") as any)
-    .select("*, requerimiento_items(id, nombre, descripcion, obligatorio, completado, estado, rubro, orden, created_at)")
+    .select("*, requerimiento_items(id, nombre, descripcion, obligatorio, completado, estado, rubro, orden, fecha_limite, extendida, created_at)")
     .eq("contrato_id", contratoId)
     .order("created_at", { ascending: false }) as { data: RawReq[] | null; error: unknown };
 
@@ -132,7 +133,7 @@ export async function fetchRequerimientosContratoAction(contratoId: string): Pro
   const items: Requerimiento[] = (data ?? []).map(r => ({
     ...r,
     estado: (["pendiente", "en_revision"].includes(r.estado) && r.fecha_limite < hoy ? "vencido" : r.estado) as Requerimiento["estado"],
-    items: (r.requerimiento_items ?? []).map(i => ({ ...i, estado: (i.estado ?? "pendiente") as ItemEstado })),
+    items: (r.requerimiento_items ?? []).map(i => ({ ...i, estado: (i.estado ?? "pendiente") as ItemEstado, fecha_limite: i.fecha_limite ?? null, extendida: i.extendida ?? false })),
     archivos_count: 0,
   }));
 
@@ -158,7 +159,7 @@ export async function fetchRequerimientosClienteAction(): Promise<{ data: Requer
 
   const supabase = createClient();
   const { data, error } = await (supabase.from("requerimientos") as any)
-    .select("*, requerimiento_items(id, nombre, descripcion, obligatorio, completado, estado, rubro, orden, created_at)")
+    .select("*, requerimiento_items(id, nombre, descripcion, obligatorio, completado, estado, rubro, orden, fecha_limite, extendida, created_at)")
     .eq("entidad_id", perfil.entidad_id)
     .neq("estado", "completado")
     .order("fecha_limite", { ascending: true }) as { data: RawReq[] | null; error: unknown };
@@ -169,7 +170,7 @@ export async function fetchRequerimientosClienteAction(): Promise<{ data: Requer
   const items: Requerimiento[] = (data ?? []).map(r => ({
     ...r,
     estado: (["pendiente", "en_revision"].includes(r.estado) && r.fecha_limite < hoy ? "vencido" : r.estado) as Requerimiento["estado"],
-    items: (r.requerimiento_items ?? []).map(i => ({ ...i, estado: (i.estado ?? "pendiente") as ItemEstado })),
+    items: (r.requerimiento_items ?? []).map(i => ({ ...i, estado: (i.estado ?? "pendiente") as ItemEstado, fecha_limite: i.fecha_limite ?? null, extendida: i.extendida ?? false })),
     archivos_count: 0,
   }));
 
@@ -302,16 +303,18 @@ export async function importarReactivosContratoAction(
 
   // Obtener o crear el requerimiento base del contrato
   const { data: existing } = await (admin.from("requerimientos") as any)
-    .select("id")
+    .select("id, fecha_limite")
     .eq("contrato_id", contratoId)
     .order("created_at", { ascending: true })
     .limit(1)
-    .single() as { data: { id: string } | null; error: unknown };
+    .single() as { data: { id: string; fecha_limite: string } | null; error: unknown };
 
   let requerimientoId: string;
+  let fechaLimiteReq: string;
 
   if (existing) {
     requerimientoId = existing.id;
+    fechaLimiteReq = existing.fecha_limite;
     // Eliminar todos los items de TODOS los requerimientos del contrato
     const { data: allReqs } = await (admin.from("requerimientos") as any)
       .select("id").eq("contrato_id", contratoId) as { data: Array<{ id: string }> | null; error: unknown };
@@ -321,12 +324,13 @@ export async function importarReactivosContratoAction(
     }
   } else {
     // Crear requerimiento base automáticamente
+    fechaLimiteReq = new Date(Date.now() + 90 * 86400000).toISOString().slice(0, 10);
     const { data: nuevo } = await (admin.from("requerimientos") as any)
       .insert({
         contrato_id: contratoId,
         entidad_id: entidadId,
         titulo: "Reactivos",
-        fecha_limite: new Date(Date.now() + 90 * 86400000).toISOString().slice(0, 10),
+        fecha_limite: fechaLimiteReq,
         estado: "pendiente",
         creado_por: user.id,
       })
@@ -344,11 +348,40 @@ export async function importarReactivosContratoAction(
       orden:      r.orden,
       obligatorio: true,
       completado:  false,
+      fecha_limite: fechaLimiteReq,
     }))
   );
 
   if (insertErr) return { error: "Error al importar reactivos" };
   revalidate(entidadId, contratoId);
+  return { success: true };
+}
+
+// ── EXTENDER FECHA DE ITEM (empleado/admin) ───────────────────────────────────
+
+export async function extenderFechaItemAction(itemId: string, nuevaFecha: string) {
+  const { perfil, error: authErr } = await getUser();
+  if (authErr || !perfil) return { error: authErr };
+  if (!["admin", "superadmin", "rrhh", "empleado"].includes(perfil.rol)) return { error: "No autorizado" };
+
+  const admin = createAdminClient();
+  const { data: item } = await (admin.from("requerimiento_items") as any)
+    .select("requerimiento_id")
+    .eq("id", itemId)
+    .single() as { data: { requerimiento_id: string } | null; error: unknown };
+
+  if (!item) return { error: "Reactivo no encontrado" };
+
+  await (admin.from("requerimiento_items") as any)
+    .update({ fecha_limite: nuevaFecha, extendida: true })
+    .eq("id", itemId);
+
+  const { data: req } = await (admin.from("requerimientos") as any)
+    .select("entidad_id, contrato_id")
+    .eq("id", item.requerimiento_id)
+    .single() as { data: { entidad_id: string; contrato_id: string | null } | null; error: unknown };
+
+  if (req) revalidate(req.entidad_id, req.contrato_id ?? undefined);
   return { success: true };
 }
 
@@ -367,7 +400,7 @@ export async function importarReactivosAction(
   const admin = createAdminClient();
 
   const { data: req } = await (admin.from("requerimientos") as any)
-    .select("entidad_id, contrato_id").eq("id", requerimientoId).single() as { data: { entidad_id: string; contrato_id: string | null } | null; error: unknown };
+    .select("entidad_id, contrato_id, fecha_limite").eq("id", requerimientoId).single() as { data: { entidad_id: string; contrato_id: string | null; fecha_limite: string } | null; error: unknown };
   if (!req) return { error: "Requerimiento no encontrado" };
 
   await (admin.from("requerimiento_items") as any).delete().eq("requerimiento_id", requerimientoId);
@@ -380,6 +413,7 @@ export async function importarReactivosAction(
       orden:      r.orden,
       obligatorio: true,
       completado:  false,
+      fecha_limite: req.fecha_limite,
     }))
   );
 
