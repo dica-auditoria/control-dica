@@ -101,6 +101,22 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
   const [loadingComents, setLoadingComents]           = useState<string | null>(null);
   const [inputComentario, setInputComentario]         = useState<Record<string, string>>({});
   const [enviando, setEnviando]                       = useState<string | null>(null);
+  const [busqueda, setBusqueda]                       = useState("");
+  const [ordenFiltro, setOrdenFiltro]                 = useState<"numero" | "reciente">("numero");
+
+  const busquedaNorm = busqueda.toLowerCase().trim();
+
+  const itemsFiltrados = todosLosItems
+    .filter(it =>
+      !busquedaNorm ||
+      it.nombre.toLowerCase().includes(busquedaNorm) ||
+      (it.rubro ?? "").toLowerCase().includes(busquedaNorm)
+    )
+    .sort((a, b) =>
+      ordenFiltro === "reciente"
+        ? new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        : (a.orden ?? 9999) - (b.orden ?? 9999)
+    );
 
   const archivosDeItem = (itemId: string) =>
     archivos.filter(a => a.requerimiento_item_id === itemId);
@@ -147,11 +163,46 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
   return (
     <>
       {/* Toolbar */}
-      <div style={{ padding: "12px 20px", borderBottom: "1px solid var(--border)", background: "var(--surface)", display: "flex", alignItems: "center", gap: 10 }}>
-        <span style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "var(--muted)", flex: 1 }}>
-          {totalItems} reactivo{totalItems !== 1 ? "s" : ""}
-          {totalItems > 0 && ` · ${completados} completado${completados !== 1 ? "s" : ""}`}
+      <div style={{ padding: "10px 16px", borderBottom: "1px solid var(--border)", background: "var(--surface)", display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+        {/* Buscador */}
+        <div style={{ position: "relative", flex: "1 1 180px", minWidth: 140, maxWidth: 280 }}>
+          <span style={{ position: "absolute", left: 8, top: "50%", transform: "translateY(-50%)", color: "var(--muted)", pointerEvents: "none", display: "flex" }}>
+            <SearchIcon />
+          </span>
+          <input
+            type="text"
+            placeholder="Buscar reactivo…"
+            value={busqueda}
+            onChange={e => setBusqueda(e.target.value)}
+            style={{ width: "100%", paddingLeft: 28, paddingRight: 8, height: 32, border: "1px solid var(--border-strong)", borderRadius: 4, fontSize: 12, fontFamily: "'DM Sans', sans-serif", background: "var(--card)", color: "var(--ink)", outline: "none", boxSizing: "border-box" }}
+          />
+          {busqueda && (
+            <button onClick={() => setBusqueda("")} style={{ position: "absolute", right: 6, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--muted)", padding: 0, display: "flex", lineHeight: 1 }}>
+              ×
+            </button>
+          )}
+        </div>
+
+        {/* Filtro de orden */}
+        <select
+          value={ordenFiltro}
+          onChange={e => setOrdenFiltro(e.target.value as "numero" | "reciente")}
+          style={{ height: 32, padding: "0 8px", border: "1px solid var(--border-strong)", borderRadius: 4, fontSize: 12, fontFamily: "'DM Sans', sans-serif", background: "var(--card)", color: "var(--ink)", cursor: "pointer", outline: "none", flexShrink: 0 }}
+        >
+          <option value="numero">Número</option>
+          <option value="reciente">Más reciente</option>
+        </select>
+
+        {/* Contador */}
+        <span style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "var(--muted)", flexShrink: 0 }}>
+          {busquedaNorm
+            ? `${itemsFiltrados.length} de ${totalItems}`
+            : `${totalItems} reactivo${totalItems !== 1 ? "s" : ""}${totalItems > 0 ? ` · ${completados} completado${completados !== 1 ? "s" : ""}` : ""}`
+          }
         </span>
+
+        <div style={{ flex: 1 }} />
+
         {totalItems > 0 && (
           <button onClick={() => exportarCSV(todosLosItems, contratoId)} style={btnSm("var(--card)", "var(--ink)", "1px solid var(--border-strong)")}>
             <DownloadIcon /> Exportar CSV
@@ -193,9 +244,13 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
         <div style={{ padding: "48px 20px", textAlign: "center", color: "var(--muted)", fontSize: 13, fontFamily: "'DM Mono', monospace" }}>
           {esCliente ? "Sin reactivos definidos" : "Sin reactivos — importa un CSV para cargar la plantilla"}
         </div>
+      ) : itemsFiltrados.length === 0 ? (
+        <div style={{ padding: "48px 20px", textAlign: "center", color: "var(--muted)", fontSize: 13, fontFamily: "'DM Mono', monospace" }}>
+          Sin resultados para &ldquo;{busqueda}&rdquo;
+        </div>
       ) : (
         <div>
-          {todosLosItems.map((item, idx) => {
+          {itemsFiltrados.map((item, idx) => {
             const itemArchivos  = archivosDeItem(item.id);
             const isExpanded    = expandedItem === item.id;
             const comentarios   = comentariosPorItem[item.id] ?? [];
@@ -561,6 +616,7 @@ function badgeStyle(color: string, bg: string): React.CSSProperties {
 }
 
 function ChevronIcon()  { return <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6" /></svg>; }
+function SearchIcon()   { return <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>; }
 function DownloadIcon() { return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>; }
 function UploadIconSm() { return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></svg>; }
 function TrashIcon()    { return <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14H6L5 6" /><path d="M10 11v6M14 11v6" /><path d="M9 6V4h6v2" /></svg>; }
