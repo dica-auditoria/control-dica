@@ -10,7 +10,9 @@ interface RawArchivo {
   size_bytes: number;
   hash_sha256: string;
   created_at: string;
+  contrato_id: string | null;
   entidades: { nombre: string } | null;
+  contratos: { nombre: string } | null;
   uploader: { nombre: string } | null;
 }
 
@@ -38,8 +40,9 @@ export default async function ArchivosPage() {
   let query = supabase
     .from("archivos")
     .select(`
-      id, nombre, tipo, estado, size_bytes, hash_sha256, created_at,
+      id, nombre, tipo, estado, size_bytes, hash_sha256, created_at, contrato_id,
       entidades ( nombre ),
+      contratos ( nombre ),
       uploader:usuarios!archivos_subido_por_fkey ( nombre )
     `)
     .order("created_at", { ascending: false });
@@ -58,7 +61,9 @@ export default async function ArchivosPage() {
     size_bytes: f.size_bytes,
     hash_sha256: f.hash_sha256,
     created_at: f.created_at,
+    contrato_id: f.contrato_id ?? null,
     entidad_nombre: f.entidades?.nombre ?? null,
+    contrato_nombre: f.contratos?.nombre ?? null,
     subido_por_nombre: f.uploader?.nombre ?? null,
   }));
 
