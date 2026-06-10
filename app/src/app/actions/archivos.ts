@@ -21,6 +21,7 @@ export interface InsertArchivoArgs {
   contrato_id?: string | null;
   destino?: "cliente" | "empleado";
   requerimiento_id?: string | null;
+  requerimiento_item_id?: string | null;
 }
 
 interface PerfilRow { entidad_id: string | null; rol: string }
@@ -59,6 +60,7 @@ export async function insertArchivoAction(args: InsertArchivoArgs) {
       contrato_id: args.contrato_id ?? null,
       destino: args.destino ?? "cliente",
       requerimiento_id: args.requerimiento_id ?? null,
+      requerimiento_item_id: args.requerimiento_item_id ?? null,
       subido_por: user.id,
       estado: "activo",
     })
@@ -86,6 +88,13 @@ export async function insertArchivoAction(args: InsertArchivoArgs) {
     },
   });
 
+  // Auto-marcar el reactivo como completado cuando se sube un archivo
+  if (args.requerimiento_item_id) {
+    await (admin.from("requerimiento_items") as any)
+      .update({ completado: true })
+      .eq("id", args.requerimiento_item_id);
+  }
+
   revalidatePath("/dashboard/archivos");
   revalidatePath("/dashboard");
   if (args.contrato_id) revalidatePath(`/dashboard/directorio/empresa/${args.entidad_id}/${args.contrato_id}`);
@@ -106,6 +115,7 @@ export interface ArchivoContratoItem {
   created_at: string;
   subido_por_nombre: string | null;
   destino: "cliente" | "empleado";
+  requerimiento_item_id: string | null;
 }
 
 export async function fetchArchivosContratoAction(contratoId: string, destino?: "cliente" | "empleado") {
@@ -123,12 +133,12 @@ export async function fetchArchivosContratoAction(contratoId: string, destino?: 
   const adminClient = createAdminClient();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let q = (adminClient.from("archivos") as any)
-    .select("id, nombre, ruta_storage, tipo, estado, size_bytes, hash_sha256, created_at, destino, usuarios(nombre)")
+    .select("id, nombre, ruta_storage, tipo, estado, size_bytes, hash_sha256, created_at, destino, requerimiento_item_id, usuarios(nombre)")
     .eq("contrato_id", contratoId)
     .neq("estado", "eliminado");
   if (destino) q = q.eq("destino", destino);
   const { data, error } = await q.order("created_at", { ascending: false }) as {
-    data: Array<{ id: string; nombre: string; ruta_storage: string; tipo: string; estado: string; size_bytes: number; hash_sha256: string; created_at: string; destino: string; usuarios: { nombre: string } | null }> | null;
+    data: Array<{ id: string; nombre: string; ruta_storage: string; tipo: string; estado: string; size_bytes: number; hash_sha256: string; created_at: string; destino: string; requerimiento_item_id: string | null; usuarios: { nombre: string } | null }> | null;
     error: unknown;
   };
 
@@ -145,6 +155,7 @@ export async function fetchArchivosContratoAction(contratoId: string, destino?: 
     created_at: a.created_at,
     subido_por_nombre: a.usuarios?.nombre ?? null,
     destino: (a.destino ?? "cliente") as "cliente" | "empleado",
+    requerimiento_item_id: a.requerimiento_item_id ?? null,
   }));
 
   return { data: items, error: null };

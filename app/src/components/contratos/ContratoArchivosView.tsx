@@ -177,6 +177,7 @@ export default function ContratoArchivosView({
           <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden", boxShadow: "0 1px 3px rgba(15,17,23,0.06)", marginBottom: 20 }}>
             <RequerimientosTab
               requerimientos={requerimientos}
+              archivos={archivosCliente}
               entidadId={entidadId}
               contratoId={contrato.id}
               isSuperAdmin={rol === "superadmin"}

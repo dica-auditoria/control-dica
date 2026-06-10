@@ -23,11 +23,12 @@ interface UploadZoneProps {
   contratoId?: string | null;
   destino?: "cliente" | "empleado";
   carpetaPrefix?: string | null;
+  requerimientoItemId?: string | null;
   onSuccess?: (archivoId: string) => void;
   onDone?: () => void;
 }
 
-export default function UploadZone({ entidadId, contratoId, destino = "cliente", carpetaPrefix, onSuccess, onDone }: UploadZoneProps) {
+export default function UploadZone({ entidadId, contratoId, destino = "cliente", carpetaPrefix, requerimientoItemId, onSuccess, onDone }: UploadZoneProps) {
   const [entries, setEntries] = useState<FileEntry[]>([]);
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
@@ -129,6 +130,7 @@ export default function UploadZone({ entidadId, contratoId, destino = "cliente",
         entidad_id: entidadId,
         contrato_id: contratoId ?? null,
         destino,
+        requerimiento_item_id: requerimientoItemId ?? null,
       });
 
       if (result.error) {
