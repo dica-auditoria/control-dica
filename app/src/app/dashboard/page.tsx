@@ -341,10 +341,10 @@ export default async function DashboardPage() {
   const [{ data: misArchivos }, rReqs] = await Promise.all([
     supabase
       .from("archivos")
-      .select("id, nombre, tipo, estado, size_bytes, created_at")
+      .select("id, nombre, tipo, estado, size_bytes, created_at, requerimiento_item_id")
       .eq("entidad_id", perfil!.entidad_id!)
       .neq("estado", "eliminado")
-      .order("created_at", { ascending: false }) as unknown as Promise<{ data: ClienteArchivo[] | null; error: unknown }>,
+      .order("created_at", { ascending: false }) as unknown as Promise<{ data: (ClienteArchivo & { requerimiento_item_id: string | null })[] | null; error: unknown }>,
     fetchRequerimientosClienteAction(),
   ]);
 
@@ -361,7 +361,11 @@ export default async function DashboardPage() {
 
       {/* Requerimientos pendientes — solo si hay alguno */}
       {requerimientos.length > 0 && (
-        <RequerimientosClienteSection requerimientos={requerimientos} entidadId={perfil!.entidad_id!} />
+        <RequerimientosClienteSection
+          requerimientos={requerimientos}
+          entidadId={perfil!.entidad_id!}
+          archivos={(misArchivos ?? []) as (ClienteArchivo & { requerimiento_item_id: string | null })[]}
+        />
       )}
 
       <div style={{ marginBottom: 12 }}>
