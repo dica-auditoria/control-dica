@@ -1,12 +1,36 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type { Requerimiento, RequerimientoItem } from "@/types/requerimientos";
 import type { ArchivoContratoItem } from "@/app/actions/archivos";
+import type { Comentario } from "@/app/actions/comentarios";
 import { toggleItemCompletoAction, importarReactivosContratoAction } from "@/app/actions/requerimientos";
 import { deleteArchivoAction } from "@/app/actions/archivos";
+import { fetchComentariosItemAction, agregarComentarioAction } from "@/app/actions/comentarios";
 import UploadZone from "@/components/archivos/UploadZone";
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function formatBytes(b: number) {
+  if (b < 1024) return `${b} B`;
+  if (b < 1048576) return `${(b / 1024).toFixed(1)} KB`;
+  return `${(b / 1048576).toFixed(2)} MB`;
+}
+
+function tiempoRelativo(fecha: string): string {
+  const diff = Date.now() - new Date(fecha).getTime();
+  const min = Math.floor(diff / 60000);
+  if (min < 1) return "ahora";
+  if (min < 60) return `hace ${min}m`;
+  const hrs = Math.floor(min / 60);
+  if (hrs < 24) return `hace ${hrs}h`;
+  return `hace ${Math.floor(hrs / 24)}d`;
+}
+
+function iniciales(nombre: string) {
+  return nombre.split(" ").map(p => p[0]).slice(0, 2).join("").toUpperCase();
+}
 
 // ── CSV helpers ───────────────────────────────────────────────────────────────
 
@@ -15,8 +39,7 @@ function exportarCSV(items: RequerimientoItem[], nombre: string) {
   const rows = [...items]
     .sort((a, b) => (a.orden ?? 9999) - (b.orden ?? 9999))
     .map((it, i) => `${it.orden ?? (i + 1)},${(it.rubro ?? "").replace(/,/g, ";")},${it.nombre.replace(/,/g, ";")}`);
-  const csv = [header, ...rows].join("\n");
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const blob = new Blob([[header, ...rows].join("\n")], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -43,17 +66,11 @@ function parsearCSV(texto: string): { rows: CSVRow[]; error: string | null } {
     if (!nombre) continue;
     rows.push({ orden: isNaN(orden) ? i : orden, rubro, nombre });
   }
-  if (!rows.length) return { rows: [], error: "No se encontraron filas válidas en el CSV" };
+  if (!rows.length) return { rows: [], error: "No se encontraron filas válidas" };
   return { rows, error: null };
 }
 
-function formatBytes(b: number) {
-  if (b < 1024) return `${b} B`;
-  if (b < 1048576) return `${(b / 1024).toFixed(1)} KB`;
-  return `${(b / 1048576).toFixed(2)} MB`;
-}
-
-// ── Component ─────────────────────────────────────────────────────────────────
+// ── Main Component ────────────────────────────────────────────────────────────
 
 interface Props {
   requerimientos: Requerimiento[];
@@ -73,12 +90,31 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
     .flatMap(r => r.items)
     .sort((a, b) => (a.orden ?? 9999) - (b.orden ?? 9999));
 
-  const [expandedItem, setExpandedItem] = useState<string | null>(null);
-  const [showImport, setShowImport]     = useState(false);
-  const [deletingId, setDeletingId]     = useState<string | null>(null);
+  const totalItems     = todosLosItems.length;
+  const completados    = todosLosItems.filter(i => i.completado).length;
+  const porcentaje     = totalItems > 0 ? Math.round((completados / totalItems) * 100) : 0;
+
+  const [expandedItem, setExpandedItem]               = useState<string | null>(null);
+  const [showImport, setShowImport]                   = useState(false);
+  const [deletingId, setDeletingId]                   = useState<string | null>(null);
+  const [comentariosPorItem, setComentariosPorItem]   = useState<Record<string, Comentario[]>>({});
+  const [loadingComents, setLoadingComents]           = useState<string | null>(null);
+  const [inputComentario, setInputComentario]         = useState<Record<string, string>>({});
+  const [enviando, setEnviando]                       = useState<string | null>(null);
 
   const archivosDeItem = (itemId: string) =>
     archivos.filter(a => a.requerimiento_item_id === itemId);
+
+  const handleExpand = async (itemId: string) => {
+    const nuevo = expandedItem === itemId ? null : itemId;
+    setExpandedItem(nuevo);
+    if (nuevo && comentariosPorItem[nuevo] === undefined) {
+      setLoadingComents(nuevo);
+      const result = await fetchComentariosItemAction(nuevo);
+      setComentariosPorItem(prev => ({ ...prev, [nuevo]: result.data ?? [] }));
+      setLoadingComents(null);
+    }
+  };
 
   const handleToggle = async (itemId: string, completado: boolean) => {
     await toggleItemCompletoAction(itemId, completado);
@@ -93,15 +129,30 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
     router.refresh();
   };
 
+  const handleEnviarComentario = async (itemId: string) => {
+    const texto = (inputComentario[itemId] ?? "").trim();
+    if (!texto || enviando) return;
+    setEnviando(itemId);
+    const result = await agregarComentarioAction(itemId, texto);
+    if (result.data) {
+      setComentariosPorItem(prev => ({
+        ...prev,
+        [itemId]: [...(prev[itemId] ?? []), result.data!],
+      }));
+      setInputComentario(prev => ({ ...prev, [itemId]: "" }));
+    }
+    setEnviando(null);
+  };
+
   return (
     <>
       {/* Toolbar */}
       <div style={{ padding: "12px 20px", borderBottom: "1px solid var(--border)", background: "var(--surface)", display: "flex", alignItems: "center", gap: 10 }}>
         <span style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "var(--muted)", flex: 1 }}>
-          {todosLosItems.length} reactivo{todosLosItems.length !== 1 ? "s" : ""}
-          {todosLosItems.length > 0 && ` · ${todosLosItems.filter(i => i.completado).length} completado${todosLosItems.filter(i => i.completado).length !== 1 ? "s" : ""}`}
+          {totalItems} reactivo{totalItems !== 1 ? "s" : ""}
+          {totalItems > 0 && ` · ${completados} completado${completados !== 1 ? "s" : ""}`}
         </span>
-        {todosLosItems.length > 0 && (
+        {totalItems > 0 && (
           <button onClick={() => exportarCSV(todosLosItems, contratoId)} style={btnSm("var(--card)", "var(--ink)", "1px solid var(--border-strong)")}>
             <DownloadIcon /> Exportar CSV
           </button>
@@ -113,35 +164,58 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
         )}
       </div>
 
+      {/* Barra de progreso */}
+      {totalItems > 0 && (
+        <div style={{ padding: "10px 20px", borderBottom: "1px solid var(--border)", background: "var(--card)", display: "flex", alignItems: "center", gap: 12 }}>
+          <span style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "var(--muted)", whiteSpace: "nowrap" }}>
+            Documentación
+          </span>
+          <div style={{ flex: 1, height: 6, borderRadius: 3, background: "var(--surface-2)", overflow: "hidden" }}>
+            <div style={{
+              height: "100%", borderRadius: 3,
+              width: `${porcentaje}%`,
+              background: porcentaje === 100 ? "var(--green)" : porcentaje >= 60 ? "#F6AD55" : "var(--accent)",
+              transition: "width 0.4s ease",
+            }} />
+          </div>
+          <span style={{
+            fontSize: 13, fontWeight: 700, fontFamily: "'DM Mono', monospace",
+            color: porcentaje === 100 ? "var(--green)" : porcentaje >= 60 ? "#B7791F" : "var(--accent)",
+            minWidth: 38, textAlign: "right",
+          }}>
+            {porcentaje}%
+          </span>
+        </div>
+      )}
+
       {/* Tabla */}
-      {todosLosItems.length === 0 ? (
+      {totalItems === 0 ? (
         <div style={{ padding: "48px 20px", textAlign: "center", color: "var(--muted)", fontSize: 13, fontFamily: "'DM Mono', monospace" }}>
           {esCliente ? "Sin reactivos definidos" : "Sin reactivos — importa un CSV para cargar la plantilla"}
         </div>
       ) : (
         <div>
           {todosLosItems.map((item, idx) => {
-            const itemArchivos = archivosDeItem(item.id);
-            const isExpanded   = expandedItem === item.id;
+            const itemArchivos  = archivosDeItem(item.id);
+            const isExpanded    = expandedItem === item.id;
+            const comentarios   = comentariosPorItem[item.id] ?? [];
+            const cargando      = loadingComents === item.id;
 
             return (
               <div key={item.id} style={{ borderBottom: "1px solid var(--border)" }}>
-                {/* Fila */}
+                {/* Fila principal */}
                 <div
-                  onClick={() => setExpandedItem(isExpanded ? null : item.id)}
+                  onClick={() => handleExpand(item.id)}
                   style={{ display: "flex", alignItems: "center", padding: "0 14px", cursor: "pointer", background: isExpanded ? "rgba(15,17,23,0.025)" : item.completado ? "rgba(45,166,95,0.025)" : "transparent", minHeight: 46 }}
                 >
-                  {/* Chevron */}
                   <span style={{ color: "var(--muted)", marginRight: 10, flexShrink: 0, transition: "transform 0.15s", transform: isExpanded ? "rotate(90deg)" : "none", display: "flex" }}>
                     <ChevronIcon />
                   </span>
 
-                  {/* No. */}
                   <span style={{ fontSize: 12, fontFamily: "'DM Mono', monospace", color: "var(--muted)", width: 34, flexShrink: 0 }}>
                     {item.orden ?? (idx + 1)}
                   </span>
 
-                  {/* Rubro */}
                   <span style={{ width: 130, flexShrink: 0, paddingRight: 12 }}>
                     {item.rubro
                       ? <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 100, background: "var(--surface-2)", fontFamily: "'DM Mono', monospace", color: "var(--muted-2)" }}>{item.rubro}</span>
@@ -149,19 +223,25 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
                     }
                   </span>
 
-                  {/* Concepto */}
                   <span style={{ flex: 1, fontSize: 13, color: "var(--ink)", textDecoration: item.completado ? "line-through" : "none", opacity: item.completado ? 0.55 : 1 }}>
                     {item.nombre}
                   </span>
 
-                  {/* Archivos badge */}
-                  {itemArchivos.length > 0 && (
-                    <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 100, background: "rgba(45,166,95,0.12)", color: "#1B7A3E", fontFamily: "'DM Mono', monospace", marginRight: 10, flexShrink: 0 }}>
-                      {itemArchivos.length} archivo{itemArchivos.length !== 1 ? "s" : ""}
-                    </span>
-                  )}
+                  {/* Badges */}
+                  <span style={{ display: "flex", alignItems: "center", gap: 6, marginRight: 10, flexShrink: 0 }}>
+                    {itemArchivos.length > 0 && (
+                      <span style={{ fontSize: 10, padding: "2px 7px", borderRadius: 100, background: "rgba(45,166,95,0.12)", color: "#1B7A3E", fontFamily: "'DM Mono', monospace" }}>
+                        {itemArchivos.length} archivo{itemArchivos.length !== 1 ? "s" : ""}
+                      </span>
+                    )}
+                    {comentarios.length > 0 && (
+                      <span style={{ fontSize: 10, padding: "2px 7px", borderRadius: 100, background: "rgba(66,153,225,0.12)", color: "#2B6CB0", fontFamily: "'DM Mono', monospace" }}>
+                        {comentarios.length} nota{comentarios.length !== 1 ? "s" : ""}
+                      </span>
+                    )}
+                  </span>
 
-                  {/* Estado (empleado: checkbox | cliente: badge) */}
+                  {/* Estado */}
                   <span onClick={e => e.stopPropagation()} style={{ flexShrink: 0, display: "flex", alignItems: "center" }}>
                     {!esCliente ? (
                       <input
@@ -177,67 +257,108 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
                   </span>
                 </div>
 
-                {/* Panel expandido: archivos + upload */}
+                {/* Panel expandido */}
                 {isExpanded && (
-                  <div style={{ background: "rgba(15,17,23,0.018)", borderTop: "1px solid var(--border)", padding: "16px 20px 20px 58px" }}>
-                    {/* Lista de archivos existentes */}
-                    {itemArchivos.length > 0 && (
-                      <div style={{ marginBottom: 16 }}>
-                        <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--muted)", marginBottom: 8 }}>
-                          Documentos subidos
-                        </div>
-                        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                          {itemArchivos.map(archivo => (
-                            <div key={archivo.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 12px", background: "var(--card)", border: "1px solid var(--border)", borderRadius: 6 }}>
-                              <FileTypeIcon tipo={archivo.tipo} />
-                              <div style={{ flex: 1, minWidth: 0 }}>
-                                <div style={{ fontSize: 13, color: "var(--ink)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                                  {archivo.nombre.split("/").pop()}
-                                </div>
-                                <div style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "var(--muted)", marginTop: 1 }}>
-                                  {formatBytes(archivo.size_bytes)}
-                                  {archivo.subido_por_nombre && ` · ${archivo.subido_por_nombre}`}
-                                </div>
-                              </div>
-                              <span style={{ fontSize: 9, fontFamily: "'DM Mono', monospace", fontWeight: 700, padding: "2px 5px", borderRadius: 3, background: "var(--surface-2)", color: "var(--muted-2)", textTransform: "uppercase", flexShrink: 0 }}>
-                                {archivo.tipo.slice(0, 4)}
-                              </span>
-                              {esAdmin && (
-                                <button
-                                  onClick={() => handleDeleteArchivo(archivo.id)}
-                                  disabled={deletingId === archivo.id}
-                                  style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", padding: 4, flexShrink: 0, opacity: deletingId === archivo.id ? 0.5 : 1 }}
-                                >
-                                  <TrashIcon />
-                                </button>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                  <div style={{ background: "rgba(15,17,23,0.018)", borderTop: "1px solid var(--border)", display: "flex", gap: 0 }}>
 
-                    {/* Upload zone */}
-                    {!esCliente ? (
-                      <div>
-                        {itemArchivos.length === 0 && (
-                          <div style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--muted)", marginBottom: 8 }}>
-                            Subir documento
+                    {/* Columna izquierda: archivos + upload */}
+                    <div style={{ flex: 1, padding: "16px 20px 20px 58px", borderRight: "1px solid var(--border)" }}>
+                      {/* Archivos subidos */}
+                      {itemArchivos.length > 0 && (
+                        <div style={{ marginBottom: 16 }}>
+                          <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--muted)", marginBottom: 8 }}>
+                            Documentos subidos
                           </div>
-                        )}
-                        <UploadZone
-                          entidadId={entidadId}
-                          contratoId={contratoId}
-                          destino="cliente"
-                          requerimientoItemId={item.id}
-                          onDone={() => router.refresh()}
-                        />
+                          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                            {itemArchivos.map(archivo => (
+                              <div key={archivo.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 12px", background: "var(--card)", border: "1px solid var(--border)", borderRadius: 6 }}>
+                                <FileTypeIcon tipo={archivo.tipo} />
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                  <div style={{ fontSize: 13, color: "var(--ink)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                    {archivo.nombre.split("/").pop()}
+                                  </div>
+                                  <div style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "var(--muted)", marginTop: 1 }}>
+                                    {formatBytes(archivo.size_bytes)}{archivo.subido_por_nombre && ` · ${archivo.subido_por_nombre}`}
+                                  </div>
+                                </div>
+                                <span style={{ fontSize: 9, fontFamily: "'DM Mono', monospace", fontWeight: 700, padding: "2px 5px", borderRadius: 3, background: "var(--surface-2)", color: "var(--muted-2)", textTransform: "uppercase", flexShrink: 0 }}>
+                                  {archivo.tipo.slice(0, 4)}
+                                </span>
+                                {esAdmin && (
+                                  <button onClick={() => handleDeleteArchivo(archivo.id)} disabled={deletingId === archivo.id}
+                                    style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", padding: 4, flexShrink: 0, opacity: deletingId === archivo.id ? 0.5 : 1 }}>
+                                    <TrashIcon />
+                                  </button>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Upload zone */}
+                      {!esCliente ? (
+                        <div>
+                          {itemArchivos.length === 0 && (
+                            <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--muted)", marginBottom: 8 }}>
+                              Subir documento
+                            </div>
+                          )}
+                          <UploadZone
+                            entidadId={entidadId}
+                            contratoId={contratoId}
+                            destino="cliente"
+                            requerimientoItemId={item.id}
+                            onDone={() => router.refresh()}
+                          />
+                        </div>
+                      ) : itemArchivos.length === 0 && (
+                        <div style={{ fontSize: 12, color: "var(--muted)", fontFamily: "'DM Mono', monospace" }}>
+                          Sin documentos subidos aún
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Columna derecha: comentarios */}
+                    <div style={{ width: 300, flexShrink: 0, display: "flex", flexDirection: "column", maxHeight: 380 }}>
+                      <div style={{ padding: "10px 14px", borderBottom: "1px solid var(--border)", flexShrink: 0 }}>
+                        <span style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--muted)" }}>
+                          Notas del reactivo
+                        </span>
                       </div>
-                    ) : itemArchivos.length === 0 && (
-                      <div style={{ fontSize: 12, color: "var(--muted)", fontFamily: "'DM Mono', monospace" }}>
-                        Sin documentos subidos aún
+
+                      {/* Lista de comentarios */}
+                      <ComentariosList
+                        comentarios={comentarios}
+                        cargando={cargando}
+                      />
+
+                      {/* Input nuevo comentario */}
+                      <div style={{ padding: "10px 12px", borderTop: "1px solid var(--border)", flexShrink: 0, background: "var(--card)" }}>
+                        <div style={{ display: "flex", gap: 6 }}>
+                          <textarea
+                            value={inputComentario[item.id] ?? ""}
+                            onChange={e => setInputComentario(prev => ({ ...prev, [item.id]: e.target.value }))}
+                            onKeyDown={e => {
+                              if (e.key === "Enter" && !e.shiftKey) {
+                                e.preventDefault();
+                                handleEnviarComentario(item.id);
+                              }
+                            }}
+                            placeholder="Agregar nota… (Enter para enviar)"
+                            rows={2}
+                            style={{ flex: 1, padding: "7px 10px", border: "1px solid var(--border)", borderRadius: 6, fontSize: 12, resize: "none", fontFamily: "'DM Sans', sans-serif", color: "var(--ink)", background: "var(--surface)", outline: "none" }}
+                          />
+                          <button
+                            onClick={() => handleEnviarComentario(item.id)}
+                            disabled={!(inputComentario[item.id] ?? "").trim() || enviando === item.id}
+                            style={{ padding: "0 10px", background: "var(--ink)", color: "white", border: "none", borderRadius: 6, cursor: "pointer", flexShrink: 0, opacity: (!(inputComentario[item.id] ?? "").trim() || enviando === item.id) ? 0.4 : 1 }}
+                          >
+                            {enviando === item.id ? <SpinnerIcon /> : <SendIcon />}
+                          </button>
+                        </div>
                       </div>
-                    )}
+                    </div>
                   </div>
                 )}
               </div>
@@ -258,6 +379,49 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
   );
 }
 
+// ── Comentarios list ──────────────────────────────────────────────────────────
+
+function ComentariosList({ comentarios, cargando }: { comentarios: Comentario[]; cargando: boolean }) {
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [comentarios.length]);
+
+  return (
+    <div style={{ flex: 1, overflowY: "auto", padding: "10px 12px", display: "flex", flexDirection: "column", gap: 10 }}>
+      {cargando ? (
+        <div style={{ textAlign: "center", padding: "20px 0", color: "var(--muted)", fontSize: 12, fontFamily: "'DM Mono', monospace" }}>
+          Cargando…
+        </div>
+      ) : comentarios.length === 0 ? (
+        <div style={{ textAlign: "center", padding: "20px 0", color: "var(--muted)", fontSize: 11, fontFamily: "'DM Mono', monospace" }}>
+          Sin notas aún
+        </div>
+      ) : (
+        comentarios.map(c => (
+          <div key={c.id} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+            {/* Avatar */}
+            <div style={{ width: 28, height: 28, borderRadius: "50%", background: "var(--ink)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, flexShrink: 0 }}>
+              {iniciales(c.usuario_nombre)}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 3 }}>
+                <span style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)" }}>{c.usuario_nombre}</span>
+                <span style={{ fontSize: 10, color: "var(--muted)", fontFamily: "'DM Mono', monospace" }}>{tiempoRelativo(c.created_at)}</span>
+              </div>
+              <div style={{ fontSize: 12, color: "var(--muted-2)", lineHeight: 1.5, background: "var(--surface)", padding: "6px 10px", borderRadius: "0 8px 8px 8px", border: "1px solid var(--border)" }}>
+                {c.mensaje}
+              </div>
+            </div>
+          </div>
+        ))
+      )}
+      <div ref={bottomRef} />
+    </div>
+  );
+}
+
 // ── Importar CSV Modal ────────────────────────────────────────────────────────
 
 function ImportarCSVModal({ contratoId, entidadId, onClose, onImported }: {
@@ -275,15 +439,13 @@ function ImportarCSVModal({ contratoId, entidadId, onClose, onImported }: {
     const reader = new FileReader();
     reader.onload = ev => {
       const { rows: parsed, error: err } = parsearCSV(ev.target?.result as string);
-      setParseErr(err);
-      setRows(parsed);
-      setError(null);
+      setParseErr(err); setRows(parsed); setError(null);
     };
     reader.readAsText(file, "utf-8");
   };
 
   const descargarPlantilla = () => {
-    const csv = "No.,Rubro,Concepto\n1,Financiero,Balance general 2024\n2,Financiero,Estado de resultados\n3,Legal,Acta constitutiva\n4,Legal,Poder notarial";
+    const csv = "No.,Rubro,Concepto\n1,Financiero,Balance general 2024\n2,Financiero,Estado de resultados\n3,Legal,Acta constitutiva";
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a"); a.href = url; a.download = "plantilla_reactivos.csv"; a.click();
@@ -376,7 +538,7 @@ function ImportarCSVModal({ contratoId, entidadId, onClose, onImported }: {
   );
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ── Style / Icon helpers ──────────────────────────────────────────────────────
 
 function FileTypeIcon({ tipo }: { tipo: string }) {
   const colors: Record<string, string> = { pdf: "#E53E3E", xlsx: "#38A169", xls: "#38A169", docx: "#3182CE", doc: "#3182CE", zip: "#D69E2E", png: "#805AD5", jpg: "#805AD5", jpeg: "#805AD5", csv: "#319795" };
@@ -390,9 +552,6 @@ function FileTypeIcon({ tipo }: { tipo: string }) {
   );
 }
 
-const thStyle: React.CSSProperties = { padding: "8px 14px", textAlign: "left", fontSize: 10, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--muted)", fontWeight: 600 };
-thStyle; // used via spread in table header
-
 function btnSm(bg: string, color: string, border = "none"): React.CSSProperties {
   return { display: "inline-flex", alignItems: "center", gap: 5, padding: "7px 14px", background: bg, color, border, borderRadius: 4, cursor: "pointer", fontSize: 12, fontFamily: "'DM Sans', sans-serif", fontWeight: 500, whiteSpace: "nowrap" };
 }
@@ -401,7 +560,9 @@ function badgeStyle(color: string, bg: string): React.CSSProperties {
   return { fontSize: 11, padding: "2px 8px", borderRadius: 100, background: bg, color, fontFamily: "'DM Mono', monospace" };
 }
 
-function ChevronIcon()    { return <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6" /></svg>; }
-function DownloadIcon()   { return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>; }
-function UploadIconSm()   { return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></svg>; }
-function TrashIcon()      { return <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14H6L5 6" /><path d="M10 11v6M14 11v6" /><path d="M9 6V4h6v2" /></svg>; }
+function ChevronIcon()  { return <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6" /></svg>; }
+function DownloadIcon() { return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>; }
+function UploadIconSm() { return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></svg>; }
+function TrashIcon()    { return <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14H6L5 6" /><path d="M10 11v6M14 11v6" /><path d="M9 6V4h6v2" /></svg>; }
+function SendIcon()     { return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>; }
+function SpinnerIcon()  { return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" style={{ animation: "spin 1s linear infinite" }}><style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style><path d="M21 12a9 9 0 1 1-6.219-8.56" /></svg>; }
