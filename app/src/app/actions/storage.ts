@@ -141,6 +141,25 @@ export async function abortMultipartUploadAction(key: string, uploadId: string) 
 
 // ---------- GENERAR URL FIRMADA PARA VER/DESCARGAR ----------
 
+export async function getDownloadUrlAction(key: string, filename: string) {
+  const { userId, error: authErr } = await verificarAuth();
+  if (authErr || !userId) return { error: authErr, url: null };
+
+  const safeFilename = filename.replace(/[^a-zA-Z0-9._\- ]/g, "_");
+  const command = new GetObjectCommand({
+    Bucket: WASABI_BUCKET,
+    Key: key,
+    ResponseContentDisposition: `attachment; filename="${safeFilename}"`,
+  });
+  try {
+    const url = await getSignedUrl(wasabiClient, command, { expiresIn: 3600 });
+    return { url, error: null };
+  } catch (err) {
+    console.error("Wasabi download url error:", err);
+    return { error: "Error al generar URL de descarga", url: null };
+  }
+}
+
 export async function getWasabiViewUrlAction(key: string) {
   const { userId, error: authErr } = await verificarAuth();
   if (authErr || !userId) return { error: authErr, url: null };

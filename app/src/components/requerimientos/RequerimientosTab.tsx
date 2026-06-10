@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation";
 import type { Requerimiento, RequerimientoItem } from "@/types/requerimientos";
 import type { ArchivoContratoItem } from "@/app/actions/archivos";
 import type { Comentario } from "@/app/actions/comentarios";
-import { toggleItemCompletoAction, importarReactivosContratoAction, extenderFechaItemAction, chequearImpactoImportAction, agregarItemContratoAction, editarItemAction, eliminarItemAction } from "@/app/actions/requerimientos";
+import { toggleItemCompletoAction, importarReactivosContratoAction, extenderFechaItemAction, chequearImpactoImportAction, agregarItemContratoAction, editarItemAction, eliminarItemAction, reordenarItemAction } from "@/app/actions/requerimientos";
 import { deleteArchivoAction } from "@/app/actions/archivos";
+import { getDownloadUrlAction } from "@/app/actions/storage";
 import { fetchComentariosItemAction, agregarComentarioAction } from "@/app/actions/comentarios";
 import UploadZone from "@/components/archivos/UploadZone";
 
@@ -98,9 +99,12 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
   const [expandedItem, setExpandedItem]               = useState<string | null>(null);
   const [showImport, setShowImport]                   = useState(false);
   const [showAddItem, setShowAddItem]                 = useState(false);
-  const [editingItem, setEditingItem]                 = useState<{ id: string; nombre: string; rubro: string | null } | null>(null);
+  const [editingItem, setEditingItem]                 = useState<{ id: string; nombre: string; rubro: string | null; descripcion: string | null } | null>(null);
   const [eliminandoId, setEliminandoId]               = useState<string | null>(null);
+  const [reorderingId, setReorderingId]               = useState<string | null>(null);
+  const [downloadingId, setDownloadingId]             = useState<string | null>(null);
   const [deletingId, setDeletingId]                   = useState<string | null>(null);
+  const [notaExtension, setNotaExtension]             = useState<Record<string, string>>({});
   const [comentariosPorItem, setComentariosPorItem]   = useState<Record<string, Comentario[]>>({});
   const [loadingComents, setLoadingComents]           = useState<string | null>(null);
   const [inputComentario, setInputComentario]         = useState<Record<string, string>>({});
@@ -162,10 +166,30 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
   const handleGuardarFecha = async (itemId: string) => {
     const fecha = editFechas[itemId];
     if (!fecha) return;
-    await extenderFechaItemAction(itemId, fecha, esExtension[itemId] ?? false);
+    await extenderFechaItemAction(itemId, fecha, esExtension[itemId] ?? false, notaExtension[itemId]);
     setEditFechas(prev => { const n = { ...prev }; delete n[itemId]; return n; });
     setEsExtension(prev => { const n = { ...prev }; delete n[itemId]; return n; });
+    setNotaExtension(prev => { const n = { ...prev }; delete n[itemId]; return n; });
     router.refresh();
+  };
+
+  const handleReorder = async (itemId: string, direction: "up" | "down") => {
+    setReorderingId(itemId + direction);
+    await reordenarItemAction(itemId, direction);
+    setReorderingId(null);
+    router.refresh();
+  };
+
+  const handleDownload = async (archivoId: string, key: string, filename: string) => {
+    setDownloadingId(archivoId);
+    const result = await getDownloadUrlAction(key, filename.split("/").pop() ?? filename);
+    setDownloadingId(null);
+    if (result.url) {
+      const a = document.createElement("a");
+      a.href = result.url;
+      a.download = filename.split("/").pop() ?? filename;
+      a.click();
+    }
   };
 
   const handleEnviarComentario = async (itemId: string) => {
@@ -330,11 +354,27 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
                     <ItemDeadlineBadge fecha={item.fecha_limite} extendida={item.extendida} />
                   </span>
 
-                  {/* Editar / Eliminar */}
+                  {/* Reorder / Editar / Eliminar */}
                   {!esCliente && (
                     <span onClick={e => e.stopPropagation()} style={{ display: "flex", alignItems: "center", gap: 2, flexShrink: 0 }}>
                       <button
-                        onClick={() => setEditingItem({ id: item.id, nombre: item.nombre, rubro: item.rubro })}
+                        onClick={() => handleReorder(item.id, "up")}
+                        disabled={reorderingId === item.id + "up"}
+                        title="Subir"
+                        style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", padding: "2px 3px", display: "flex", borderRadius: 4, fontSize: 13, opacity: reorderingId === item.id + "up" ? 0.3 : 1 }}
+                      >
+                        ↑
+                      </button>
+                      <button
+                        onClick={() => handleReorder(item.id, "down")}
+                        disabled={reorderingId === item.id + "down"}
+                        title="Bajar"
+                        style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", padding: "2px 3px", display: "flex", borderRadius: 4, fontSize: 13, opacity: reorderingId === item.id + "down" ? 0.3 : 1 }}
+                      >
+                        ↓
+                      </button>
+                      <button
+                        onClick={() => setEditingItem({ id: item.id, nombre: item.nombre, rubro: item.rubro, descripcion: item.descripcion })}
                         title="Editar reactivo"
                         style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", padding: 4, display: "flex", borderRadius: 4 }}
                       >
@@ -380,6 +420,13 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
 
                     {/* Columna izquierda: archivos + upload */}
                     <div style={{ flex: 1, padding: "16px 20px 20px 58px", borderRight: "1px solid var(--border)" }}>
+                      {/* Descripción */}
+                      {item.descripcion && (
+                        <div style={{ marginBottom: 14, padding: "8px 12px", background: "var(--surface)", borderRadius: 6, border: "1px solid var(--border)", fontSize: 12, color: "var(--muted-2)", lineHeight: 1.6 }}>
+                          {item.descripcion}
+                        </div>
+                      )}
+
                       {/* Archivos subidos */}
                       {itemArchivos.length > 0 && (
                         <div style={{ marginBottom: 16 }}>
@@ -401,6 +448,14 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
                                 <span style={{ fontSize: 9, fontFamily: "'DM Mono', monospace", fontWeight: 700, padding: "2px 5px", borderRadius: 3, background: "var(--surface-2)", color: "var(--muted-2)", textTransform: "uppercase", flexShrink: 0 }}>
                                   {archivo.tipo.slice(0, 4)}
                                 </span>
+                                <button
+                                  onClick={() => handleDownload(archivo.id, archivo.ruta_storage, archivo.nombre)}
+                                  disabled={downloadingId === archivo.id}
+                                  title="Descargar"
+                                  style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", padding: 4, flexShrink: 0, opacity: downloadingId === archivo.id ? 0.4 : 1 }}
+                                >
+                                  <DownloadIcon />
+                                </button>
                                 {esAdmin && (
                                   <button onClick={() => handleDeleteArchivo(archivo.id)} disabled={deletingId === archivo.id}
                                     style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", padding: 4, flexShrink: 0, opacity: deletingId === archivo.id ? 0.5 : 1 }}>
@@ -455,7 +510,7 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
 
                           {/* Controles que aparecen cuando la fecha cambia */}
                           {editFechas[item.id] && editFechas[item.id] !== item.fecha_limite && (
-                            <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                            <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 8 }}>
                               <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 12, color: "var(--ink)", fontFamily: "'DM Sans', sans-serif", userSelect: "none" }}>
                                 <input
                                   type="checkbox"
@@ -465,21 +520,31 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
                                 />
                                 Marcar como tiempo extendido
                               </label>
-                              <button
-                                onClick={() => handleGuardarFecha(item.id)}
-                                style={{ height: 28, padding: "0 14px", background: "var(--ink)", color: "white", border: "none", borderRadius: 4, fontSize: 12, cursor: "pointer" }}
-                              >
-                                Guardar
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setEditFechas(prev => { const n = { ...prev }; delete n[item.id]; return n; });
-                                  setEsExtension(prev => { const n = { ...prev }; delete n[item.id]; return n; });
-                                }}
-                                style={{ height: 28, padding: "0 10px", background: "none", border: "1px solid var(--border)", borderRadius: 4, fontSize: 12, cursor: "pointer", color: "var(--muted)" }}
-                              >
-                                ×
-                              </button>
+                              <textarea
+                                value={notaExtension[item.id] ?? ""}
+                                onChange={e => setNotaExtension(prev => ({ ...prev, [item.id]: e.target.value }))}
+                                placeholder="Nota para el cliente (opcional)…"
+                                rows={2}
+                                style={{ width: "100%", padding: "7px 10px", border: "1px solid var(--border)", borderRadius: 6, fontSize: 12, resize: "none", fontFamily: "'DM Sans', sans-serif", color: "var(--ink)", background: "var(--surface)", outline: "none", boxSizing: "border-box" }}
+                              />
+                              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                <button
+                                  onClick={() => handleGuardarFecha(item.id)}
+                                  style={{ height: 28, padding: "0 14px", background: "var(--ink)", color: "white", border: "none", borderRadius: 4, fontSize: 12, cursor: "pointer" }}
+                                >
+                                  Guardar
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setEditFechas(prev => { const n = { ...prev }; delete n[item.id]; return n; });
+                                    setEsExtension(prev => { const n = { ...prev }; delete n[item.id]; return n; });
+                                    setNotaExtension(prev => { const n = { ...prev }; delete n[item.id]; return n; });
+                                  }}
+                                  style={{ height: 28, padding: "0 10px", background: "none", border: "1px solid var(--border)", borderRadius: 4, fontSize: 12, cursor: "pointer", color: "var(--muted)" }}
+                                >
+                                  ×
+                                </button>
+                              </div>
                             </div>
                           )}
                         </div>
@@ -611,18 +676,21 @@ function ComentariosList({ comentarios, cargando }: { comentarios: Comentario[];
 function AgregarReactivoModal({ contratoId, entidadId, onClose, onAdded }: {
   contratoId: string; entidadId: string; onClose: () => void; onAdded: () => void;
 }) {
-  const [nombre, setNombre] = useState("");
-  const [rubro, setRubro]   = useState("");
-  const [saving, setSaving] = useState(false);
-  const [error, setError]   = useState<string | null>(null);
+  const [nombre, setNombre]           = useState("");
+  const [rubro, setRubro]             = useState("");
+  const [descripcion, setDescripcion] = useState("");
+  const [saving, setSaving]           = useState(false);
+  const [error, setError]             = useState<string | null>(null);
 
   const handleGuardar = async () => {
     if (!nombre.trim()) return;
     setSaving(true); setError(null);
-    const result = await agregarItemContratoAction(contratoId, entidadId, { nombre, rubro });
+    const result = await agregarItemContratoAction(contratoId, entidadId, { nombre, rubro, descripcion });
     if (result.error) { setError(result.error); setSaving(false); return; }
     onAdded();
   };
+
+  const inputSt: React.CSSProperties = { width: "100%", height: 36, padding: "0 10px", border: "1px solid var(--border-strong)", borderRadius: 6, fontSize: 13, fontFamily: "'DM Sans', sans-serif", background: "var(--surface)", color: "var(--ink)", outline: "none", boxSizing: "border-box" };
 
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 1200, background: "var(--overlay)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}
@@ -638,29 +706,22 @@ function AgregarReactivoModal({ contratoId, entidadId, onClose, onAdded }: {
             <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "var(--ink)", marginBottom: 6, fontFamily: "'DM Sans', sans-serif" }}>
               Nombre del reactivo <span style={{ color: "var(--accent)" }}>*</span>
             </label>
-            <input
-              autoFocus
-              type="text"
-              value={nombre}
-              onChange={e => setNombre(e.target.value)}
-              onKeyDown={e => { if (e.key === "Enter") handleGuardar(); }}
-              placeholder="Ej. Balance general 2024"
-              style={{ width: "100%", height: 36, padding: "0 10px", border: "1px solid var(--border-strong)", borderRadius: 6, fontSize: 13, fontFamily: "'DM Sans', sans-serif", background: "var(--surface)", color: "var(--ink)", outline: "none", boxSizing: "border-box" }}
-            />
+            <input autoFocus type="text" value={nombre} onChange={e => setNombre(e.target.value)} onKeyDown={e => { if (e.key === "Enter") handleGuardar(); }} placeholder="Ej. Balance general 2024" style={inputSt} />
           </div>
 
           <div>
             <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "var(--ink)", marginBottom: 6, fontFamily: "'DM Sans', sans-serif" }}>
               Rubro <span style={{ color: "var(--muted)", fontWeight: 400 }}>(opcional)</span>
             </label>
-            <input
-              type="text"
-              value={rubro}
-              onChange={e => setRubro(e.target.value)}
-              onKeyDown={e => { if (e.key === "Enter") handleGuardar(); }}
-              placeholder="Ej. Financiero, Legal…"
-              style={{ width: "100%", height: 36, padding: "0 10px", border: "1px solid var(--border-strong)", borderRadius: 6, fontSize: 13, fontFamily: "'DM Sans', sans-serif", background: "var(--surface)", color: "var(--ink)", outline: "none", boxSizing: "border-box" }}
-            />
+            <input type="text" value={rubro} onChange={e => setRubro(e.target.value)} onKeyDown={e => { if (e.key === "Enter") handleGuardar(); }} placeholder="Ej. Financiero, Legal…" style={inputSt} />
+          </div>
+
+          <div>
+            <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "var(--ink)", marginBottom: 6, fontFamily: "'DM Sans', sans-serif" }}>
+              Descripción <span style={{ color: "var(--muted)", fontWeight: 400 }}>(opcional)</span>
+            </label>
+            <textarea value={descripcion} onChange={e => setDescripcion(e.target.value)} placeholder="Instrucciones o aclaraciones para el cliente…" rows={3}
+              style={{ width: "100%", padding: "8px 10px", border: "1px solid var(--border-strong)", borderRadius: 6, fontSize: 13, fontFamily: "'DM Sans', sans-serif", background: "var(--surface)", color: "var(--ink)", outline: "none", resize: "vertical", boxSizing: "border-box" }} />
           </div>
 
           {error && (
@@ -683,22 +744,25 @@ function AgregarReactivoModal({ contratoId, entidadId, onClose, onAdded }: {
 // ── Editar Item Modal ─────────────────────────────────────────────────────────
 
 function EditarItemModal({ item, onClose, onSaved }: {
-  item: { id: string; nombre: string; rubro: string | null };
+  item: { id: string; nombre: string; rubro: string | null; descripcion: string | null };
   onClose: () => void;
   onSaved: () => void;
 }) {
-  const [nombre, setNombre] = useState(item.nombre);
-  const [rubro, setRubro]   = useState(item.rubro ?? "");
-  const [saving, setSaving] = useState(false);
-  const [error, setError]   = useState<string | null>(null);
+  const [nombre, setNombre]           = useState(item.nombre);
+  const [rubro, setRubro]             = useState(item.rubro ?? "");
+  const [descripcion, setDescripcion] = useState(item.descripcion ?? "");
+  const [saving, setSaving]           = useState(false);
+  const [error, setError]             = useState<string | null>(null);
 
   const handleGuardar = async () => {
     if (!nombre.trim()) return;
     setSaving(true); setError(null);
-    const result = await editarItemAction(item.id, { nombre, rubro });
+    const result = await editarItemAction(item.id, { nombre, rubro, descripcion });
     if (result.error) { setError(result.error); setSaving(false); return; }
     onSaved();
   };
+
+  const inputSt: React.CSSProperties = { width: "100%", height: 36, padding: "0 10px", border: "1px solid var(--border-strong)", borderRadius: 6, fontSize: 13, fontFamily: "'DM Sans', sans-serif", background: "var(--surface)", color: "var(--ink)", outline: "none", boxSizing: "border-box" };
 
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 1200, background: "var(--overlay)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}
@@ -713,27 +777,22 @@ function EditarItemModal({ item, onClose, onSaved }: {
             <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "var(--ink)", marginBottom: 6, fontFamily: "'DM Sans', sans-serif" }}>
               Nombre <span style={{ color: "var(--accent)" }}>*</span>
             </label>
-            <input
-              autoFocus
-              type="text"
-              value={nombre}
-              onChange={e => setNombre(e.target.value)}
-              onKeyDown={e => { if (e.key === "Enter") handleGuardar(); }}
-              style={{ width: "100%", height: 36, padding: "0 10px", border: "1px solid var(--border-strong)", borderRadius: 6, fontSize: 13, fontFamily: "'DM Sans', sans-serif", background: "var(--surface)", color: "var(--ink)", outline: "none", boxSizing: "border-box" }}
-            />
+            <input autoFocus type="text" value={nombre} onChange={e => setNombre(e.target.value)} onKeyDown={e => { if (e.key === "Enter") handleGuardar(); }} style={inputSt} />
           </div>
 
           <div>
             <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "var(--ink)", marginBottom: 6, fontFamily: "'DM Sans', sans-serif" }}>
               Rubro <span style={{ color: "var(--muted)", fontWeight: 400 }}>(opcional)</span>
             </label>
-            <input
-              type="text"
-              value={rubro}
-              onChange={e => setRubro(e.target.value)}
-              onKeyDown={e => { if (e.key === "Enter") handleGuardar(); }}
-              style={{ width: "100%", height: 36, padding: "0 10px", border: "1px solid var(--border-strong)", borderRadius: 6, fontSize: 13, fontFamily: "'DM Sans', sans-serif", background: "var(--surface)", color: "var(--ink)", outline: "none", boxSizing: "border-box" }}
-            />
+            <input type="text" value={rubro} onChange={e => setRubro(e.target.value)} onKeyDown={e => { if (e.key === "Enter") handleGuardar(); }} placeholder="Ej. Financiero, Legal…" style={inputSt} />
+          </div>
+
+          <div>
+            <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "var(--ink)", marginBottom: 6, fontFamily: "'DM Sans', sans-serif" }}>
+              Descripción <span style={{ color: "var(--muted)", fontWeight: 400 }}>(opcional)</span>
+            </label>
+            <textarea value={descripcion} onChange={e => setDescripcion(e.target.value)} placeholder="Instrucciones o aclaraciones para el cliente…" rows={3}
+              style={{ width: "100%", padding: "8px 10px", border: "1px solid var(--border-strong)", borderRadius: 6, fontSize: 13, fontFamily: "'DM Sans', sans-serif", background: "var(--surface)", color: "var(--ink)", outline: "none", resize: "vertical", boxSizing: "border-box" }} />
           </div>
 
           {error && (

@@ -9,6 +9,7 @@ export interface ClienteArchivo {
   tipo: string;
   estado: string;
   size_bytes: number;
+  ruta_storage: string;
   created_at: string;
 }
 

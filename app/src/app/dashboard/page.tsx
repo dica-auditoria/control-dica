@@ -341,7 +341,7 @@ export default async function DashboardPage() {
   const [{ data: misArchivos }, rReqs] = await Promise.all([
     supabase
       .from("archivos")
-      .select("id, nombre, tipo, estado, size_bytes, created_at, requerimiento_item_id")
+      .select("id, nombre, tipo, estado, size_bytes, ruta_storage, created_at, requerimiento_item_id")
       .eq("entidad_id", perfil!.entidad_id!)
       .neq("estado", "eliminado")
       .order("created_at", { ascending: false }) as unknown as Promise<{ data: (ClienteArchivo & { requerimiento_item_id: string | null })[] | null; error: unknown }>,

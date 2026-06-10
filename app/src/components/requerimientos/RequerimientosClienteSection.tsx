@@ -7,6 +7,7 @@ import type { ClienteArchivo } from "@/components/archivos/ClienteArchivosTable"
 import type { Comentario } from "@/app/actions/comentarios";
 import UploadZone from "@/components/archivos/UploadZone";
 import { fetchComentariosItemAction, agregarComentarioAction } from "@/app/actions/comentarios";
+import { getDownloadUrlAction } from "@/app/actions/storage";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -223,7 +224,20 @@ function ItemRow({ item, idx, entidadId, contratoId, archivosItem, canUpload, on
   const [loadingChat, setLoadingChat] = useState(false);
   const [inputMsg, setInputMsg]       = useState("");
   const [enviando, setEnviando]       = useState(false);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const bottomRef                     = useRef<HTMLDivElement>(null);
+
+  const handleDownload = async (archivoId: string, key: string, filename: string) => {
+    setDownloadingId(archivoId);
+    const result = await getDownloadUrlAction(key, filename.split("/").pop() ?? filename);
+    setDownloadingId(null);
+    if (result.url) {
+      const a = document.createElement("a");
+      a.href = result.url;
+      a.download = filename.split("/").pop() ?? filename;
+      a.click();
+    }
+  };
 
   const estado = item.estado ?? "pendiente";
   const st     = ITEM_ESTADO[estado];
@@ -310,6 +324,13 @@ function ItemRow({ item, idx, entidadId, contratoId, archivosItem, canUpload, on
           {/* Columna izquierda */}
           <div style={{ flex: 1, padding: "14px 18px 18px 56px", borderRight: "1px solid var(--border)", minWidth: 0 }}>
 
+            {/* Descripción del item */}
+            {item.descripcion && (
+              <div style={{ marginBottom: 12, padding: "8px 12px", background: "var(--surface)", borderRadius: 6, border: "1px solid var(--border)", fontSize: 12, color: "var(--muted-2)", lineHeight: 1.6 }}>
+                {item.descripcion}
+              </div>
+            )}
+
             {/* Plazo del item */}
             {item.fecha_limite && (
               <div style={{ marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
@@ -345,6 +366,14 @@ function ItemRow({ item, idx, entidadId, contratoId, archivosItem, canUpload, on
                       <span style={{ fontSize: 11, color: "var(--muted)", fontFamily: "'DM Mono', monospace", flexShrink: 0 }}>
                         {formatBytes(a.size_bytes)}
                       </span>
+                      <button
+                        onClick={e => { e.stopPropagation(); handleDownload(a.id, a.ruta_storage, a.nombre); }}
+                        disabled={downloadingId === a.id}
+                        title="Descargar"
+                        style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", padding: 4, flexShrink: 0, opacity: downloadingId === a.id ? 0.4 : 1, display: "flex" }}
+                      >
+                        <DownloadIcon />
+                      </button>
                     </div>
                   ))}
                 </div>
@@ -459,4 +488,7 @@ function ChevronIcon() {
 }
 function SendIcon() {
   return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>;
+}
+function DownloadIcon() {
+  return <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>;
 }

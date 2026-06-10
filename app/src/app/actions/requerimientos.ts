@@ -4,7 +4,11 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
 import type { CrearRequerimientoInput, Requerimiento, RequerimientoItem, ItemEstado } from "@/types/requerimientos";
-import { sendRequerimientoEmail } from "@/lib/email";
+import {
+  sendRequerimientoEmail,
+  sendDeadlineExtendedEmail,
+  sendItemCompletadoEmail,
+} from "@/lib/email";
 
 interface PerfilRow { rol: string; entidad_id: string | null }
 
@@ -187,9 +191,31 @@ export async function toggleItemCompletoAction(itemId: string, completado: boole
   const admin = createAdminClient();
 
   if (completado) {
+    const { data: item } = await (admin.from("requerimiento_items") as any)
+      .select("nombre, requerimiento_id")
+      .eq("id", itemId).single() as { data: { nombre: string; requerimiento_id: string } | null; error: unknown };
+
     await (admin.from("requerimiento_items") as any)
       .update({ completado: true, estado: "completado" })
       .eq("id", itemId);
+
+    if (item) {
+      const { data: req } = await (admin.from("requerimientos") as any)
+        .select("entidad_id, contrato_id").eq("id", item.requerimiento_id).single() as { data: { entidad_id: string; contrato_id: string | null } | null; error: unknown };
+      if (req) {
+        let contratoNombre: string | null = null;
+        if (req.contrato_id) {
+          const { data: c } = await (admin.from("contratos") as any)
+            .select("nombre").eq("id", req.contrato_id).single() as { data: { nombre: string } | null; error: unknown };
+          contratoNombre = c?.nombre ?? null;
+        }
+        const { data: clientes } = await (admin.from("usuarios") as any)
+          .select("email, nombre").eq("entidad_id", req.entidad_id).eq("rol", "cliente").eq("activo", true) as { data: Array<{ email: string; nombre: string }> | null; error: unknown };
+        for (const c of clientes ?? []) {
+          sendItemCompletadoEmail({ clienteEmail: c.email, clienteNombre: c.nombre, itemNombre: item.nombre, contratoNombre }).catch(() => {});
+        }
+      }
+    }
   } else {
     // Al desmarcar, verificar si tiene archivos para volver a "en_revision" o "pendiente"
     const { count } = await (admin.from("archivos") as any)
@@ -291,7 +317,7 @@ export async function eliminarRequerimientoAction(requerimientoId: string) {
 export async function agregarItemContratoAction(
   contratoId: string,
   entidadId: string,
-  item: { nombre: string; rubro?: string }
+  item: { nombre: string; rubro?: string; descripcion?: string }
 ) {
   const { user, perfil, error: authErr } = await getUser();
   if (authErr || !user || !perfil) return { error: authErr };
@@ -331,6 +357,7 @@ export async function agregarItemContratoAction(
       requerimiento_id: req.id,
       nombre: item.nombre.trim(),
       rubro: item.rubro?.trim() || null,
+      descripcion: item.descripcion?.trim() || null,
       orden,
       obligatorio: true,
       completado: false,
@@ -346,7 +373,7 @@ export async function agregarItemContratoAction(
 
 // ── EDITAR ITEM ───────────────────────────────────────────────────────────────
 
-export async function editarItemAction(itemId: string, datos: { nombre: string; rubro?: string }) {
+export async function editarItemAction(itemId: string, datos: { nombre: string; rubro?: string; descripcion?: string }) {
   const { perfil, error: authErr } = await getUser();
   if (authErr || !perfil) return { error: authErr };
   if (!["admin", "superadmin", "rrhh", "empleado"].includes(perfil.rol)) return { error: "No autorizado" };
@@ -357,7 +384,7 @@ export async function editarItemAction(itemId: string, datos: { nombre: string; 
   if (!item) return { error: "Reactivo no encontrado" };
 
   await (admin.from("requerimiento_items") as any)
-    .update({ nombre: datos.nombre.trim(), rubro: datos.rubro?.trim() || null })
+    .update({ nombre: datos.nombre.trim(), rubro: datos.rubro?.trim() || null, descripcion: datos.descripcion?.trim() || null })
     .eq("id", itemId);
 
   const { data: req } = await (admin.from("requerimientos") as any)
@@ -567,16 +594,16 @@ export async function importarReactivosContratoAction(
 
 // ── EXTENDER FECHA DE ITEM (empleado/admin) ───────────────────────────────────
 
-export async function extenderFechaItemAction(itemId: string, nuevaFecha: string, marcarExtendida = false) {
-  const { perfil, error: authErr } = await getUser();
-  if (authErr || !perfil) return { error: authErr };
+export async function extenderFechaItemAction(itemId: string, nuevaFecha: string, marcarExtendida = false, nota?: string) {
+  const { user, perfil, error: authErr } = await getUser();
+  if (authErr || !user || !perfil) return { error: authErr };
   if (!["admin", "superadmin", "rrhh", "empleado"].includes(perfil.rol)) return { error: "No autorizado" };
 
   const admin = createAdminClient();
   const { data: item } = await (admin.from("requerimiento_items") as any)
-    .select("requerimiento_id")
+    .select("nombre, requerimiento_id")
     .eq("id", itemId)
-    .single() as { data: { requerimiento_id: string } | null; error: unknown };
+    .single() as { data: { nombre: string; requerimiento_id: string } | null; error: unknown };
 
   if (!item) return { error: "Reactivo no encontrado" };
 
@@ -584,13 +611,140 @@ export async function extenderFechaItemAction(itemId: string, nuevaFecha: string
     .update({ fecha_limite: nuevaFecha, extendida: marcarExtendida })
     .eq("id", itemId);
 
+  if (nota?.trim()) {
+    const { data: perfData } = await admin.from("usuarios").select("nombre").eq("id", user.id).single() as { data: { nombre: string } | null; error: unknown };
+    await (admin.from("requerimiento_item_comentarios") as any).insert({
+      item_id: itemId,
+      usuario_id: user.id,
+      usuario_nombre: perfData?.nombre ?? "Equipo DICA",
+      mensaje: nota.trim(),
+    });
+  }
+
   const { data: req } = await (admin.from("requerimientos") as any)
     .select("entidad_id, contrato_id")
     .eq("id", item.requerimiento_id)
     .single() as { data: { entidad_id: string; contrato_id: string | null } | null; error: unknown };
 
+  if (req) {
+    revalidate(req.entidad_id, req.contrato_id ?? undefined);
+    let contratoNombre: string | null = null;
+    if (req.contrato_id) {
+      const { data: c } = await (admin.from("contratos") as any)
+        .select("nombre").eq("id", req.contrato_id).single() as { data: { nombre: string } | null; error: unknown };
+      contratoNombre = c?.nombre ?? null;
+    }
+    const { data: clientes } = await (admin.from("usuarios") as any)
+      .select("email, nombre").eq("entidad_id", req.entidad_id).eq("rol", "cliente").eq("activo", true) as { data: Array<{ email: string; nombre: string }> | null; error: unknown };
+    for (const c of clientes ?? []) {
+      sendDeadlineExtendedEmail({
+        clienteEmail: c.email,
+        clienteNombre: c.nombre,
+        itemNombre: item.nombre,
+        nuevaFecha,
+        nota: nota?.trim() || null,
+        contratoNombre,
+        extendida: marcarExtendida,
+      }).catch(() => {});
+    }
+  }
+
+  return { success: true };
+}
+
+// ── REORDENAR ITEM ────────────────────────────────────────────────────────────
+
+export async function reordenarItemAction(itemId: string, direction: "up" | "down") {
+  const { perfil, error: authErr } = await getUser();
+  if (authErr || !perfil) return { error: authErr };
+  if (!["admin", "superadmin", "rrhh", "empleado"].includes(perfil.rol)) return { error: "No autorizado" };
+
+  const admin = createAdminClient();
+  const { data: item } = await (admin.from("requerimiento_items") as any)
+    .select("requerimiento_id, orden").eq("id", itemId).single() as { data: { requerimiento_id: string; orden: number | null } | null; error: unknown };
+  if (!item) return { error: "Reactivo no encontrado" };
+
+  const currentOrden = item.orden ?? 0;
+
+  const { data: neighbor } = await (admin.from("requerimiento_items") as any)
+    .select("id, orden")
+    .eq("requerimiento_id", item.requerimiento_id)
+    [direction === "up" ? "lt" : "gt"]("orden", currentOrden)
+    .order("orden", { ascending: direction !== "up" })
+    .limit(1)
+    .single() as { data: { id: string; orden: number | null } | null; error: unknown };
+
+  if (!neighbor) return { success: true }; // ya está en el extremo
+
+  const neighborOrden = neighbor.orden ?? 0;
+  await Promise.all([
+    (admin.from("requerimiento_items") as any).update({ orden: neighborOrden }).eq("id", itemId),
+    (admin.from("requerimiento_items") as any).update({ orden: currentOrden }).eq("id", neighbor.id),
+  ]);
+
+  const { data: req } = await (admin.from("requerimientos") as any)
+    .select("entidad_id, contrato_id").eq("id", item.requerimiento_id).single() as { data: { entidad_id: string; contrato_id: string | null } | null; error: unknown };
   if (req) revalidate(req.entidad_id, req.contrato_id ?? undefined);
   return { success: true };
+}
+
+// ── FETCH PENDIENTES (revisión + retraso) ─────────────────────────────────────
+
+export interface PendienteItem {
+  id: string;
+  nombre: string;
+  estado: ItemEstado;
+  fecha_limite: string | null;
+  diasRetraso: number;
+  requerimiento_id: string;
+  entidad_id: string;
+  entidad_nombre: string;
+  contrato_id: string | null;
+  contrato_nombre: string | null;
+}
+
+export async function fetchPendientesRevisionAction(): Promise<{ data: PendienteItem[] | null; error: string | null }> {
+  const { perfil, error: authErr } = await getUser();
+  if (authErr || !perfil) return { error: authErr, data: null };
+  if (!["admin", "superadmin", "rrhh", "empleado"].includes(perfil.rol)) return { error: "No autorizado", data: null };
+
+  const admin = createAdminClient();
+  const hoy = new Date().toISOString().slice(0, 10);
+
+  const { data: rawItems, error } = await (admin.from("requerimiento_items") as any)
+    .select(`
+      id, nombre, estado, fecha_limite,
+      requerimiento:requerimientos!requerimiento_id(
+        id, entidad_id, contrato_id,
+        entidad:entidades!entidad_id(nombre),
+        contrato:contratos!contrato_id(nombre)
+      )
+    `)
+    .or(`estado.eq.en_revision,and(estado.neq.completado,fecha_limite.lt.${hoy})`)
+    .order("fecha_limite", { ascending: true }) as { data: any[] | null; error: unknown };
+
+  if (error) return { error: "Error al cargar pendientes", data: null };
+
+  const items: PendienteItem[] = (rawItems ?? []).map(i => {
+    const req = i.requerimiento ?? {};
+    const diasRetraso = i.fecha_limite
+      ? Math.floor((new Date(hoy).getTime() - new Date(i.fecha_limite).getTime()) / 86400000)
+      : 0;
+    return {
+      id: i.id,
+      nombre: i.nombre,
+      estado: (i.estado ?? "pendiente") as ItemEstado,
+      fecha_limite: i.fecha_limite ?? null,
+      diasRetraso: Math.max(0, diasRetraso),
+      requerimiento_id: req.id ?? "",
+      entidad_id: req.entidad_id ?? "",
+      entidad_nombre: req.entidad?.nombre ?? "—",
+      contrato_id: req.contrato_id ?? null,
+      contrato_nombre: req.contrato?.nombre ?? null,
+    };
+  });
+
+  return { data: items, error: null };
 }
 
 // ── IMPORTAR REACTIVOS DESDE CSV (nivel requerimiento — legacy) ───────────────

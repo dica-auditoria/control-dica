@@ -40,6 +40,7 @@ const NAV_ADMIN = [
   { href: "/dashboard/inventario", label: "Inventario", icon: "box" },
   { href: "/dashboard/usuarios", label: "Acceso", icon: "users" },
   { href: "/dashboard/solicitudes", label: "Solicitudes", icon: "alert" },
+  { href: "/dashboard/pendientes", label: "Pendientes", icon: "pending" },
   { href: "/dashboard/audit-log", label: "Audit Log", icon: "log" },
 ];
 
@@ -53,6 +54,7 @@ const NAV_EMPLEADO = [
   { href: "/dashboard/directorio", label: "Directorio", icon: "map" },
   { href: "/dashboard/empleados", label: "Mi Equipo", icon: "users" },
   { href: "/dashboard/cumpleanos", label: "Cumpleaños", icon: "cake" },
+  { href: "/dashboard/pendientes", label: "Pendientes", icon: "pending" },
 ];
 
 const NAV_RRHH = [
@@ -66,6 +68,7 @@ const NAV_RRHH = [
   { href: "/dashboard/mi-credencial", label: "Mi Credencial", icon: "card" },
   { href: "/dashboard/cumpleanos", label: "Cumpleaños", icon: "cake" },
   { href: "/dashboard/directorio", label: "Directorio", icon: "map" },
+  { href: "/dashboard/pendientes", label: "Pendientes", icon: "pending" },
 ];
 
 const NAV_CLIENTE = [

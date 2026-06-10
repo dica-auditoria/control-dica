@@ -142,6 +142,179 @@ export async function sendVacacionesNotifEmail(data: VacacionesNotifData): Promi
   }).catch(err => console.error("[email] vacaciones:", err));
 }
 
+// ── Deadline approaching (3 días) → cliente ──────────────────────────────────
+
+export interface DeadlineApproachingData {
+  clienteEmail: string;
+  clienteNombre: string;
+  items: Array<{ nombre: string; rubro: string | null; fecha_limite: string; contrato: string | null }>;
+}
+
+export async function sendDeadlineApproachingEmail(data: DeadlineApproachingData): Promise<void> {
+  const resend = getResend();
+  if (!resend) return;
+
+  const fmt = (f: string) => new Date(f + "T12:00:00").toLocaleDateString("es-MX", { day: "2-digit", month: "long", year: "numeric" });
+
+  const itemsHtml = data.items.map(i => `
+    <li style="margin-bottom:10px;">
+      <span style="font-size:13px;color:#0f1117;font-weight:600;">${i.nombre}</span>
+      ${i.rubro ? `<span style="font-size:11px;color:#6b7280;margin-left:6px;">${i.rubro}</span>` : ""}
+      ${i.contrato ? `<div style="font-size:12px;color:#6b7280;">Contrato: ${i.contrato}</div>` : ""}
+      <div style="font-size:12px;color:#b45309;font-weight:600;">Vence: ${fmt(i.fecha_limite)}</div>
+    </li>`).join("");
+
+  const html = baseLayout(`
+    <p style="margin:0 0 8px;font-size:15px;color:#0f1117;">Hola <strong>${data.clienteNombre}</strong>,</p>
+    <p style="margin:0 0 16px;font-size:14px;color:#4b5563;">
+      Los siguientes documentos vencen en <strong>3 días</strong>. Por favor, sube los archivos a tu portal antes de la fecha límite.
+    </p>
+    <ul style="margin:0 0 20px;padding-left:20px;">${itemsHtml}</ul>
+    <p style="font-size:13px;color:#6b7280;">
+      Accede a <a href="https://control.dica-mx.com/dashboard" style="color:#1B4F8A;">tu portal</a> para subir los documentos.
+    </p>
+  `);
+
+  await resend.emails.send({
+    from: FROM,
+    to: data.clienteEmail,
+    subject: `[DICA] ⏰ Documentos por vencer en 3 días`,
+    html,
+  }).catch(err => console.error("[email] deadline-approaching:", err));
+}
+
+// ── Plazo extendido → cliente ─────────────────────────────────────────────────
+
+export interface DeadlineExtendedData {
+  clienteEmail: string;
+  clienteNombre: string;
+  itemNombre: string;
+  nuevaFecha: string;
+  nota?: string | null;
+  contratoNombre?: string | null;
+  extendida: boolean;
+}
+
+export async function sendDeadlineExtendedEmail(data: DeadlineExtendedData): Promise<void> {
+  const resend = getResend();
+  if (!resend) return;
+
+  const fmt = (f: string) => new Date(f + "T12:00:00").toLocaleDateString("es-MX", { day: "2-digit", month: "long", year: "numeric" });
+  const tipo = data.extendida ? "extendido" : "actualizado";
+
+  const html = baseLayout(`
+    <p style="margin:0 0 8px;font-size:15px;color:#0f1117;">Hola <strong>${data.clienteNombre}</strong>,</p>
+    <p style="margin:0 0 16px;font-size:14px;color:#4b5563;">
+      El plazo del siguiente documento ha sido <strong>${tipo}</strong>:
+    </p>
+    <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:16px 20px;margin-bottom:16px;">
+      <div style="font-size:14px;font-weight:600;color:#0f1117;margin-bottom:6px;">${data.itemNombre}</div>
+      ${data.contratoNombre ? `<div style="font-size:12px;color:#6b7280;margin-bottom:6px;">Contrato: ${data.contratoNombre}</div>` : ""}
+      <div style="font-size:13px;color:#1B4F8A;font-weight:600;">Nueva fecha límite: ${fmt(data.nuevaFecha)}</div>
+    </div>
+    ${data.nota ? `<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:#1e40af;"><strong>Nota del equipo DICA:</strong> ${data.nota}</div>` : ""}
+    <p style="font-size:13px;color:#6b7280;">
+      Accede a <a href="https://control.dica-mx.com/dashboard" style="color:#1B4F8A;">tu portal</a> para subir los documentos.
+    </p>
+  `);
+
+  await resend.emails.send({
+    from: FROM,
+    to: data.clienteEmail,
+    subject: `[DICA] Plazo ${tipo}: ${data.itemNombre}`,
+    html,
+  }).catch(err => console.error("[email] deadline-extended:", err));
+}
+
+// ── Documento verificado → cliente ────────────────────────────────────────────
+
+export interface ItemCompletadoData {
+  clienteEmail: string;
+  clienteNombre: string;
+  itemNombre: string;
+  contratoNombre?: string | null;
+}
+
+export async function sendItemCompletadoEmail(data: ItemCompletadoData): Promise<void> {
+  const resend = getResend();
+  if (!resend) return;
+
+  const html = baseLayout(`
+    <p style="margin:0 0 8px;font-size:15px;color:#0f1117;">Hola <strong>${data.clienteNombre}</strong>,</p>
+    <p style="margin:0 0 16px;font-size:14px;color:#4b5563;">
+      El siguiente documento ha sido <strong>verificado y aprobado</strong> por el equipo DICA:
+    </p>
+    <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;padding:16px 20px;margin-bottom:16px;">
+      <div style="font-size:13px;color:#16a34a;font-weight:700;margin-bottom:4px;">✓ Documento verificado</div>
+      <div style="font-size:14px;font-weight:600;color:#0f1117;">${data.itemNombre}</div>
+      ${data.contratoNombre ? `<div style="font-size:12px;color:#6b7280;margin-top:4px;">Contrato: ${data.contratoNombre}</div>` : ""}
+    </div>
+    <p style="font-size:13px;color:#6b7280;">
+      Revisa el estado de todos tus documentos en <a href="https://control.dica-mx.com/dashboard" style="color:#1B4F8A;">tu portal</a>.
+    </p>
+  `);
+
+  await resend.emails.send({
+    from: FROM,
+    to: data.clienteEmail,
+    subject: `[DICA] ✓ Documento verificado: ${data.itemNombre}`,
+    html,
+  }).catch(err => console.error("[email] item-completado:", err));
+}
+
+// ── Reactivos en retraso → empleado ──────────────────────────────────────────
+
+export interface EnRetrasoData {
+  empleadoEmail: string;
+  empleadoNombre: string;
+  items: Array<{ nombre: string; entidad: string; contrato: string | null; fecha_limite: string; diasRetraso: number }>;
+}
+
+export async function sendEnRetrasoEmail(data: EnRetrasoData): Promise<void> {
+  const resend = getResend();
+  if (!resend) return;
+
+  const fmt = (f: string) => new Date(f + "T12:00:00").toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "numeric" });
+
+  const itemsHtml = data.items.map(i => `
+    <tr style="border-top:1px solid #e5e7eb;">
+      <td style="padding:8px 12px;font-size:13px;color:#0f1117;">${i.nombre}</td>
+      <td style="padding:8px 12px;font-size:12px;color:#6b7280;">${i.entidad}${i.contrato ? ` / ${i.contrato}` : ""}</td>
+      <td style="padding:8px 12px;font-size:12px;color:#dc2626;font-weight:600;">+${i.diasRetraso}d (${fmt(i.fecha_limite)})</td>
+    </tr>`).join("");
+
+  const html = baseLayout(`
+    <p style="margin:0 0 8px;font-size:15px;color:#0f1117;">Hola <strong>${data.empleadoNombre}</strong>,</p>
+    <p style="margin:0 0 16px;font-size:14px;color:#4b5563;">
+      Los siguientes reactivos tienen <strong>retraso</strong> en la entrega de documentos:
+    </p>
+    <div style="border:1px solid #e5e7eb;border-radius:6px;overflow:hidden;margin-bottom:16px;">
+      <table style="width:100%;border-collapse:collapse;">
+        <thead>
+          <tr style="background:#f9fafb;">
+            <th style="padding:8px 12px;font-size:11px;text-align:left;color:#6b7280;text-transform:uppercase;letter-spacing:.05em;">Reactivo</th>
+            <th style="padding:8px 12px;font-size:11px;text-align:left;color:#6b7280;text-transform:uppercase;letter-spacing:.05em;">Cliente</th>
+            <th style="padding:8px 12px;font-size:11px;text-align:left;color:#6b7280;text-transform:uppercase;letter-spacing:.05em;">Retraso</th>
+          </tr>
+        </thead>
+        <tbody>${itemsHtml}</tbody>
+      </table>
+    </div>
+    <p style="font-size:13px;color:#6b7280;">
+      Revisa el estado en <a href="https://control.dica-mx.com/dashboard/pendientes" style="color:#1B4F8A;">la vista de pendientes</a>.
+    </p>
+  `);
+
+  await resend.emails.send({
+    from: FROM,
+    to: data.empleadoEmail,
+    subject: `[DICA] ${data.items.length} reactivo${data.items.length !== 1 ? "s" : ""} con retraso`,
+    html,
+  }).catch(err => console.error("[email] en-retraso:", err));
+}
+
+// ── Requerimiento ─────────────────────────────────────────────────────────────
+
 export interface RequerimientoEmailData {
   clienteEmail: string;
   clienteNombre: string;
