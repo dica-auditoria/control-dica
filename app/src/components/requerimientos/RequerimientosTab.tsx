@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import type { Requerimiento, RequerimientoItem } from "@/types/requerimientos";
 import type { ArchivoContratoItem } from "@/app/actions/archivos";
 import type { Comentario } from "@/app/actions/comentarios";
-import { toggleItemCompletoAction, importarReactivosContratoAction, extenderFechaItemAction } from "@/app/actions/requerimientos";
+import { toggleItemCompletoAction, importarReactivosContratoAction, extenderFechaItemAction, chequearImpactoImportAction } from "@/app/actions/requerimientos";
 import { deleteArchivoAction } from "@/app/actions/archivos";
 import { fetchComentariosItemAction, agregarComentarioAction } from "@/app/actions/comentarios";
 import UploadZone from "@/components/archivos/UploadZone";
@@ -562,7 +562,12 @@ function ImportarCSVModal({ contratoId, entidadId, onClose, onImported }: {
   const [saving, setSaving]           = useState(false);
   const [error, setError]             = useState<string | null>(null);
   const [fechaLimite, setFechaLimite] = useState("");
+  const [impacto, setImpacto]         = useState<{ archivos: number; items: number } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    chequearImpactoImportAction(contratoId).then(setImpacto);
+  }, [contratoId]);
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -603,6 +608,20 @@ function ImportarCSVModal({ contratoId, entidadId, onClose, onImported }: {
         </div>
 
         <div style={{ flex: 1, overflowY: "auto", padding: 20, display: "flex", flexDirection: "column", gap: 16 }}>
+
+          {/* Aviso de impacto si ya hay reactivos con archivos */}
+          {impacto && impacto.items > 0 && (
+            <div style={{ padding: "10px 14px", background: "rgba(251,191,36,0.1)", border: "1px solid rgba(251,191,36,0.35)", borderRadius: 6, fontSize: 12, color: "#92400E" }}>
+              <div style={{ fontWeight: 600, marginBottom: 4 }}>
+                ⚠ Ya existen {impacto.items} reactivo{impacto.items !== 1 ? "s" : ""} en este contrato
+              </div>
+              {impacto.archivos > 0
+                ? `Al importar, los ${impacto.archivos} archivo${impacto.archivos !== 1 ? "s" : ""} ya subidos perderán su vínculo con los reactivos actuales (no se eliminarán, quedarán como archivos generales del contrato).`
+                : "No hay archivos subidos aún — la importación reemplazará los reactivos sin pérdida de datos."
+              }
+            </div>
+          )}
+
           <div style={{ padding: "12px 14px", background: "var(--surface)", borderRadius: 6, border: "1px solid var(--border)", fontSize: 12, color: "var(--muted-2)" }}>
             <div style={{ fontWeight: 600, color: "var(--ink)", marginBottom: 6 }}>Formato del CSV:</div>
             <code style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, display: "block", lineHeight: 1.8 }}>

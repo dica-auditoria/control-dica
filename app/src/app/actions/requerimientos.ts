@@ -286,6 +286,35 @@ export async function eliminarRequerimientoAction(requerimientoId: string) {
   return { success: true };
 }
 
+// ── CHEQUEAR IMPACTO ANTES DE RE-IMPORTAR ────────────────────────────────────
+
+export async function chequearImpactoImportAction(contratoId: string): Promise<{ archivos: number; items: number }> {
+  const { perfil, error: authErr } = await getUser();
+  if (authErr || !perfil) return { archivos: 0, items: 0 };
+
+  const admin = createAdminClient();
+
+  const { data: allReqs } = await (admin.from("requerimientos") as any)
+    .select("id").eq("contrato_id", contratoId) as { data: Array<{ id: string }> | null; error: unknown };
+
+  if (!allReqs?.length) return { archivos: 0, items: 0 };
+
+  const reqIds = allReqs.map(r => r.id);
+
+  const { data: itemRows } = await (admin.from("requerimiento_items") as any)
+    .select("id").in("requerimiento_id", reqIds) as { data: Array<{ id: string }> | null; error: unknown };
+
+  const itemIds = (itemRows ?? []).map(i => i.id);
+  if (!itemIds.length) return { archivos: 0, items: 0 };
+
+  const { count: archivosCount } = await (admin.from("archivos") as any)
+    .select("id", { count: "exact", head: true })
+    .in("requerimiento_item_id", itemIds)
+    .neq("estado", "eliminado") as { count: number | null };
+
+  return { archivos: archivosCount ?? 0, items: itemIds.length };
+}
+
 // ── IMPORTAR REACTIVOS DESDE CSV (nivel contrato) ────────────────────────────
 
 export async function importarReactivosContratoAction(
@@ -327,6 +356,15 @@ export async function importarReactivosContratoAction(
       .select("id").eq("contrato_id", contratoId) as { data: Array<{ id: string }> | null; error: unknown };
     const ids = (allReqs ?? []).map(r => r.id);
     if (ids.length) {
+      // Desvincular archivos antes de borrar (los archivos NO se eliminan)
+      const { data: oldItems } = await (admin.from("requerimiento_items") as any)
+        .select("id").in("requerimiento_id", ids) as { data: Array<{ id: string }> | null; error: unknown };
+      const oldItemIds = (oldItems ?? []).map(i => i.id);
+      if (oldItemIds.length) {
+        await (admin.from("archivos") as any)
+          .update({ requerimiento_item_id: null })
+          .in("requerimiento_item_id", oldItemIds);
+      }
       await (admin.from("requerimiento_items") as any).delete().in("requerimiento_id", ids);
     }
   } else {
