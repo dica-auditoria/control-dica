@@ -286,6 +286,64 @@ export async function eliminarRequerimientoAction(requerimientoId: string) {
   return { success: true };
 }
 
+// ── AGREGAR ITEM INDIVIDUAL AL CONTRATO ──────────────────────────────────────
+
+export async function agregarItemContratoAction(
+  contratoId: string,
+  entidadId: string,
+  item: { nombre: string; rubro?: string }
+) {
+  const { user, perfil, error: authErr } = await getUser();
+  if (authErr || !user || !perfil) return { error: authErr };
+  if (!["admin", "superadmin", "rrhh", "empleado"].includes(perfil.rol)) return { error: "No autorizado" };
+
+  const admin = createAdminClient();
+
+  // Obtener o crear el requerimiento base del contrato
+  let { data: req } = await (admin.from("requerimientos") as any)
+    .select("id, fecha_limite")
+    .eq("contrato_id", contratoId)
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .single() as { data: { id: string; fecha_limite: string } | null; error: unknown };
+
+  if (!req) {
+    const fechaLimite = new Date(Date.now() + 90 * 86400000).toISOString().slice(0, 10);
+    const { data: nuevo } = await (admin.from("requerimientos") as any)
+      .insert({ contrato_id: contratoId, entidad_id: entidadId, titulo: "Reactivos", fecha_limite: fechaLimite, estado: "pendiente", creado_por: user.id })
+      .select("id, fecha_limite").single() as { data: { id: string; fecha_limite: string } | null; error: unknown };
+    if (!nuevo) return { error: "Error al crear requerimiento" };
+    req = nuevo;
+  }
+
+  // Calcular siguiente orden
+  const { data: maxOrden } = await (admin.from("requerimiento_items") as any)
+    .select("orden")
+    .eq("requerimiento_id", req.id)
+    .order("orden", { ascending: false })
+    .limit(1)
+    .single() as { data: { orden: number | null } | null; error: unknown };
+
+  const orden = (maxOrden?.orden ?? 0) + 1;
+
+  const { data: newItem, error: insertErr } = await (admin.from("requerimiento_items") as any)
+    .insert({
+      requerimiento_id: req.id,
+      nombre: item.nombre.trim(),
+      rubro: item.rubro?.trim() || null,
+      orden,
+      obligatorio: true,
+      completado: false,
+      fecha_limite: req.fecha_limite,
+    })
+    .select("id")
+    .single() as { data: { id: string } | null; error: unknown };
+
+  if (insertErr || !newItem) return { error: "Error al agregar reactivo" };
+  revalidate(entidadId, contratoId);
+  return { success: true, id: newItem.id };
+}
+
 // ── CHEQUEAR IMPACTO ANTES DE RE-IMPORTAR ────────────────────────────────────
 
 export async function chequearImpactoImportAction(contratoId: string): Promise<{ archivos: number; items: number }> {

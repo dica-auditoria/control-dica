@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import type { Requerimiento, RequerimientoItem } from "@/types/requerimientos";
 import type { ArchivoContratoItem } from "@/app/actions/archivos";
 import type { Comentario } from "@/app/actions/comentarios";
-import { toggleItemCompletoAction, importarReactivosContratoAction, extenderFechaItemAction, chequearImpactoImportAction } from "@/app/actions/requerimientos";
+import { toggleItemCompletoAction, importarReactivosContratoAction, extenderFechaItemAction, chequearImpactoImportAction, agregarItemContratoAction } from "@/app/actions/requerimientos";
 import { deleteArchivoAction } from "@/app/actions/archivos";
 import { fetchComentariosItemAction, agregarComentarioAction } from "@/app/actions/comentarios";
 import UploadZone from "@/components/archivos/UploadZone";
@@ -97,6 +97,7 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
 
   const [expandedItem, setExpandedItem]               = useState<string | null>(null);
   const [showImport, setShowImport]                   = useState(false);
+  const [showAddItem, setShowAddItem]                 = useState(false);
   const [deletingId, setDeletingId]                   = useState<string | null>(null);
   const [comentariosPorItem, setComentariosPorItem]   = useState<Record<string, Comentario[]>>({});
   const [loadingComents, setLoadingComents]           = useState<string | null>(null);
@@ -226,9 +227,14 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
           </button>
         )}
         {!esCliente && (
-          <button onClick={() => setShowImport(true)} style={btnSm("var(--ink)", "white")}>
-            <UploadIconSm /> Importar CSV
-          </button>
+          <>
+            <button onClick={() => setShowAddItem(true)} style={btnSm("var(--card)", "var(--ink)", "1px solid var(--border-strong)")}>
+              <PlusIcon /> Agregar reactivo
+            </button>
+            <button onClick={() => setShowImport(true)} style={btnSm("var(--ink)", "white")}>
+              <UploadIconSm /> Importar CSV
+            </button>
+          </>
         )}
       </div>
 
@@ -505,6 +511,15 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
           onImported={() => { setShowImport(false); router.refresh(); }}
         />
       )}
+
+      {showAddItem && (
+        <AgregarReactivoModal
+          contratoId={contratoId}
+          entidadId={entidadId}
+          onClose={() => setShowAddItem(false)}
+          onAdded={() => { setShowAddItem(false); router.refresh(); }}
+        />
+      )}
     </>
   );
 }
@@ -548,6 +563,80 @@ function ComentariosList({ comentarios, cargando }: { comentarios: Comentario[];
         ))
       )}
       <div ref={bottomRef} />
+    </div>
+  );
+}
+
+// ── Agregar Reactivo Modal ────────────────────────────────────────────────────
+
+function AgregarReactivoModal({ contratoId, entidadId, onClose, onAdded }: {
+  contratoId: string; entidadId: string; onClose: () => void; onAdded: () => void;
+}) {
+  const [nombre, setNombre] = useState("");
+  const [rubro, setRubro]   = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError]   = useState<string | null>(null);
+
+  const handleGuardar = async () => {
+    if (!nombre.trim()) return;
+    setSaving(true); setError(null);
+    const result = await agregarItemContratoAction(contratoId, entidadId, { nombre, rubro });
+    if (result.error) { setError(result.error); setSaving(false); return; }
+    onAdded();
+  };
+
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 1200, background: "var(--overlay)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div style={{ background: "var(--card)", borderRadius: 10, width: "100%", maxWidth: 420, boxShadow: "0 24px 64px rgba(15,17,23,0.25)", overflow: "hidden" }}>
+        <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", background: "var(--surface)" }}>
+          <div style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)" }}>Agregar reactivo</div>
+          <div style={{ fontSize: 11, color: "var(--muted)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>Se añadirá al final de la lista</div>
+        </div>
+
+        <div style={{ padding: 20, display: "flex", flexDirection: "column", gap: 14 }}>
+          <div>
+            <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "var(--ink)", marginBottom: 6, fontFamily: "'DM Sans', sans-serif" }}>
+              Nombre del reactivo <span style={{ color: "var(--accent)" }}>*</span>
+            </label>
+            <input
+              autoFocus
+              type="text"
+              value={nombre}
+              onChange={e => setNombre(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter") handleGuardar(); }}
+              placeholder="Ej. Balance general 2024"
+              style={{ width: "100%", height: 36, padding: "0 10px", border: "1px solid var(--border-strong)", borderRadius: 6, fontSize: 13, fontFamily: "'DM Sans', sans-serif", background: "var(--surface)", color: "var(--ink)", outline: "none", boxSizing: "border-box" }}
+            />
+          </div>
+
+          <div>
+            <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "var(--ink)", marginBottom: 6, fontFamily: "'DM Sans', sans-serif" }}>
+              Rubro <span style={{ color: "var(--muted)", fontWeight: 400 }}>(opcional)</span>
+            </label>
+            <input
+              type="text"
+              value={rubro}
+              onChange={e => setRubro(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter") handleGuardar(); }}
+              placeholder="Ej. Financiero, Legal…"
+              style={{ width: "100%", height: 36, padding: "0 10px", border: "1px solid var(--border-strong)", borderRadius: 6, fontSize: 13, fontFamily: "'DM Sans', sans-serif", background: "var(--surface)", color: "var(--ink)", outline: "none", boxSizing: "border-box" }}
+            />
+          </div>
+
+          {error && (
+            <div style={{ padding: "8px 12px", background: "rgba(200,71,42,0.06)", borderRadius: 4, fontSize: 12, color: "var(--accent)" }}>{error}</div>
+          )}
+        </div>
+
+        <div style={{ padding: "12px 20px", borderTop: "1px solid var(--border)", display: "flex", gap: 8, justifyContent: "flex-end" }}>
+          <button type="button" onClick={onClose} style={{ padding: "8px 16px", border: "1px solid var(--border)", borderRadius: 4, background: "none", cursor: "pointer", fontSize: 13 }}>Cancelar</button>
+          <button onClick={handleGuardar} disabled={!nombre.trim() || saving}
+            style={{ padding: "8px 20px", background: "var(--ink)", color: "white", border: "none", borderRadius: 4, fontSize: 13, fontWeight: 600, cursor: (!nombre.trim() || saving) ? "not-allowed" : "pointer", opacity: (!nombre.trim() || saving) ? 0.5 : 1 }}>
+            {saving ? "Guardando…" : "Agregar"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -756,6 +845,7 @@ function badgeStyle(color: string, bg: string): React.CSSProperties {
 }
 
 function ChevronIcon()  { return <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6" /></svg>; }
+function PlusIcon()     { return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>; }
 function SearchIcon()   { return <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>; }
 function DownloadIcon() { return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>; }
 function UploadIconSm() { return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></svg>; }
