@@ -452,7 +452,7 @@ export async function chequearImpactoImportAction(contratoId: string): Promise<{
 export async function importarReactivosContratoAction(
   contratoId: string,
   entidadId: string,
-  reactivos: Array<{ orden: number; rubro: string; nombre: string }>,
+  reactivos: Array<{ orden: number; rubro: string; nombre: string; fechaLimite?: string }>,
   fechaLimiteInput?: string
 ) {
   const { user, perfil, error: authErr } = await getUser();
@@ -503,8 +503,8 @@ export async function importarReactivosContratoAction(
     }
 
     // Clasificar filas del CSV
-    const toUpdate: Array<{ id: string; orden: number; rubro: string; nombre: string }> = [];
-    const toInsert: Array<{ orden: number; rubro: string; nombre: string }> = [];
+    const toUpdate: Array<{ id: string; orden: number; rubro: string; nombre: string; fechaLimite?: string }> = [];
+    const toInsert: Array<{ orden: number; rubro: string; nombre: string; fechaLimite?: string }> = [];
     const matchedIds = new Set<string>();
 
     for (const row of reactivos) {
@@ -530,12 +530,13 @@ export async function importarReactivosContratoAction(
 
     // Actualizar items que coincidieron (sólo orden, rubro, nombre; conservan estado/archivos)
     for (const item of toUpdate) {
+      const fechaRow = item.fechaLimite ?? fechaLimiteInput ?? undefined;
       await (admin.from("requerimiento_items") as any)
         .update({
           nombre: item.nombre.trim(),
           rubro: item.rubro.trim() || null,
           orden: item.orden,
-          ...(fechaLimiteInput ? { fecha_limite: fechaLimiteInput } : {}),
+          ...(fechaRow ? { fecha_limite: fechaRow } : {}),
         })
         .eq("id", item.id);
     }
@@ -551,7 +552,7 @@ export async function importarReactivosContratoAction(
           orden: r.orden,
           obligatorio: true,
           completado: false,
-          fecha_limite: fechaLimiteReq,
+          fecha_limite: r.fechaLimite ?? fechaLimiteReq,
         }))
       );
       nuevos = toInsert.length;
@@ -581,7 +582,7 @@ export async function importarReactivosContratoAction(
         orden: r.orden,
         obligatorio: true,
         completado: false,
-        fecha_limite: fechaLimiteReq,
+        fecha_limite: r.fechaLimite ?? fechaLimiteReq,
       }))
     );
     if (insertErr) return { error: "Error al importar reactivos" };
