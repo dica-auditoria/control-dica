@@ -310,7 +310,7 @@ export default function EmpleadoDetalleView({ empleado: inicial, supervisores = 
                 <DataRow label="Tipo de contrato" value={TIPOS_CONTRATO.find(t => t.value === empleado.tipo_contrato)?.label ?? empleado.tipo_contrato} />
                 <DataRow label="Zona / Ubicación" value={empleado.zona_ubicacion ?? "—"} />
                 <DataRow label="Supervisor" value={empleado.supervisor_nombre ?? "—"} />
-                <DataRow label="Fecha de ingreso" value={new Date(empleado.fecha_ingreso + "T12:00:00").toLocaleDateString("es-MX", { day: "numeric", month: "long", year: "numeric" })} />
+                {!soloLectura && <DataRow label="Fecha de ingreso" value={new Date(empleado.fecha_ingreso + "T12:00:00").toLocaleDateString("es-MX", { day: "numeric", month: "long", year: "numeric" })} />}
                 <DataRow label="Código empleado" value={empleado.codigo_empleado ?? "—"} mono />
                 {dp.fecha_alta_imss && (
                   <DataRow label="Alta IMSS" value={new Date(dp.fecha_alta_imss + "T12:00:00").toLocaleDateString("es-MX", { day: "numeric", month: "long", year: "numeric" })} />
