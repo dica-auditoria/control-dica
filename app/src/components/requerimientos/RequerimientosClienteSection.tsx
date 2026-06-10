@@ -143,7 +143,6 @@ export default function RequerimientosClienteSection({ requerimientos, entidadId
 function RequerimientoCard({ req, entidadId, archivos, onRefresh }: {
   req: Requerimiento; entidadId: string; archivos: ArchivoConItemId[]; onRefresh: () => void;
 }) {
-  const dias     = diasRestantes(req.fecha_limite);
   const canUpload = req.estado !== "completado" && req.estado !== "vencido";
 
   const completados = req.items.filter(i => i.estado === "completado").length;
@@ -167,22 +166,11 @@ function RequerimientoCard({ req, entidadId, archivos, onRefresh }: {
           )}
         </div>
 
-        <div style={{ flexShrink: 0, textAlign: "right" }}>
-          {req.estado === "vencido" ? (
-            <span style={{ fontSize: 11, color: "#C8472A", fontFamily: "'DM Mono', monospace" }}>
-              Venció hace {Math.abs(dias)}d
-            </span>
-          ) : (
-            <>
-              <div style={{ fontSize: 13, fontWeight: 600, color: dias <= 3 ? "#B8860B" : "var(--muted-2)" }}>
-                {dias === 0 ? "Vence hoy" : `${dias}d`}
-              </div>
-              <div style={{ fontSize: 11, color: "var(--muted)", fontFamily: "'DM Mono', monospace" }}>
-                {formatFecha(req.fecha_limite)}
-              </div>
-            </>
-          )}
-        </div>
+        {req.estado === "vencido" && (
+          <span style={{ fontSize: 11, color: "#C8472A", fontFamily: "'DM Mono', monospace", flexShrink: 0 }}>
+            Plazo vencido
+          </span>
+        )}
       </div>
 
       {/* Aviso vencido */}
