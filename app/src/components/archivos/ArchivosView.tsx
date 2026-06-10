@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import UploadZone from "./UploadZone";
+import { deleteArchivoAction } from "@/app/actions/archivos";
 
 export interface ArchivoItem {
   id: string;
@@ -23,8 +25,18 @@ interface ArchivosViewProps {
 
 export default function ArchivosView({ archivos: inicial, entidadId, rol }: ArchivosViewProps) {
   const archivos = inicial;
+  const router = useRouter();
   const [modalOpen, setModalOpen] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const isAdmin = rol === "admin" || rol === "superadmin";
+
+  const handleEliminar = async (id: string, nombre: string) => {
+    if (!confirm(`¿Eliminar "${nombre.split("/").pop()}"?\nEsta acción no se puede deshacer.`)) return;
+    setDeletingId(id);
+    await deleteArchivoAction(id);
+    setDeletingId(null);
+    router.refresh();
+  };
 
   const handleSuccess = () => {
     // revalidatePath en el server action refrescará los datos en el próximo render
@@ -84,12 +96,13 @@ export default function ArchivosView({ archivos: inicial, entidadId, rol }: Arch
                 <Th>Tamaño</Th>
                 <Th>Hash SHA-256</Th>
                 <Th>Estado</Th>
+                {isAdmin && <Th>{""}</Th>}
               </tr>
             </thead>
             <tbody>
               {archivos.length === 0 ? (
                 <tr>
-                  <td colSpan={isAdmin ? 7 : 5} style={{
+                  <td colSpan={isAdmin ? 8 : 5} style={{
                     padding: "40px 20px", textAlign: "center",
                     color: "var(--muted)", fontSize: 13,
                     fontFamily: "'DM Mono', monospace",
@@ -132,6 +145,17 @@ export default function ArchivosView({ archivos: inicial, entidadId, rol }: Arch
                   <td style={{ padding: "12px 20px" }}>
                     <EstadoBadge estado={f.estado} />
                   </td>
+                  {isAdmin && (
+                    <td style={{ padding: "12px 16px", textAlign: "right" }}>
+                      <button
+                        onClick={() => handleEliminar(f.id, f.nombre)}
+                        disabled={deletingId === f.id}
+                        style={{ background: "none", border: "1px solid var(--border)", borderRadius: 4, padding: "5px 10px", cursor: deletingId === f.id ? "not-allowed" : "pointer", color: deletingId === f.id ? "var(--muted)" : "var(--accent)", fontSize: 12, fontFamily: "'DM Sans', sans-serif", opacity: deletingId === f.id ? 0.5 : 1, whiteSpace: "nowrap" }}
+                      >
+                        {deletingId === f.id ? "Eliminando…" : "Eliminar"}
+                      </button>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
