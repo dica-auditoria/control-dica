@@ -7,6 +7,8 @@ export interface RequerimientoItem {
   descripcion: string | null;
   obligatorio: boolean;
   completado: boolean;
+  rubro: string | null;
+  orden: number | null;
   created_at: string;
 }
 

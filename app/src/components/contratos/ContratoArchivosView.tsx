@@ -180,6 +180,7 @@ export default function ContratoArchivosView({
               entidadId={entidadId}
               contratoId={contrato.id}
               isSuperAdmin={rol === "superadmin"}
+              rol={rol}
             />
           </div>
         )}

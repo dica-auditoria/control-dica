@@ -108,7 +108,7 @@ interface RawReq {
   id: string; contrato_id: string | null; entidad_id: string; titulo: string;
   descripcion: string | null; fecha_limite: string; estado: string;
   creado_por: string; notas_cierre: string | null; created_at: string;
-  requerimiento_items: Array<{ id: string; requerimiento_id: string; nombre: string; descripcion: string | null; obligatorio: boolean; completado: boolean; created_at: string }>;
+  requerimiento_items: Array<{ id: string; requerimiento_id: string; nombre: string; descripcion: string | null; obligatorio: boolean; completado: boolean; rubro: string | null; orden: number | null; created_at: string }>;
 }
 
 export async function fetchRequerimientosContratoAction(contratoId: string): Promise<{ data: Requerimiento[] | null; error: string | null }> {
@@ -118,7 +118,7 @@ export async function fetchRequerimientosContratoAction(contratoId: string): Pro
 
   const admin = createAdminClient();
   const { data, error } = await (admin.from("requerimientos") as any)
-    .select("*, requerimiento_items(id, nombre, descripcion, obligatorio, completado, created_at)")
+    .select("*, requerimiento_items(id, nombre, descripcion, obligatorio, completado, rubro, orden, created_at)")
     .eq("contrato_id", contratoId)
     .order("created_at", { ascending: false }) as { data: RawReq[] | null; error: unknown };
 
@@ -158,7 +158,7 @@ export async function fetchRequerimientosClienteAction(): Promise<{ data: Requer
 
   const supabase = createClient();
   const { data, error } = await (supabase.from("requerimientos") as any)
-    .select("*, requerimiento_items(id, nombre, descripcion, obligatorio, completado, created_at)")
+    .select("*, requerimiento_items(id, nombre, descripcion, obligatorio, completado, rubro, orden, created_at)")
     .eq("entidad_id", perfil.entidad_id)
     .neq("estado", "completado")
     .order("fecha_limite", { ascending: true }) as { data: RawReq[] | null; error: unknown };
@@ -266,5 +266,42 @@ export async function eliminarRequerimientoAction(requerimientoId: string) {
 
   await (admin.from("requerimientos") as any).delete().eq("id", requerimientoId);
   if (req) revalidate(req.entidad_id, req.contrato_id ?? undefined);
+  return { success: true };
+}
+
+// ── IMPORTAR REACTIVOS DESDE CSV ──────────────────────────────────────────────
+
+export async function importarReactivosAction(
+  requerimientoId: string,
+  reactivos: Array<{ orden: number; rubro: string; nombre: string }>
+) {
+  const { perfil, error: authErr } = await getUser();
+  if (authErr || !perfil) return { error: authErr };
+  if (!["admin", "superadmin", "rrhh", "empleado"].includes(perfil.rol)) return { error: "No autorizado" };
+
+  if (!reactivos.length) return { error: "El CSV no contiene filas válidas" };
+
+  const admin = createAdminClient();
+
+  const { data: req } = await (admin.from("requerimientos") as any)
+    .select("entidad_id, contrato_id").eq("id", requerimientoId).single() as { data: { entidad_id: string; contrato_id: string | null } | null; error: unknown };
+  if (!req) return { error: "Requerimiento no encontrado" };
+
+  // Reemplazar todos los ítems existentes con los del CSV
+  await (admin.from("requerimiento_items") as any).delete().eq("requerimiento_id", requerimientoId);
+
+  const { error: insertErr } = await (admin.from("requerimiento_items") as any).insert(
+    reactivos.map(r => ({
+      requerimiento_id: requerimientoId,
+      nombre:     r.nombre.trim(),
+      rubro:      r.rubro.trim() || null,
+      orden:      r.orden,
+      obligatorio: true,
+      completado:  false,
+    }))
+  );
+
+  if (insertErr) return { error: "Error al importar reactivos" };
+  revalidate(req.entidad_id, req.contrato_id ?? undefined);
   return { success: true };
 }
