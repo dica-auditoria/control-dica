@@ -366,7 +366,7 @@ export async function importarReactivosContratoAction(
 
 // ── EXTENDER FECHA DE ITEM (empleado/admin) ───────────────────────────────────
 
-export async function extenderFechaItemAction(itemId: string, nuevaFecha: string) {
+export async function extenderFechaItemAction(itemId: string, nuevaFecha: string, marcarExtendida = false) {
   const { perfil, error: authErr } = await getUser();
   if (authErr || !perfil) return { error: authErr };
   if (!["admin", "superadmin", "rrhh", "empleado"].includes(perfil.rol)) return { error: "No autorizado" };
@@ -380,7 +380,7 @@ export async function extenderFechaItemAction(itemId: string, nuevaFecha: string
   if (!item) return { error: "Reactivo no encontrado" };
 
   await (admin.from("requerimiento_items") as any)
-    .update({ fecha_limite: nuevaFecha, extendida: true })
+    .update({ fecha_limite: nuevaFecha, extendida: marcarExtendida })
     .eq("id", itemId);
 
   const { data: req } = await (admin.from("requerimientos") as any)

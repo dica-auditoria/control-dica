@@ -105,6 +105,7 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
   const [busqueda, setBusqueda]                       = useState("");
   const [ordenFiltro, setOrdenFiltro]                 = useState<"numero" | "reciente">("numero");
   const [editFechas, setEditFechas]                   = useState<Record<string, string>>({});
+  const [esExtension, setEsExtension]                 = useState<Record<string, boolean>>({});
 
   const busquedaNorm = busqueda.toLowerCase().trim();
 
@@ -150,8 +151,9 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
   const handleGuardarFecha = async (itemId: string) => {
     const fecha = editFechas[itemId];
     if (!fecha) return;
-    await extenderFechaItemAction(itemId, fecha);
+    await extenderFechaItemAction(itemId, fecha, esExtension[itemId] ?? false);
     setEditFechas(prev => { const n = { ...prev }; delete n[itemId]; return n; });
+    setEsExtension(prev => { const n = { ...prev }; delete n[itemId]; return n; });
     router.refresh();
   };
 
@@ -409,26 +411,40 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
                             />
                             {item.extendida && !(editFechas[item.id] && editFechas[item.id] !== item.fecha_limite) && (
                               <span style={{ fontSize: 10, padding: "2px 7px", borderRadius: 100, background: "rgba(66,153,225,0.12)", color: "#2B6CB0", fontFamily: "'DM Mono', monospace" }}>
-                                Extendida
+                                Tiempo extendido
                               </span>
                             )}
-                            {editFechas[item.id] && editFechas[item.id] !== item.fecha_limite && (
+                          </div>
+
+                          {/* Controles que aparecen cuando la fecha cambia */}
+                          {editFechas[item.id] && editFechas[item.id] !== item.fecha_limite && (
+                            <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                              <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 12, color: "var(--ink)", fontFamily: "'DM Sans', sans-serif", userSelect: "none" }}>
+                                <input
+                                  type="checkbox"
+                                  checked={esExtension[item.id] ?? false}
+                                  onChange={e => setEsExtension(prev => ({ ...prev, [item.id]: e.target.checked }))}
+                                  style={{ width: 14, height: 14, accentColor: "#2B6CB0", cursor: "pointer" }}
+                                />
+                                Marcar como tiempo extendido
+                              </label>
                               <button
                                 onClick={() => handleGuardarFecha(item.id)}
                                 style={{ height: 28, padding: "0 14px", background: "var(--ink)", color: "white", border: "none", borderRadius: 4, fontSize: 12, cursor: "pointer" }}
                               >
                                 Guardar
                               </button>
-                            )}
-                            {editFechas[item.id] && editFechas[item.id] !== item.fecha_limite && (
                               <button
-                                onClick={() => setEditFechas(prev => { const n = { ...prev }; delete n[item.id]; return n; })}
+                                onClick={() => {
+                                  setEditFechas(prev => { const n = { ...prev }; delete n[item.id]; return n; });
+                                  setEsExtension(prev => { const n = { ...prev }; delete n[item.id]; return n; });
+                                }}
                                 style={{ height: 28, padding: "0 10px", background: "none", border: "1px solid var(--border)", borderRadius: 4, fontSize: 12, cursor: "pointer", color: "var(--muted)" }}
                               >
                                 ×
                               </button>
-                            )}
-                          </div>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
