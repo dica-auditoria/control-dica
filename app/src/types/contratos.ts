@@ -5,6 +5,7 @@ export interface Contrato {
   entidad_id: string;
   nombre: string;
   numero_contrato: string | null;
+  concepto: string | null;
   fecha_inicio: string;
   fecha_fin: string | null;
   estado: ContratoEstado;
@@ -18,12 +19,15 @@ export interface Contrato {
   referencias: string | null;
   created_at: string;
   updated_at: string;
+  // Computed field (not in DB), populated by fetchClienteConContratosAction
+  totalReactivos?: number;
 }
 
 export interface CrearContratoInput {
   entidad_id: string;
   nombre: string;
   numero_contrato?: string;
+  concepto?: string;
   fecha_inicio: string;
   fecha_fin?: string;
   estado: ContratoEstado;
@@ -55,6 +59,18 @@ export interface ClienteConContratos {
   activo: boolean;
   created_at: string;
   contratos: Contrato[];
-  totalArchivos: number;
+  totalRequerimientos: number;
+  requerimientosActivos: number;
+  totalReactivos: number;
   totalUsuarios: number;
+}
+
+export interface EmpleadoAcceso {
+  id: string;
+  nombres: string;
+  apellido_paterno: string;
+  apellido_materno: string | null;
+  departamento: string;
+  email_institucional: string | null;
+  tiene_acceso: boolean;
 }

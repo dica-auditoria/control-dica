@@ -3,7 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
-import type { CrearContratoInput, ActualizarContratoInput, Contrato } from "@/types/contratos";
+import type { CrearContratoInput, ActualizarContratoInput, Contrato, EmpleadoAcceso } from "@/types/contratos";
 
 interface PerfilRow { rol: string }
 
@@ -70,20 +70,21 @@ export async function crearContratoAction(input: CrearContratoInput) {
   if (authErr || !supabase || !userId) return { error: authErr };
 
   const payload = {
-    entidad_id: input.entidad_id,
-    nombre: input.nombre.trim(),
-    numero_contrato: input.numero_contrato?.trim() || null,
-    fecha_inicio: input.fecha_inicio,
-    fecha_fin: input.fecha_fin || null,
-    estado: input.estado,
-    calle: input.calle?.trim() || null,
-    numero_exterior: input.numero_exterior?.trim() || null,
-    numero_interior: input.numero_interior?.trim() || null,
-    colonia: input.colonia?.trim() || null,
-    municipio: input.municipio?.trim() || null,
+    entidad_id:       input.entidad_id,
+    nombre:           input.nombre.trim(),
+    numero_contrato:  input.numero_contrato?.trim() || null,
+    concepto:         input.concepto?.trim() || null,
+    fecha_inicio:     input.fecha_inicio,
+    fecha_fin:        input.fecha_fin || null,
+    estado:           input.estado,
+    calle:            input.calle?.trim() || null,
+    numero_exterior:  input.numero_exterior?.trim() || null,
+    numero_interior:  input.numero_interior?.trim() || null,
+    colonia:          input.colonia?.trim() || null,
+    municipio:        input.municipio?.trim() || null,
     estado_republica: input.estado_republica?.trim() || null,
-    cp: input.cp?.trim() || null,
-    referencias: input.referencias?.trim() || null,
+    cp:               input.cp?.trim() || null,
+    referencias:      input.referencias?.trim() || null,
   };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -110,6 +111,7 @@ export async function actualizarContratoAction(input: ActualizarContratoInput) {
 
   if (rest.nombre !== undefined)           payload.nombre            = rest.nombre.trim();
   if (rest.numero_contrato !== undefined)  payload.numero_contrato   = rest.numero_contrato?.trim() || null;
+  if (rest.concepto !== undefined)         payload.concepto          = rest.concepto?.trim() || null;
   if (rest.fecha_inicio !== undefined)     payload.fecha_inicio      = rest.fecha_inicio;
   if (rest.fecha_fin !== undefined)        payload.fecha_fin         = rest.fecha_fin || null;
   if (rest.estado !== undefined)           payload.estado            = rest.estado;
@@ -198,30 +200,129 @@ export async function fetchClienteConContratosAction(entidadId: string) {
 
   if (eErr || !entidad) return { error: "Cliente no encontrado", data: null };
 
-  const [rContratos, { count: totalArchivos }, { count: totalUsuarios }] = await Promise.all([
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [rContratos, { count: totalClientes }, { count: totalEmpleadosAcceso }, rReqs] = await Promise.all([
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (admin.from("contratos") as any)
       .select("*")
       .eq("entidad_id", entidadId)
       .order("created_at", { ascending: false }) as Promise<{ data: Contrato[] | null; error: unknown }>,
     admin
-      .from("archivos")
-      .select("*", { count: "exact", head: true })
-      .eq("entidad_id", entidadId)
-      .neq("estado", "eliminado"),
-    admin
       .from("usuarios")
       .select("*", { count: "exact", head: true })
       .eq("entidad_id", entidadId),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (admin.from("entidad_acceso_empleados") as any)
+      .select("*", { count: "exact", head: true })
+      .eq("entidad_id", entidadId) as Promise<{ count: number | null }>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (admin.from("requerimientos") as any)
+      .select("id, contrato_id, estado")
+      .eq("entidad_id", entidadId) as Promise<{ data: Array<{ id: string; contrato_id: string | null; estado: string }> | null; error: unknown }>,
   ]);
+
+  // Compute requerimiento stats
+  const reqs = rReqs.data ?? [];
+  const totalRequerimientos = reqs.length;
+  const requerimientosActivos = reqs.filter(r => ["pendiente", "en_revision"].includes(r.estado)).length;
+
+  // Fetch reactivos (items) for all requerimientos
+  const reqIds = reqs.map(r => r.id);
+  let totalReactivos = 0;
+  const reactivosPorContrato: Record<string, number> = {};
+
+  if (reqIds.length > 0) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: items } = await (admin.from("requerimiento_items") as any)
+      .select("requerimiento_id")
+      .in("requerimiento_id", reqIds) as { data: Array<{ requerimiento_id: string }> | null };
+
+    totalReactivos = (items ?? []).length;
+
+    const reqToContrato: Record<string, string | null> = {};
+    for (const r of reqs) reqToContrato[r.id] = r.contrato_id;
+
+    for (const item of (items ?? [])) {
+      const cid = reqToContrato[item.requerimiento_id];
+      if (cid) reactivosPorContrato[cid] = (reactivosPorContrato[cid] ?? 0) + 1;
+    }
+  }
+
+  // Attach totalReactivos to each contract
+  const contratos = (rContratos.data ?? []).map(c => ({
+    ...c,
+    totalReactivos: reactivosPorContrato[c.id] ?? 0,
+  }));
 
   return {
     error: null,
     data: {
       ...entidad,
-      contratos: rContratos.data ?? [],
-      totalArchivos: totalArchivos ?? 0,
-      totalUsuarios: totalUsuarios ?? 0,
+      contratos,
+      totalRequerimientos,
+      requerimientosActivos,
+      totalReactivos,
+      totalUsuarios: (totalClientes ?? 0) + (totalEmpleadosAcceso ?? 0),
     },
   };
+}
+
+// ---------- ACCESO DE EMPLEADOS A ENTIDAD ----------
+
+export async function fetchAccesoEmpleadosAction(entidadId: string): Promise<{ data: EmpleadoAcceso[] | null; error: string | null }> {
+  const { error: authErr } = await verificarAdmin();
+  if (authErr) return { error: authErr, data: null };
+
+  const admin = createAdminClient();
+
+  const [rEmpleados, rAcceso] = await Promise.all([
+    admin
+      .from("empleados")
+      .select("id, nombres, apellido_paterno, apellido_materno, departamento, email_institucional")
+      .eq("estado", "activo")
+      .order("apellido_paterno") as unknown as Promise<{ data: Array<{ id: string; nombres: string; apellido_paterno: string; apellido_materno: string | null; departamento: string; email_institucional: string | null }> | null; error: unknown }>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (admin.from("entidad_acceso_empleados") as any)
+      .select("empleado_id")
+      .eq("entidad_id", entidadId) as unknown as Promise<{ data: Array<{ empleado_id: string }> | null; error: unknown }>,
+  ]);
+
+  const conAcceso = new Set((rAcceso.data ?? []).map(r => r.empleado_id));
+
+  const result: EmpleadoAcceso[] = (rEmpleados.data ?? []).map(e => ({
+    ...e,
+    tiene_acceso: conAcceso.has(e.id),
+  }));
+
+  return { data: result, error: null };
+}
+
+export async function grantAccesoEmpleadoAction(entidadId: string, empleadoId: string) {
+  const { supabase, userId, error: authErr } = await verificarAdmin();
+  if (authErr || !supabase || !userId) return { error: authErr };
+
+  const admin = createAdminClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (admin.from("entidad_acceso_empleados") as any)
+    .upsert({ entidad_id: entidadId, empleado_id: empleadoId, otorgado_por: userId });
+
+  if (error) return { error: "Error al otorgar acceso" };
+  revalidatePath(`/dashboard/directorio/empresa/${entidadId}`);
+  return { error: null };
+}
+
+export async function revokeAccesoEmpleadoAction(entidadId: string, empleadoId: string) {
+  const { error: authErr } = await verificarAdmin();
+  if (authErr) return { error: authErr };
+
+  const admin = createAdminClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (admin.from("entidad_acceso_empleados") as any)
+    .delete()
+    .eq("entidad_id", entidadId)
+    .eq("empleado_id", empleadoId);
+
+  if (error) return { error: "Error al revocar acceso" };
+  revalidatePath(`/dashboard/directorio/empresa/${entidadId}`);
+  return { error: null };
 }
