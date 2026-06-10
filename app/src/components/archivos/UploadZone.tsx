@@ -13,10 +13,11 @@ interface FileEntry {
   status: FileStatus;
   error?: string;
   hash?: string;
+  progreso?: number; // 0-100 durante la subida
 }
 
 const TIPOS_PERMITIDOS = ["pdf", "xlsx", "xls", "zip", "docx", "doc", "csv", "png", "jpg", "jpeg"];
-const MAX_SIZE_BYTES = 50 * 1024 * 1024;
+const MAX_SIZE_BYTES = 2 * 1024 * 1024 * 1024; // 2 GB
 
 interface UploadZoneProps {
   entidadId: string;
@@ -51,7 +52,7 @@ export default function UploadZone({ entidadId, contratoId, destino = "cliente",
     if (!TIPOS_PERMITIDOS.includes(ext))
       return `Tipo no permitido (.${ext})`;
     if (f.size > MAX_SIZE_BYTES)
-      return `Supera 50 MB (${(f.size / 1024 / 1024).toFixed(1)} MB)`;
+      return `Supera 2 GB (${(f.size / 1024 / 1024 / 1024).toFixed(2)} GB)`;
     return null;
   };
 
@@ -108,9 +109,12 @@ export default function UploadZone({ entidadId, contratoId, destino = "cliente",
         continue;
       }
 
-      // Storage
-      setStatus(entry.uid, { status: "subiendo", hash: sha });
-      const { ruta, error: storageErr } = await uploadFileToStorage(entry.file, entidadId, contratoId, carpetaPrefix);
+      // Storage — con progreso para archivos grandes
+      setStatus(entry.uid, { status: "subiendo", hash: sha, progreso: 0 });
+      const { ruta, error: storageErr } = await uploadFileToStorage(
+        entry.file, entidadId, contratoId, carpetaPrefix,
+        pct => setStatus(entry.uid, { progreso: pct })
+      );
       if (storageErr || !ruta) {
         setStatus(entry.uid, { status: "error", error: storageErr ?? "Error al subir" });
         continue;
@@ -184,7 +188,7 @@ export default function UploadZone({ entidadId, contratoId, destino = "cliente",
                 Arrastra archivos o una carpeta aquí
               </div>
               <div style={{ fontSize: 12, color: "var(--muted)", marginBottom: 14 }}>
-                PDF, Excel, ZIP, Word, CSV, PNG — máx. 50 MB por archivo
+                PDF, Excel, ZIP, Word, CSV, PNG — máx. 2 GB por archivo
               </div>
             </>
           )}
@@ -277,9 +281,19 @@ export default function UploadZone({ entidadId, contratoId, destino = "cliente",
                       <span style={{ color: "var(--muted)", marginLeft: 8 }}>SHA-256: {formatHash(entry.hash)}</span>
                     )}
                     {entry.status === "hashing"   && <span style={{ color: "var(--muted-2)", marginLeft: 8 }}>Calculando hash…</span>}
-                    {entry.status === "subiendo"  && <span style={{ color: "var(--muted-2)", marginLeft: 8 }}>Subiendo…</span>}
+                    {entry.status === "subiendo"  && (
+                      <span style={{ color: "var(--muted-2)", marginLeft: 8 }}>
+                        Subiendo{entry.progreso != null && entry.progreso > 0 ? ` ${entry.progreso}%` : "…"}
+                      </span>
+                    )}
                     {entry.status === "guardando" && <span style={{ color: "var(--muted-2)", marginLeft: 8 }}>Guardando…</span>}
                   </div>
+                  {/* Barra de progreso durante la subida */}
+                  {entry.status === "subiendo" && entry.progreso != null && (
+                    <div style={{ marginTop: 5, height: 3, borderRadius: 2, background: "var(--surface-2)", overflow: "hidden" }}>
+                      <div style={{ height: "100%", borderRadius: 2, background: "var(--accent)", width: `${entry.progreso}%`, transition: "width 0.2s" }} />
+                    </div>
+                  )}
                 </div>
 
                 {/* Ext badge */}

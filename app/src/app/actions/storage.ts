@@ -65,7 +65,8 @@ export async function getWasabiUploadUrlAction(opts: {
   });
 
   try {
-    const url = await getSignedUrl(wasabiClient, command, { expiresIn: 3600 });
+    // 4 horas — cubre archivos grandes en conexiones lentas (~2 GB a 1 Mbps ≈ 4.5h)
+    const url = await getSignedUrl(wasabiClient, command, { expiresIn: 14400 });
     return { url, key, error: null };
   } catch (err) {
     console.error("Wasabi presign error:", err);
