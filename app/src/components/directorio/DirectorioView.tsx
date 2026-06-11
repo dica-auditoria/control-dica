@@ -455,23 +455,23 @@ function EmpresaCard({ empresa }: { empresa: EmpresaDirectorioItem }) {
       overflow: "hidden", boxShadow: "0 1px 3px rgba(15,17,23,0.06)",
       opacity: empresa.activo ? 1 : 0.55,
     }}>
-      <div style={{ padding: "14px 16px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
-          <div style={{ width: 36, height: 36, borderRadius: 6, background: "rgba(15,17,23,0.06)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>
+      <div style={{ padding: "14px 16px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 10, minWidth: 0, flex: 1 }}>
+          <div style={{ width: 36, height: 36, borderRadius: 6, background: "rgba(15,17,23,0.06)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0, marginTop: 1 }}>
             🏛
           </div>
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            <div style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", lineHeight: 1.35 }}>
               {empresa.nombre}
             </div>
-            <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 2, fontFamily: "'DM Mono', monospace" }}>
+            <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 3, fontFamily: "'DM Mono', monospace" }}>
               Alta: {new Date(empresa.created_at).toLocaleDateString("es-MX")}
             </div>
           </div>
         </div>
         <span style={{
           padding: "2px 8px", borderRadius: 100, fontSize: 10, fontWeight: 600,
-          fontFamily: "'DM Mono', monospace", flexShrink: 0,
+          fontFamily: "'DM Mono', monospace", flexShrink: 0, marginTop: 2,
           background: empresa.activo ? "rgba(45,106,79,0.1)" : "var(--surface-2)",
           color: empresa.activo ? "var(--green)" : "var(--muted)",
         }}>
