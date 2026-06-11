@@ -392,12 +392,12 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
                     {item.numero ?? (idx + 1)}
                   </span>
 
-                  <span style={{ display: "flex", gap: 4, flexShrink: 0, paddingRight: 12, maxWidth: 220 }}>
+                  <span style={{ display: "flex", gap: 4, flexShrink: 0, paddingRight: 12, maxWidth: 320 }}>
                     {item.area && (
-                      <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 100, background: "rgba(27,79,138,0.1)", fontFamily: "'DM Mono', monospace", color: "#1B4F8A", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 100 }}>{item.area}</span>
+                      <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 100, background: "rgba(27,79,138,0.1)", fontFamily: "'DM Mono', monospace", color: "#1B4F8A" }}>{item.area}</span>
                     )}
                     {item.rubro
-                      ? <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 100, background: "var(--surface-2)", fontFamily: "'DM Mono', monospace", color: "var(--muted-2)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 110 }}>{item.rubro}</span>
+                      ? <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 100, background: "var(--surface-2)", fontFamily: "'DM Mono', monospace", color: "var(--muted-2)" }}>{item.rubro}</span>
                       : (!item.area && <span style={{ color: "var(--muted)", fontSize: 12 }}>—</span>)
                     }
                   </span>
@@ -902,10 +902,19 @@ function ImportarCSVModal({ contratoId, entidadId, onClose, onImported }: {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = ev => {
-      const { rows: parsed, error: err } = parsearCSV(ev.target?.result as string);
+      const buffer = ev.target?.result as ArrayBuffer;
+      let texto: string;
+      try {
+        // Intenta UTF-8 estricto primero (falla si hay bytes inválidos)
+        texto = new TextDecoder("utf-8", { fatal: true }).decode(buffer);
+      } catch {
+        // Fallback a Windows-1252 (Latin-1 extendido — Excel español/México)
+        texto = new TextDecoder("windows-1252").decode(buffer);
+      }
+      const { rows: parsed, error: err } = parsearCSV(texto);
       setParseErr(err); setRows(parsed); setError(null);
     };
-    reader.readAsText(file, "utf-8");
+    reader.readAsArrayBuffer(file);
   };
 
   const descargarPlantilla = () => {
