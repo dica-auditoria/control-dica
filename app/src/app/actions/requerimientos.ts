@@ -113,7 +113,7 @@ interface RawReq {
   id: string; contrato_id: string | null; entidad_id: string; titulo: string;
   descripcion: string | null; fecha_limite: string; estado: string;
   creado_por: string; notas_cierre: string | null; created_at: string;
-  requerimiento_items: Array<{ id: string; requerimiento_id: string; nombre: string; descripcion: string | null; obligatorio: boolean; completado: boolean; estado: string; rubro: string | null; orden: number | null; numero: string | null; fecha_limite: string | null; extendida: boolean; created_at: string }>;
+  requerimiento_items: Array<{ id: string; requerimiento_id: string; nombre: string; descripcion: string | null; obligatorio: boolean; completado: boolean; estado: string; area: string | null; rubro: string | null; orden: number | null; numero: string | null; fecha_limite: string | null; extendida: boolean; created_at: string }>;
 }
 
 export async function fetchRequerimientosContratoAction(contratoId: string): Promise<{ data: Requerimiento[] | null; error: string | null }> {
@@ -123,7 +123,7 @@ export async function fetchRequerimientosContratoAction(contratoId: string): Pro
 
   const admin = createAdminClient();
   const { data, error } = await (admin.from("requerimientos") as any)
-    .select("*, requerimiento_items(id, nombre, descripcion, obligatorio, completado, estado, rubro, orden, numero, fecha_limite, extendida, created_at)")
+    .select("*, requerimiento_items(id, nombre, descripcion, obligatorio, completado, estado, area, rubro, orden, numero, fecha_limite, extendida, created_at)")
     .eq("contrato_id", contratoId)
     .order("created_at", { ascending: false }) as { data: RawReq[] | null; error: unknown };
 
@@ -163,7 +163,7 @@ export async function fetchRequerimientosClienteAction(): Promise<{ data: Requer
 
   const supabase = createClient();
   const { data, error } = await (supabase.from("requerimientos") as any)
-    .select("*, requerimiento_items(id, nombre, descripcion, obligatorio, completado, estado, rubro, orden, numero, fecha_limite, extendida, created_at)")
+    .select("*, requerimiento_items(id, nombre, descripcion, obligatorio, completado, estado, area, rubro, orden, numero, fecha_limite, extendida, created_at)")
     .eq("entidad_id", perfil.entidad_id)
     .neq("estado", "completado")
     .order("fecha_limite", { ascending: true }) as { data: RawReq[] | null; error: unknown };
@@ -453,7 +453,7 @@ export async function chequearImpactoImportAction(contratoId: string): Promise<{
 export async function importarReactivosContratoAction(
   contratoId: string,
   entidadId: string,
-  reactivos: Array<{ orden: number; numero: string; rubro: string; nombre: string; fechaLimite?: string }>,
+  reactivos: Array<{ orden: number; numero: string; area: string; rubro: string; nombre: string; fechaLimite?: string }>,
   fechaLimiteInput?: string
 ) {
   const { user, perfil, error: authErr } = await getUser();
@@ -504,8 +504,8 @@ export async function importarReactivosContratoAction(
     }
 
     // Clasificar filas del CSV
-    const toUpdate: Array<{ id: string; orden: number; numero: string; rubro: string; nombre: string; fechaLimite?: string }> = [];
-    const toInsert: Array<{ orden: number; numero: string; rubro: string; nombre: string; fechaLimite?: string }> = [];
+    const toUpdate: Array<{ id: string; orden: number; numero: string; area: string; rubro: string; nombre: string; fechaLimite?: string }> = [];
+    const toInsert: Array<{ orden: number; numero: string; area: string; rubro: string; nombre: string; fechaLimite?: string }> = [];
     const matchedIds = new Set<string>();
 
     for (const row of reactivos) {
@@ -535,6 +535,7 @@ export async function importarReactivosContratoAction(
       await (admin.from("requerimiento_items") as any)
         .update({
           nombre: item.nombre.trim(),
+          area: item.area.trim() || null,
           rubro: item.rubro.trim() || null,
           orden: item.orden,
           numero: item.numero,
@@ -550,6 +551,7 @@ export async function importarReactivosContratoAction(
         toInsert.map(r => ({
           requerimiento_id: requerimientoId,
           nombre: r.nombre.trim(),
+          area: r.area.trim() || null,
           rubro: r.rubro.trim() || null,
           orden: r.orden,
           numero: r.numero,
@@ -581,6 +583,7 @@ export async function importarReactivosContratoAction(
       reactivos.map(r => ({
         requerimiento_id: requerimientoId,
         nombre: r.nombre.trim(),
+        area: r.area.trim() || null,
         rubro: r.rubro.trim() || null,
         orden: r.orden,
         numero: r.numero,

@@ -53,11 +53,12 @@ function normalizarFecha(raw: string): string | undefined {
   return undefined;
 }
 
-// Codifica "1", "1.1", "2.3" → entero para ordenar correctamente
-// Soporta hasta 2 niveles: "X" o "X.Y" (Y hasta 99)
+// Codifica "1", "1.1", "1.1.1" → entero para ordenar correctamente
+// Encoding: X*1000 + Y*10 + Z  → "1.1.1" cabe entre 1010 y 1020, sin migrar BD
 function ordenFromNumero(s: string): number {
   const parts = s.trim().split(".").map(p => parseInt(p, 10) || 0);
-  if (parts.length >= 2) return parts[0] * 1000 + Math.min(parts[1], 99) * 10;
+  if (parts.length >= 3) return parts[0] * 1000 + Math.min(parts[1], 99) * 10 + Math.min(parts[2], 9);
+  if (parts.length === 2) return parts[0] * 1000 + Math.min(parts[1], 99) * 10;
   return (parts[0] || 0) * 1000;
 }
 
@@ -67,10 +68,10 @@ function csvBlob(contenido: string): Blob {
 }
 
 function exportarCSV(items: RequerimientoItem[], nombre: string) {
-  const header = "No.,Rubro,Concepto,Fecha límite";
+  const header = "No.,Area,Rubro,Concepto,Fecha límite";
   const sorted = [...items].sort((a, b) => (a.orden ?? 9999) - (b.orden ?? 9999));
   const rows = sorted.map((it, i) =>
-    `${it.numero ?? (i + 1)},${(it.rubro ?? "").replace(/,/g, ";")},${it.nombre.replace(/,/g, ";")},${isoADMY(it.fecha_limite ?? "")}`
+    `${it.numero ?? (i + 1)},${(it.area ?? "").replace(/,/g, ";")},${(it.rubro ?? "").replace(/,/g, ";")},${it.nombre.replace(/,/g, ";")},${isoADMY(it.fecha_limite ?? "")}`
   );
   const blob = csvBlob([header, ...rows].join("\r\n"));
   const url = URL.createObjectURL(blob);
@@ -81,19 +82,16 @@ function exportarCSV(items: RequerimientoItem[], nombre: string) {
   URL.revokeObjectURL(url);
 }
 
-interface CSVRow { orden: number; numero: string; rubro: string; nombre: string; fechaLimite?: string }
+interface CSVRow { orden: number; numero: string; area: string; rubro: string; nombre: string; fechaLimite?: string }
 
 function parsearCSV(texto: string): { rows: CSVRow[]; error: string | null } {
-  // Eliminar BOM si viene de Excel
   const limpio = texto.replace(/^﻿/, "");
   let lineas = limpio.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
 
-  // Saltar línea sep= que Excel puede agregar o que nosotros generamos
   if (lineas[0]?.toLowerCase().startsWith("sep=")) lineas = lineas.slice(1);
 
   if (lineas.length < 2) return { rows: [], error: "El archivo está vacío o solo tiene encabezado" };
 
-  // Auto-detectar separador: coma o punto y coma (Excel europeo/regional)
   const headerRaw = lineas[0];
   const sep = headerRaw.includes(";") ? ";" : ",";
   const header = headerRaw.toLowerCase();
@@ -101,22 +99,35 @@ function parsearCSV(texto: string): { rows: CSVRow[]; error: string | null } {
   if (!header.includes("no") || !header.includes("rubro") || !header.includes("concepto"))
     return { rows: [], error: 'El encabezado debe tener columnas "No.", "Rubro" y "Concepto"' };
 
+  const tieneArea  = header.includes("area");
   const tieneFecha = header.includes("fecha");
+
+  // Índices de columnas según si existe la columna Area
+  const areaIdx    = tieneArea ? 1 : -1;
+  const rubroIdx   = tieneArea ? 2 : 1;
+  const conceptoIdx = tieneArea ? 3 : 2;
+  const fechaIdx   = tieneArea ? 4 : 3;
+
   const rows: CSVRow[] = [];
 
   for (let i = 1; i < lineas.length; i++) {
     const parts = lineas[i].split(sep);
-    if (parts.length < 3) continue;
-    // Aceptar "1", "1.1", "2.3" en la columna No.
+    if (parts.length < (tieneArea ? 4 : 3)) continue;
+
     const numeroRaw = parts[0].trim();
-    const esNumeroValido = /^\d+(\.\d+)?$/.test(numeroRaw);
+    // Acepta "1", "1.1", "1.1.1" (hasta 3 niveles)
+    const esNumeroValido = /^\d+(\.\d+){0,2}$/.test(numeroRaw);
     const numero = esNumeroValido ? numeroRaw : String(i);
-    const orden = ordenFromNumero(numero);
-    const rubro = parts[1].trim();
-    const nombre = tieneFecha ? parts[2].trim() : parts.slice(2).join(sep).trim();
+    const orden  = ordenFromNumero(numero);
+
+    const area   = tieneArea ? parts[areaIdx].trim() : "";
+    const rubro  = parts[rubroIdx].trim();
+    const nombre = tieneFecha
+      ? parts[conceptoIdx].trim()
+      : parts.slice(conceptoIdx).join(sep).trim();
     if (!nombre) continue;
-    const fechaLimite = tieneFecha ? normalizarFecha(parts[3]?.trim() ?? "") : undefined;
-    rows.push({ orden, numero, rubro, nombre, ...(fechaLimite ? { fechaLimite } : {}) });
+    const fechaLimite = tieneFecha ? normalizarFecha(parts[fechaIdx]?.trim() ?? "") : undefined;
+    rows.push({ orden, numero, area, rubro, nombre, ...(fechaLimite ? { fechaLimite } : {}) });
   }
 
   if (!rows.length) return { rows: [], error: "No se encontraron filas válidas" };
@@ -365,9 +376,9 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
             const comentarios   = comentariosPorItem[item.id] ?? [];
             const cargando      = loadingComents === item.id;
 
-            const esSubpunto = item.numero?.includes(".") ?? false;
+            const nivelSub = (item.numero?.match(/\./g) || []).length;
             return (
-              <div key={item.id} style={{ borderBottom: "1px solid var(--border)", borderLeft: esSubpunto ? "2px solid var(--border-strong)" : "none", marginLeft: esSubpunto ? 14 : 0 }}>
+              <div key={item.id} style={{ borderBottom: "1px solid var(--border)", borderLeft: nivelSub > 0 ? "2px solid var(--border-strong)" : "none", marginLeft: nivelSub * 14 }}>
                 {/* Fila principal */}
                 <div
                   onClick={() => handleExpand(item.id)}
@@ -377,14 +388,17 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
                     <ChevronIcon />
                   </span>
 
-                  <span style={{ fontSize: 12, fontFamily: "'DM Mono', monospace", color: esSubpunto ? "var(--muted-2)" : "var(--muted)", width: 38, flexShrink: 0 }}>
+                  <span style={{ fontSize: 12, fontFamily: "'DM Mono', monospace", color: nivelSub > 0 ? "var(--muted-2)" : "var(--muted)", width: nivelSub === 2 ? 54 : 38, flexShrink: 0 }}>
                     {item.numero ?? (idx + 1)}
                   </span>
 
-                  <span style={{ width: 130, flexShrink: 0, paddingRight: 12 }}>
+                  <span style={{ display: "flex", gap: 4, flexShrink: 0, paddingRight: 12, maxWidth: 220 }}>
+                    {item.area && (
+                      <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 100, background: "rgba(27,79,138,0.1)", fontFamily: "'DM Mono', monospace", color: "#1B4F8A", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 100 }}>{item.area}</span>
+                    )}
                     {item.rubro
-                      ? <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 100, background: "var(--surface-2)", fontFamily: "'DM Mono', monospace", color: "var(--muted-2)" }}>{item.rubro}</span>
-                      : <span style={{ color: "var(--muted)", fontSize: 12 }}>—</span>
+                      ? <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 100, background: "var(--surface-2)", fontFamily: "'DM Mono', monospace", color: "var(--muted-2)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 110 }}>{item.rubro}</span>
+                      : (!item.area && <span style={{ color: "var(--muted)", fontSize: 12 }}>—</span>)
                     }
                   </span>
 
@@ -899,12 +913,13 @@ function ImportarCSVModal({ contratoId, entidadId, onClose, onImported }: {
     const en90 = new Date(Date.now() + 90 * 86400000);
     const fDMY = (d: Date) => `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`;
     const contenido = [
-      "No.,Rubro,Concepto,Fecha límite",
-      `1,Financiero,Balance general 2024,${fDMY(en90)}`,
-      `1.1,Financiero,Notas al balance,${fDMY(en90)}`,
-      `1.2,Financiero,Estado de resultados,${fDMY(en90)}`,
-      `2,Legal,Acta constitutiva,${fDMY(hoy)}`,
-      `2.1,Legal,Poder notarial,${fDMY(hoy)}`,
+      "No.,Area,Rubro,Concepto,Fecha límite",
+      `1,Contabilidad,Financiero,Balance general 2024,${fDMY(en90)}`,
+      `1.1,Contabilidad,Financiero,Notas al balance,${fDMY(en90)}`,
+      `1.1.1,Contabilidad,Financiero,Detalle de activos,${fDMY(en90)}`,
+      `1.2,Contabilidad,Financiero,Estado de resultados,${fDMY(en90)}`,
+      `2,Jurídico,Legal,Acta constitutiva,${fDMY(hoy)}`,
+      `2.1,Jurídico,Legal,Poder notarial,${fDMY(hoy)}`,
     ].join("\r\n");
     const blob = csvBlob(contenido);
     const url = URL.createObjectURL(blob);
@@ -963,14 +978,14 @@ function ImportarCSVModal({ contratoId, entidadId, onClose, onImported }: {
           <div style={{ padding: "12px 14px", background: "var(--surface)", borderRadius: 6, border: "1px solid var(--border)", fontSize: 12, color: "var(--muted-2)" }}>
             <div style={{ fontWeight: 600, color: "var(--ink)", marginBottom: 6 }}>Formato del CSV:</div>
             <code style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, display: "block", lineHeight: 1.8 }}>
-              No.,Rubro,Concepto,Fecha límite<br />
-              1,Financiero,Balance general,30/09/2026<br />
-              1.1,Financiero,Notas al balance,30/09/2026<br />
-              1.2,Financiero,Estado de resultados,30/09/2026<br />
-              2,Legal,Acta constitutiva,15/08/2026
+              No.,Area,Rubro,Concepto,Fecha límite<br />
+              1,Contabilidad,Financiero,Balance general,30/09/2026<br />
+              1.1,Contabilidad,Financiero,Notas al balance,30/09/2026<br />
+              1.1.1,Contabilidad,Financiero,Detalle activos,30/09/2026<br />
+              2,Jurídico,Legal,Acta constitutiva,15/08/2026
             </code>
             <div style={{ marginTop: 6, fontSize: 11, color: "var(--muted)", fontFamily: "'DM Mono', monospace" }}>
-              Subpuntos: usa "1.1", "1.2" en la columna No. Fecha en DD/MM/YYYY o YYYY-MM-DD.
+              Area es opcional. Sub-puntos: "1.1", "1.1.1" (hasta 3 niveles). Fecha en DD/MM/YYYY.
             </div>
             <button onClick={descargarPlantilla} style={{ marginTop: 10, fontSize: 12, color: "#1B4F8A", background: "none", border: "none", cursor: "pointer", padding: 0, display: "inline-flex", alignItems: "center", gap: 4, fontFamily: "'DM Sans', sans-serif" }}>
               <DownloadIcon /> Descargar plantilla de ejemplo
@@ -1013,18 +1028,27 @@ function ImportarCSVModal({ contratoId, entidadId, onClose, onImported }: {
                 <table style={{ width: "100%", borderCollapse: "collapse" }}>
                   <thead>
                     <tr style={{ background: "var(--surface)", position: "sticky", top: 0 }}>
-                      <th style={thS}>No.</th><th style={thS}>Rubro</th><th style={{ ...thS, width: "100%" }}>Concepto</th>
+                      <th style={thS}>No.</th>
+                      {rows.some(r => r.area) && <th style={thS}>Area</th>}
+                      <th style={thS}>Rubro</th>
+                      <th style={{ ...thS, width: "100%" }}>Concepto</th>
                       {rows.some(r => r.fechaLimite) && <th style={thS}>Fecha límite</th>}
                     </tr>
                   </thead>
                   <tbody>
                     {rows.map((r, i) => {
-                      const esSub = r.numero.includes(".");
+                      const nivel = (r.numero.match(/\./g) || []).length;
+                      const indent = nivel * 10;
                       return (
-                      <tr key={i} style={{ borderTop: "1px solid var(--border)", background: esSub ? "rgba(0,0,0,0.015)" : "transparent" }}>
-                        <td style={{ padding: "7px 12px", fontSize: 12, fontFamily: "'DM Mono', monospace", color: esSub ? "var(--muted-2)" : "var(--muted)", whiteSpace: "nowrap", paddingLeft: esSub ? 22 : 12 }}>
-                          {esSub ? "↳ " : ""}{r.numero}
+                      <tr key={i} style={{ borderTop: "1px solid var(--border)", background: nivel > 0 ? `rgba(0,0,0,${0.01 * nivel})` : "transparent" }}>
+                        <td style={{ padding: "7px 12px", fontSize: 12, fontFamily: "'DM Mono', monospace", color: nivel > 0 ? "var(--muted-2)" : "var(--muted)", whiteSpace: "nowrap", paddingLeft: 12 + indent }}>
+                          {nivel > 0 ? "↳ " : ""}{r.numero}
                         </td>
+                        {rows.some(r2 => r2.area) && (
+                          <td style={{ padding: "7px 12px", fontSize: 12, whiteSpace: "nowrap" }}>
+                            {r.area ? <span style={{ padding: "2px 8px", borderRadius: 100, background: "rgba(27,79,138,0.1)", fontSize: 11, fontFamily: "'DM Mono', monospace", color: "#1B4F8A" }}>{r.area}</span> : "—"}
+                          </td>
+                        )}
                         <td style={{ padding: "7px 12px", fontSize: 12, whiteSpace: "nowrap" }}>
                           {r.rubro ? <span style={{ padding: "2px 8px", borderRadius: 100, background: "var(--surface-2)", fontSize: 11, fontFamily: "'DM Mono', monospace" }}>{r.rubro}</span> : "—"}
                         </td>

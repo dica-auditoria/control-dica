@@ -10,6 +10,7 @@ export interface RequerimientoItem {
   obligatorio: boolean;
   completado: boolean;
   estado: ItemEstado;
+  area: string | null;
   rubro: string | null;
   orden: number | null;
   numero: string | null;

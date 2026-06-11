@@ -271,10 +271,10 @@ function ItemRow({ item, idx, entidadId, contratoId, archivosItem, canUpload, on
     setEnviando(false);
   };
 
-  const esSubpunto = item.numero?.includes(".") ?? false;
+  const nivelSub = (item.numero?.match(/\./g) || []).length;
 
   return (
-    <div style={{ borderBottom: "1px solid var(--border)", borderLeft: esSubpunto ? "2px solid var(--border-strong)" : "none", marginLeft: esSubpunto ? 14 : 0 }}>
+    <div style={{ borderBottom: "1px solid var(--border)", borderLeft: nivelSub > 0 ? "2px solid var(--border-strong)" : "none", marginLeft: nivelSub * 14 }}>
       {/* Fila colapsada */}
       <div
         onClick={handleToggle}
@@ -289,15 +289,22 @@ function ItemRow({ item, idx, entidadId, contratoId, archivosItem, canUpload, on
           <ChevronIcon />
         </span>
 
-        <span style={{ fontSize: 12, fontFamily: "'DM Mono', monospace", color: esSubpunto ? "var(--muted-2)" : "var(--muted)", width: 38, flexShrink: 0 }}>
+        <span style={{ fontSize: 12, fontFamily: "'DM Mono', monospace", color: nivelSub > 0 ? "var(--muted-2)" : "var(--muted)", width: nivelSub === 2 ? 54 : 38, flexShrink: 0 }}>
           {item.numero ?? (idx + 1)}
         </span>
 
-        {item.rubro && (
-          <span style={{ fontSize: 11, padding: "2px 7px", borderRadius: 100, background: "var(--surface-2)", fontFamily: "'DM Mono', monospace", color: "var(--muted-2)", flexShrink: 0 }}>
-            {item.rubro}
-          </span>
-        )}
+        <span style={{ display: "flex", gap: 4, flexShrink: 0 }}>
+          {item.area && (
+            <span style={{ fontSize: 11, padding: "2px 7px", borderRadius: 100, background: "rgba(27,79,138,0.1)", fontFamily: "'DM Mono', monospace", color: "#1B4F8A" }}>
+              {item.area}
+            </span>
+          )}
+          {item.rubro && (
+            <span style={{ fontSize: 11, padding: "2px 7px", borderRadius: 100, background: "var(--surface-2)", fontFamily: "'DM Mono', monospace", color: "var(--muted-2)" }}>
+              {item.rubro}
+            </span>
+          )}
+        </span>
 
         <span style={{ flex: 1, fontSize: 13, color: "var(--ink)", textDecoration: estado === "completado" ? "line-through" : "none", opacity: estado === "completado" ? 0.55 : 1 }}>
           {item.nombre}
