@@ -35,12 +35,35 @@ function iniciales(nombre: string) {
 
 // ── CSV helpers ───────────────────────────────────────────────────────────────
 
+// Convierte "YYYY-MM-DD" → "DD/MM/YYYY" para mostrar en Excel
+function isoADMY(iso: string): string {
+  if (!iso) return "";
+  const [y, m, d] = iso.split("-");
+  return `${d}/${m}/${y}`;
+}
+
+// Normaliza "DD/MM/YYYY" o "YYYY-MM-DD" → "YYYY-MM-DD" para la BD
+function normalizarFecha(raw: string): string | undefined {
+  const s = raw.trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(s)) {
+    const [dd, mm, yyyy] = s.split("/");
+    return `${yyyy}-${mm}-${dd}`;
+  }
+  return undefined;
+}
+
+function csvBlob(contenido: string): Blob {
+  // BOM UTF-8 + sep= para Excel 2013-365 en cualquier configuración regional
+  return new Blob(["﻿" + "sep=,\r\n" + contenido], { type: "text/csv;charset=utf-8;" });
+}
+
 function exportarCSV(items: RequerimientoItem[], nombre: string) {
   const header = "No.,Rubro,Concepto,Fecha límite";
   const rows = [...items]
     .sort((a, b) => (a.orden ?? 9999) - (b.orden ?? 9999))
-    .map((it, i) => `${it.orden ?? (i + 1)},${(it.rubro ?? "").replace(/,/g, ";")},${it.nombre.replace(/,/g, ";")},${it.fecha_limite ?? ""}`);
-  const blob = new Blob([[header, ...rows].join("\n")], { type: "text/csv;charset=utf-8;" });
+    .map((it, i) => `${it.orden ?? (i + 1)},${(it.rubro ?? "").replace(/,/g, ";")},${it.nombre.replace(/,/g, ";")},${isoADMY(it.fecha_limite ?? "")}`);
+  const blob = csvBlob([header, ...rows].join("\r\n"));
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -52,24 +75,37 @@ function exportarCSV(items: RequerimientoItem[], nombre: string) {
 interface CSVRow { orden: number; rubro: string; nombre: string; fechaLimite?: string }
 
 function parsearCSV(texto: string): { rows: CSVRow[]; error: string | null } {
-  const lineas = texto.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+  // Eliminar BOM si viene de Excel
+  const limpio = texto.replace(/^﻿/, "");
+  let lineas = limpio.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+
+  // Saltar línea sep= que Excel puede agregar o que nosotros generamos
+  if (lineas[0]?.toLowerCase().startsWith("sep=")) lineas = lineas.slice(1);
+
   if (lineas.length < 2) return { rows: [], error: "El archivo está vacío o solo tiene encabezado" };
-  const header = lineas[0].toLowerCase();
+
+  // Auto-detectar separador: coma o punto y coma (Excel europeo/regional)
+  const headerRaw = lineas[0];
+  const sep = headerRaw.includes(";") ? ";" : ",";
+  const header = headerRaw.toLowerCase();
+
   if (!header.includes("no") || !header.includes("rubro") || !header.includes("concepto"))
     return { rows: [], error: 'El encabezado debe tener columnas "No.", "Rubro" y "Concepto"' };
+
   const tieneFecha = header.includes("fecha");
   const rows: CSVRow[] = [];
+
   for (let i = 1; i < lineas.length; i++) {
-    const parts = lineas[i].split(",");
+    const parts = lineas[i].split(sep);
     if (parts.length < 3) continue;
     const orden = parseInt(parts[0].trim(), 10);
     const rubro = parts[1].trim();
-    const nombre = tieneFecha ? parts[2].trim() : parts.slice(2).join(",").trim();
+    const nombre = tieneFecha ? parts[2].trim() : parts.slice(2).join(sep).trim();
     if (!nombre) continue;
-    const rawFecha = tieneFecha ? parts[3]?.trim() : undefined;
-    const fechaLimite = rawFecha && /^\d{4}-\d{2}-\d{2}$/.test(rawFecha) ? rawFecha : undefined;
+    const fechaLimite = tieneFecha ? normalizarFecha(parts[3]?.trim() ?? "") : undefined;
     rows.push({ orden: isNaN(orden) ? i : orden, rubro, nombre, ...(fechaLimite ? { fechaLimite } : {}) });
   }
+
   if (!rows.length) return { rows: [], error: "No se encontraron filas válidas" };
   return { rows, error: null };
 }
@@ -845,10 +881,16 @@ function ImportarCSVModal({ contratoId, entidadId, onClose, onImported }: {
   };
 
   const descargarPlantilla = () => {
-    const hoy = new Date().toISOString().slice(0, 10);
-    const en90 = new Date(Date.now() + 90 * 86400000).toISOString().slice(0, 10);
-    const csv = `No.,Rubro,Concepto,Fecha límite\n1,Financiero,Balance general 2024,${en90}\n2,Financiero,Estado de resultados,${en90}\n3,Legal,Acta constitutiva,${hoy}`;
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const hoy = new Date();
+    const en90 = new Date(Date.now() + 90 * 86400000);
+    const fDMY = (d: Date) => `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`;
+    const contenido = [
+      "No.,Rubro,Concepto,Fecha límite",
+      `1,Financiero,Balance general 2024,${fDMY(en90)}`,
+      `2,Financiero,Estado de resultados,${fDMY(en90)}`,
+      `3,Legal,Acta constitutiva,${fDMY(hoy)}`,
+    ].join("\r\n");
+    const blob = csvBlob(contenido);
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a"); a.href = url; a.download = "plantilla_reactivos.csv"; a.click();
     URL.revokeObjectURL(url);
@@ -905,10 +947,10 @@ function ImportarCSVModal({ contratoId, entidadId, onClose, onImported }: {
           <div style={{ padding: "12px 14px", background: "var(--surface)", borderRadius: 6, border: "1px solid var(--border)", fontSize: 12, color: "var(--muted-2)" }}>
             <div style={{ fontWeight: 600, color: "var(--ink)", marginBottom: 6 }}>Formato del CSV:</div>
             <code style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, display: "block", lineHeight: 1.8 }}>
-              No.,Rubro,Concepto,Fecha límite<br />1,Financiero,Balance general 2024,2026-09-30<br />2,Legal,Acta constitutiva,2026-08-15
+              No.,Rubro,Concepto,Fecha límite<br />1,Financiero,Balance general 2024,30/09/2026<br />2,Legal,Acta constitutiva,15/08/2026
             </code>
             <div style={{ marginTop: 6, fontSize: 11, color: "var(--muted)", fontFamily: "'DM Mono', monospace" }}>
-              Fecha en formato YYYY-MM-DD. Si se omite, se usa la fecha global de abajo.
+              Fecha en formato DD/MM/YYYY o YYYY-MM-DD. Si se omite, se usa la fecha global de abajo.
             </div>
             <button onClick={descargarPlantilla} style={{ marginTop: 10, fontSize: 12, color: "#1B4F8A", background: "none", border: "none", cursor: "pointer", padding: 0, display: "inline-flex", alignItems: "center", gap: 4, fontFamily: "'DM Sans', sans-serif" }}>
               <DownloadIcon /> Descargar plantilla de ejemplo
