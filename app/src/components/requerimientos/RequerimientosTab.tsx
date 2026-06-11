@@ -905,10 +905,11 @@ function ImportarCSVModal({ contratoId, entidadId, onClose, onImported }: {
       const buffer = ev.target?.result as ArrayBuffer;
       let texto: string;
       try {
-        // Intenta UTF-8 estricto primero (falla si hay bytes inválidos)
         texto = new TextDecoder("utf-8", { fatal: true }).decode(buffer);
+        // Si aún con UTF-8 válido hay caracteres de reemplazo (◆ U+FFFD),
+        // el archivo tiene encoding mezclado — forzar Windows-1252
+        if (texto.includes("�")) throw new Error("replacement chars");
       } catch {
-        // Fallback a Windows-1252 (Latin-1 extendido — Excel español/México)
         texto = new TextDecoder("windows-1252").decode(buffer);
       }
       const { rows: parsed, error: err } = parsearCSV(texto);
