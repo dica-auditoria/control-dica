@@ -53,6 +53,14 @@ function normalizarFecha(raw: string): string | undefined {
   return undefined;
 }
 
+// Codifica "1", "1.1", "2.3" → entero para ordenar correctamente
+// Soporta hasta 2 niveles: "X" o "X.Y" (Y hasta 99)
+function ordenFromNumero(s: string): number {
+  const parts = s.trim().split(".").map(p => parseInt(p, 10) || 0);
+  if (parts.length >= 2) return parts[0] * 1000 + Math.min(parts[1], 99) * 10;
+  return (parts[0] || 0) * 1000;
+}
+
 function csvBlob(contenido: string): Blob {
   // BOM UTF-8 + sep= para Excel 2013-365 en cualquier configuración regional
   return new Blob(["﻿" + "sep=,\r\n" + contenido], { type: "text/csv;charset=utf-8;" });
@@ -60,9 +68,10 @@ function csvBlob(contenido: string): Blob {
 
 function exportarCSV(items: RequerimientoItem[], nombre: string) {
   const header = "No.,Rubro,Concepto,Fecha límite";
-  const rows = [...items]
-    .sort((a, b) => (a.orden ?? 9999) - (b.orden ?? 9999))
-    .map((it, i) => `${it.orden ?? (i + 1)},${(it.rubro ?? "").replace(/,/g, ";")},${it.nombre.replace(/,/g, ";")},${isoADMY(it.fecha_limite ?? "")}`);
+  const sorted = [...items].sort((a, b) => (a.orden ?? 9999) - (b.orden ?? 9999));
+  const rows = sorted.map((it, i) =>
+    `${it.numero ?? (i + 1)},${(it.rubro ?? "").replace(/,/g, ";")},${it.nombre.replace(/,/g, ";")},${isoADMY(it.fecha_limite ?? "")}`
+  );
   const blob = csvBlob([header, ...rows].join("\r\n"));
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -72,7 +81,7 @@ function exportarCSV(items: RequerimientoItem[], nombre: string) {
   URL.revokeObjectURL(url);
 }
 
-interface CSVRow { orden: number; rubro: string; nombre: string; fechaLimite?: string }
+interface CSVRow { orden: number; numero: string; rubro: string; nombre: string; fechaLimite?: string }
 
 function parsearCSV(texto: string): { rows: CSVRow[]; error: string | null } {
   // Eliminar BOM si viene de Excel
@@ -98,12 +107,16 @@ function parsearCSV(texto: string): { rows: CSVRow[]; error: string | null } {
   for (let i = 1; i < lineas.length; i++) {
     const parts = lineas[i].split(sep);
     if (parts.length < 3) continue;
-    const orden = parseInt(parts[0].trim(), 10);
+    // Aceptar "1", "1.1", "2.3" en la columna No.
+    const numeroRaw = parts[0].trim();
+    const esNumeroValido = /^\d+(\.\d+)?$/.test(numeroRaw);
+    const numero = esNumeroValido ? numeroRaw : String(i);
+    const orden = ordenFromNumero(numero);
     const rubro = parts[1].trim();
     const nombre = tieneFecha ? parts[2].trim() : parts.slice(2).join(sep).trim();
     if (!nombre) continue;
     const fechaLimite = tieneFecha ? normalizarFecha(parts[3]?.trim() ?? "") : undefined;
-    rows.push({ orden: isNaN(orden) ? i : orden, rubro, nombre, ...(fechaLimite ? { fechaLimite } : {}) });
+    rows.push({ orden, numero, rubro, nombre, ...(fechaLimite ? { fechaLimite } : {}) });
   }
 
   if (!rows.length) return { rows: [], error: "No se encontraron filas válidas" };
@@ -352,8 +365,9 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
             const comentarios   = comentariosPorItem[item.id] ?? [];
             const cargando      = loadingComents === item.id;
 
+            const esSubpunto = item.numero?.includes(".") ?? false;
             return (
-              <div key={item.id} style={{ borderBottom: "1px solid var(--border)" }}>
+              <div key={item.id} style={{ borderBottom: "1px solid var(--border)", borderLeft: esSubpunto ? "2px solid var(--border-strong)" : "none", marginLeft: esSubpunto ? 14 : 0 }}>
                 {/* Fila principal */}
                 <div
                   onClick={() => handleExpand(item.id)}
@@ -363,8 +377,8 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
                     <ChevronIcon />
                   </span>
 
-                  <span style={{ fontSize: 12, fontFamily: "'DM Mono', monospace", color: "var(--muted)", width: 34, flexShrink: 0 }}>
-                    {item.orden ?? (idx + 1)}
+                  <span style={{ fontSize: 12, fontFamily: "'DM Mono', monospace", color: esSubpunto ? "var(--muted-2)" : "var(--muted)", width: 38, flexShrink: 0 }}>
+                    {item.numero ?? (idx + 1)}
                   </span>
 
                   <span style={{ width: 130, flexShrink: 0, paddingRight: 12 }}>
@@ -887,8 +901,10 @@ function ImportarCSVModal({ contratoId, entidadId, onClose, onImported }: {
     const contenido = [
       "No.,Rubro,Concepto,Fecha límite",
       `1,Financiero,Balance general 2024,${fDMY(en90)}`,
-      `2,Financiero,Estado de resultados,${fDMY(en90)}`,
-      `3,Legal,Acta constitutiva,${fDMY(hoy)}`,
+      `1.1,Financiero,Notas al balance,${fDMY(en90)}`,
+      `1.2,Financiero,Estado de resultados,${fDMY(en90)}`,
+      `2,Legal,Acta constitutiva,${fDMY(hoy)}`,
+      `2.1,Legal,Poder notarial,${fDMY(hoy)}`,
     ].join("\r\n");
     const blob = csvBlob(contenido);
     const url = URL.createObjectURL(blob);
@@ -947,10 +963,14 @@ function ImportarCSVModal({ contratoId, entidadId, onClose, onImported }: {
           <div style={{ padding: "12px 14px", background: "var(--surface)", borderRadius: 6, border: "1px solid var(--border)", fontSize: 12, color: "var(--muted-2)" }}>
             <div style={{ fontWeight: 600, color: "var(--ink)", marginBottom: 6 }}>Formato del CSV:</div>
             <code style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, display: "block", lineHeight: 1.8 }}>
-              No.,Rubro,Concepto,Fecha límite<br />1,Financiero,Balance general 2024,30/09/2026<br />2,Legal,Acta constitutiva,15/08/2026
+              No.,Rubro,Concepto,Fecha límite<br />
+              1,Financiero,Balance general,30/09/2026<br />
+              1.1,Financiero,Notas al balance,30/09/2026<br />
+              1.2,Financiero,Estado de resultados,30/09/2026<br />
+              2,Legal,Acta constitutiva,15/08/2026
             </code>
             <div style={{ marginTop: 6, fontSize: 11, color: "var(--muted)", fontFamily: "'DM Mono', monospace" }}>
-              Fecha en formato DD/MM/YYYY o YYYY-MM-DD. Si se omite, se usa la fecha global de abajo.
+              Subpuntos: usa "1.1", "1.2" en la columna No. Fecha en DD/MM/YYYY o YYYY-MM-DD.
             </div>
             <button onClick={descargarPlantilla} style={{ marginTop: 10, fontSize: 12, color: "#1B4F8A", background: "none", border: "none", cursor: "pointer", padding: 0, display: "inline-flex", alignItems: "center", gap: 4, fontFamily: "'DM Sans', sans-serif" }}>
               <DownloadIcon /> Descargar plantilla de ejemplo
@@ -998,20 +1018,25 @@ function ImportarCSVModal({ contratoId, entidadId, onClose, onImported }: {
                     </tr>
                   </thead>
                   <tbody>
-                    {rows.map((r, i) => (
-                      <tr key={i} style={{ borderTop: "1px solid var(--border)" }}>
-                        <td style={{ padding: "7px 12px", fontSize: 12, fontFamily: "'DM Mono', monospace", color: "var(--muted)", whiteSpace: "nowrap" }}>{r.orden}</td>
+                    {rows.map((r, i) => {
+                      const esSub = r.numero.includes(".");
+                      return (
+                      <tr key={i} style={{ borderTop: "1px solid var(--border)", background: esSub ? "rgba(0,0,0,0.015)" : "transparent" }}>
+                        <td style={{ padding: "7px 12px", fontSize: 12, fontFamily: "'DM Mono', monospace", color: esSub ? "var(--muted-2)" : "var(--muted)", whiteSpace: "nowrap", paddingLeft: esSub ? 22 : 12 }}>
+                          {esSub ? "↳ " : ""}{r.numero}
+                        </td>
                         <td style={{ padding: "7px 12px", fontSize: 12, whiteSpace: "nowrap" }}>
                           {r.rubro ? <span style={{ padding: "2px 8px", borderRadius: 100, background: "var(--surface-2)", fontSize: 11, fontFamily: "'DM Mono', monospace" }}>{r.rubro}</span> : "—"}
                         </td>
                         <td style={{ padding: "7px 12px", fontSize: 13, color: "var(--ink)" }}>{r.nombre}</td>
                         {rows.some(r2 => r2.fechaLimite) && (
                           <td style={{ padding: "7px 12px", fontSize: 12, fontFamily: "'DM Mono', monospace", color: r.fechaLimite ? "#1B4F8A" : "var(--muted)", whiteSpace: "nowrap" }}>
-                            {r.fechaLimite ?? (fechaLimite || "—")}
+                            {r.fechaLimite ? isoADMY(r.fechaLimite) : (fechaLimite ? isoADMY(fechaLimite) : "—")}
                           </td>
                         )}
                       </tr>
-                    ))}
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
