@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { DicaLogo } from "@/components/ui/DicaLogo";
 import ThemeSelector from "@/components/ui/ThemeSelector";
 import { registrarLogoutAction } from "@/app/actions/audit";
 
@@ -107,15 +106,8 @@ export default function Sidebar({ usuario, solicitudesPendientes = 0, requerimie
       flexDirection: "column",
     }}>
       {/* Brand */}
-      <div style={{
-        padding: "24px 20px 20px",
-        borderBottom: "1px solid rgba(255,255,255,0.10)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-      }}>
-        <DicaLogo variant="white" fontSize={26} />
-        {onMobileClose && (
+      {onMobileClose && (
+        <div style={{ padding: "12px 16px 0", display: "flex", justifyContent: "flex-end" }}>
           <button
             onClick={onMobileClose}
             className="sidebar-close-btn"
@@ -124,8 +116,8 @@ export default function Sidebar({ usuario, solicitudesPendientes = 0, requerimie
           >
             <CloseIcon />
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       {showTheme ? (
         <ThemeSelector onBack={() => setShowTheme(false)} />
