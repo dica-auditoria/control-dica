@@ -5,13 +5,6 @@ import ThemeProvider from "@/components/ui/ThemeProvider";
 export const metadata: Metadata = {
   title: "Control DICA-MX",
   description: "Plataforma de gestión documental segura y auditable",
-  icons: {
-    icon: [
-      { url: "/icon.svg", type: "image/svg+xml" },
-      { url: "/icon.png", type: "image/png" },
-    ],
-    apple: "/icon.png",
-  },
 };
 
 const antiFlashScript = `
