@@ -9,20 +9,15 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  interface PerfilRow { id: string; nombre: string; rol: string; entidad_id: string | null; entidades: { nombre: string } | null; privacidad_aceptada_at: string | null }
+  interface PerfilRow { id: string; nombre: string; rol: string; entidad_id: string | null; entidades: { nombre: string } | null }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: perfil } = await (supabase.from("usuarios") as any)
-    .select("id, nombre, rol, entidad_id, entidades(nombre), privacidad_aceptada_at")
+    .select("id, nombre, rol, entidad_id, entidades(nombre)")
     .eq("id", user.id)
     .single() as { data: PerfilRow | null; error: unknown };
 
   if (!perfil) redirect("/login");
-
-  // Clientes sin aviso de privacidad aceptado → intercepción
-  if (perfil.rol === "cliente" && !perfil.privacidad_aceptada_at) {
-    redirect("/cliente/privacidad");
-  }
 
   // Empleados / RRHH sin aviso de privacidad aceptado → intercepción
   if ((perfil.rol === "empleado" || perfil.rol === "rrhh") && user.email) {
