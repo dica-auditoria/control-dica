@@ -1,0 +1,13 @@
+# Archivos locales / diseño — no van al repo
+*.pdf
+*.jsx
+*.png
+*.csv
+*.jpg
+*.jpeg
+
+# Excepciones: archivos de la app Next.js
+!app/**/*.png
+!app/**/*.jpg
+!app/**/*.jpeg
+!app/**/*.svg
