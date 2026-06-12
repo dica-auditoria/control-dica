@@ -9,7 +9,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  interface PerfilRow { id: string; nombre: string; rol: string; entidad_id: string | null; entidades: { nombre: string } | null }
+  interface PerfilRow { id: string; nombre: string; rol: string; entidad_id: string | null; entidades: { nombre: string } | null; departamento?: string | null }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: perfil } = await (supabase.from("usuarios") as any)
@@ -19,17 +19,20 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   if (!perfil) redirect("/login");
 
-  // Empleados / RRHH sin aviso de privacidad aceptado → intercepción
+  // Empleados / RRHH: obtener departamento y verificar aviso de privacidad
   if ((perfil.rol === "empleado" || perfil.rol === "rrhh") && user.email) {
     const admin = createAdminClient();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: emp } = await (admin.from("empleados") as any)
-      .select("id, empleado_privacidad(id)")
+      .select("id, departamento, empleado_privacidad(id)")
       .eq("email_institucional", user.email)
-      .maybeSingle() as { data: { id: string; empleado_privacidad: { id: string }[] } | null };
+      .maybeSingle() as { data: { id: string; departamento: string | null; empleado_privacidad: { id: string }[] } | null };
 
-    if (emp && (!emp.empleado_privacidad || emp.empleado_privacidad.length === 0)) {
-      redirect("/empleado/aviso-privacidad");
+    if (emp) {
+      perfil.departamento = emp.departamento;
+      if (!emp.empleado_privacidad || emp.empleado_privacidad.length === 0) {
+        redirect("/empleado/aviso-privacidad");
+      }
     }
   }
 

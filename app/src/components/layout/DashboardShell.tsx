@@ -10,6 +10,7 @@ interface Usuario {
   rol: string;
   entidad_id: string | null;
   entidades: { nombre: string } | null;
+  departamento?: string | null;
 }
 
 interface Props {

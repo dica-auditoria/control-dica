@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import SolicitudesView, { type SolicitudItem } from "@/components/solicitudes/SolicitudesView";
 
 interface RawSolicitud {
@@ -15,6 +16,15 @@ interface RawSolicitud {
 
 interface PerfilRow { rol: string }
 
+const DEPTS_CON_ACCESO = [
+  "Dirección General",
+  "Dirección de Administración",
+  "Gerencia de RH",
+  "Gerencia de Auditoría",
+  "Gerencia de Proyectos",
+  "Líderes de Auditoría",
+];
+
 export default async function SolicitudesPage() {
   const supabase = createClient();
 
@@ -27,7 +37,20 @@ export default async function SolicitudesPage() {
     .eq("id", user.id)
     .single() as { data: PerfilRow | null; error: unknown };
 
-  if (!perfil || !["admin", "superadmin"].includes(perfil.rol)) redirect("/dashboard");
+  if (!perfil) redirect("/login");
+
+  const esAdmin = ["admin", "superadmin"].includes(perfil.rol);
+
+  if (!esAdmin) {
+    if (!["empleado", "rrhh"].includes(perfil.rol)) redirect("/dashboard");
+    const admin = createAdminClient();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: emp } = await (admin.from("empleados") as any)
+      .select("departamento")
+      .eq("email_institucional", user.email)
+      .maybeSingle() as { data: { departamento: string | null } | null };
+    if (!emp || !emp.departamento || !DEPTS_CON_ACCESO.includes(emp.departamento)) redirect("/dashboard");
+  }
 
   const { data: raw } = await supabase
     .from("solicitudes_eliminacion")

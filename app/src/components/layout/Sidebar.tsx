@@ -13,7 +13,17 @@ interface Usuario {
   rol: string;
   entidad_id: string | null;
   entidades: { nombre: string } | null;
+  departamento?: string | null;
 }
+
+const DEPTS_CON_SOLICITUDES = [
+  "Dirección General",
+  "Dirección de Administración",
+  "Gerencia de RH",
+  "Gerencia de Auditoría",
+  "Gerencia de Proyectos",
+  "Líderes de Auditoría",
+];
 
 interface SidebarProps {
   usuario: Usuario;
@@ -80,10 +90,14 @@ export default function Sidebar({ usuario, solicitudesPendientes = 0, requerimie
   const supabase = createClient();
   const [showTheme, setShowTheme] = useState(false);
 
-  const navItems = usuario.rol === "cliente" ? NAV_CLIENTE
+  const baseNav = usuario.rol === "cliente" ? NAV_CLIENTE
     : usuario.rol === "empleado" ? NAV_EMPLEADO
     : usuario.rol === "rrhh" ? NAV_RRHH
     : NAV_ADMIN;
+
+  const navItems = (usuario.rol === "empleado" || usuario.rol === "rrhh") && usuario.departamento && DEPTS_CON_SOLICITUDES.includes(usuario.departamento)
+    ? [...baseNav, { href: "/dashboard/solicitudes", label: "Solicitudes", icon: "alert" }]
+    : baseNav;
 
   const handleLogout = async () => {
     await registrarLogoutAction().catch(() => {});
