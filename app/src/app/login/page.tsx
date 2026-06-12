@@ -4,7 +4,6 @@ import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { registrarLoginAction } from "@/app/actions/audit";
-import { DicaLogo } from "@/components/ui/DicaLogo";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -45,8 +44,6 @@ export default function LoginPage() {
         position: "relative",
         overflow: "hidden",
       }}>
-        <DicaLogo variant="white" fontSize={34} />
-
         <div style={{ zIndex: 1 }}>
           <h1 style={{
             fontFamily: "'DM Serif Display', serif",
@@ -92,10 +89,6 @@ export default function LoginPage() {
         background: "var(--surface)",
       }}>
         <div style={{ width: "100%", maxWidth: 380 }}>
-          {/* Logo visible solo en móvil */}
-          <div className="login-mobile-logo" style={{ marginBottom: 32 }}>
-            <DicaLogo variant="color" fontSize={28} />
-          </div>
           <h2 style={{
             fontFamily: "'DM Serif Display', serif",
             fontSize: 30,
