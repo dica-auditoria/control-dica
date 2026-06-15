@@ -141,7 +141,9 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
     if (!confirm(`¿Eliminar a "${u.nombre}" (${u.email})? Esta acción no se puede deshacer.`)) return;
     setEliminando(u.id);
     const result = await eliminarClienteAction(u.id);
-    if (!result.error) {
+    if (result.error) {
+      alert(`Error al eliminar: ${result.error}`);
+    } else {
       setUsuarios(prev => prev.filter(x => x.id !== u.id));
     }
     setEliminando(null);

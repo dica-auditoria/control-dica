@@ -296,6 +296,7 @@ export async function eliminarClienteAction(userId: string) {
   const { supabase, userId: actorId, rol, error: authErr } = await verificarAdmin();
   if (authErr || !supabase || !actorId) return { error: authErr };
   if (rol !== "superadmin") return { error: "Solo el superadmin puede eliminar usuarios" };
+  if (userId === actorId) return { error: "No puedes eliminar tu propia cuenta" };
 
   const admin = createAdminClient();
 
