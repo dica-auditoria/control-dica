@@ -13,6 +13,7 @@ interface UsuarioClienteRow {
   email: string;
   entidad_id: string | null;
   contrato_id: string | null;
+  area: string | null;
   activo: boolean;
   created_at: string;
   entidades: { nombre: string } | null;
@@ -42,7 +43,7 @@ export default async function ClientesPage() {
     supabase.from("archivos").select("entidad_id").neq("estado", "eliminado"),
     supabase.from("usuarios").select("entidad_id").not("entidad_id", "is", null),
     (supabase.from("usuarios") as any)
-      .select("id, nombre, email, entidad_id, contrato_id, activo, created_at, entidades(nombre), contratos(nombre)")
+      .select("id, nombre, email, entidad_id, contrato_id, area, activo, created_at, entidades(nombre), contratos(nombre)")
       .eq("rol", "cliente")
       .order("created_at", { ascending: false }) as Promise<{ data: UsuarioClienteRow[] | null; error: unknown }>,
   ]);
@@ -86,6 +87,7 @@ export default async function ClientesPage() {
     entidad_nombre: u.entidades?.nombre ?? null,
     contrato_id: u.contrato_id,
     contrato_nombre: u.contratos?.nombre ?? null,
+    area: u.area ?? null,
     activo: u.activo ?? true,
     created_at: u.created_at,
   }));

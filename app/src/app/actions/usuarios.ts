@@ -63,6 +63,7 @@ export interface CrearUsuarioArgs {
   entidad_id: string | null;
   contratos_ids?: string[];
   emails_acceso?: string[];
+  area?: string | null;
 }
 
 export async function crearUsuarioAction(args: CrearUsuarioArgs) {
@@ -94,8 +95,11 @@ export async function crearUsuarioAction(args: CrearUsuarioArgs) {
 
   // Primer contrato como campo legacy contrato_id
   const primeraContrato = args.contratos_ids?.[0] ?? null;
-  if (primeraContrato) {
-    await admin.from("usuarios").update({ contrato_id: primeraContrato }).eq("id", data.user.id);
+  const extraUpdate: Record<string, unknown> = {};
+  if (primeraContrato) extraUpdate.contrato_id = primeraContrato;
+  if (args.area?.trim()) extraUpdate.area = args.area.trim();
+  if (Object.keys(extraUpdate).length > 0) {
+    await admin.from("usuarios").update(extraUpdate).eq("id", data.user.id);
   }
 
   // Guardar todos los contratos en la tabla relacional
@@ -129,8 +133,11 @@ export async function crearUsuarioAction(args: CrearUsuarioArgs) {
       },
     });
     if (extraUser?.user) {
-      if (primeraContrato) {
-        await admin.from("usuarios").update({ contrato_id: primeraContrato }).eq("id", extraUser.user.id);
+      const extraUpd: Record<string, unknown> = {};
+      if (primeraContrato) extraUpd.contrato_id = primeraContrato;
+      if (args.area?.trim()) extraUpd.area = args.area.trim();
+      if (Object.keys(extraUpd).length > 0) {
+        await admin.from("usuarios").update(extraUpd).eq("id", extraUser.user.id);
       }
       if (contratosIds.length > 0) {
         await admin.from("usuario_contratos").insert(
@@ -231,6 +238,7 @@ export interface EditarClienteArgs {
   nombre?: string;
   email?: string;
   password?: string;
+  area?: string | null;
 }
 
 export async function editarClienteAction(args: EditarClienteArgs) {
@@ -252,6 +260,7 @@ export async function editarClienteAction(args: EditarClienteArgs) {
   const tableUpdate: Record<string, unknown> = {};
   if (args.nombre?.trim()) tableUpdate.nombre = args.nombre.trim();
   if (args.email?.trim())  tableUpdate.email  = args.email.trim().toLowerCase();
+  if ("area" in args)      tableUpdate.area   = args.area?.trim() || null;
 
   if (Object.keys(tableUpdate).length > 0) {
     await admin.from("usuarios").update(tableUpdate).eq("id", args.userId);

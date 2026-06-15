@@ -13,6 +13,7 @@ export interface ClienteUsuarioItem {
   entidad_nombre: string | null;
   contrato_id: string | null;
   contrato_nombre: string | null;
+  area: string | null;
   activo: boolean;
   created_at: string;
 }
@@ -34,11 +35,12 @@ interface FormState {
   password: string;
   confirmar: string;
   entidad_id: string;
+  area: string;
 }
 
 const EMPTY: FormState = {
   nombre: "", email: "", password: "", confirmar: "",
-  entidad_id: "",
+  entidad_id: "", area: "",
 };
 
 export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }: Props) {
@@ -56,6 +58,7 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
   // Modal editar
   const [editModal, setEditModal] = useState<ClienteUsuarioItem | null>(null);
   const [editForm, setEditForm] = useState({ nombre: "", email: "", password: "", confirmar: "" });
+  const [editArea, setEditArea] = useState("");
   const [editError, setEditError] = useState("");
   const [editSubmitting, setEditSubmitting] = useState(false);
   const [editShowPass, setEditShowPass] = useState(false);
@@ -67,6 +70,7 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
 
   const abrirEditar = async (u: ClienteUsuarioItem) => {
     setEditForm({ nombre: u.nombre, email: u.email, password: "", confirmar: "" });
+    setEditArea(u.area ?? "");
     setEditError("");
     setEditShowPass(false);
     setEditContratosIds([]);
@@ -107,6 +111,7 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
         nombre: editForm.nombre !== editModal!.nombre ? editForm.nombre : undefined,
         email:  editForm.email  !== editModal!.email  ? editForm.email  : undefined,
         password: editForm.password || undefined,
+        area: editArea.trim() || null,
       }),
       updateUserContratosAction(editModal!.id, contratosValidos),
     ]);
@@ -116,7 +121,7 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
 
     const primerNombre = editContratos.find(c => c.id === contratosValidos[0])?.nombre ?? null;
     setUsuarios(prev => prev.map(u => u.id === editModal!.id
-      ? { ...u, nombre: editForm.nombre, email: editForm.email, contrato_id: contratosValidos[0], contrato_nombre: primerNombre }
+      ? { ...u, nombre: editForm.nombre, email: editForm.email, contrato_id: contratosValidos[0], contrato_nombre: primerNombre, area: editArea.trim() || null }
       : u
     ));
     setEditModal(null);
@@ -179,6 +184,7 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
       entidad_id: form.entidad_id,
       contratos_ids: contratosValidos,
       emails_acceso: emailsAcceso.filter(e => e.trim()),
+      area: form.area.trim() || null,
     });
 
     if (result.error) { setFormError(result.error); setSubmitting(false); return; }
@@ -193,6 +199,7 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
       entidad_nombre: entidad?.nombre ?? null,
       contrato_id: contratosValidos[0] ?? null,
       contrato_nombre: primerContrato?.nombre ?? null,
+      area: form.area.trim() || null,
       activo: true,
       created_at: new Date().toISOString(),
     }, ...prev]);
@@ -243,6 +250,7 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
                 <Th>Usuario</Th>
                 <Th>Empresa</Th>
                 <Th>Contrato</Th>
+                <Th>Área</Th>
                 <Th>Estado</Th>
                 <Th>Alta</Th>
                 <Th></Th>
@@ -287,6 +295,11 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
                       {u.contrato_nombre
                         ? <span style={{ fontSize: 12, color: "var(--ink)" }}>{u.contrato_nombre}</span>
                         : <span style={{ fontSize: 12, color: "var(--muted)", fontFamily: "'DM Mono', monospace" }}>Sin contrato</span>}
+                    </td>
+                    <td style={{ padding: "14px 20px" }}>
+                      {u.area
+                        ? <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 100, background: "rgba(59,130,246,0.1)", color: "#1D4ED8", fontFamily: "'DM Mono', monospace" }}>{u.area}</span>
+                        : <span style={{ fontSize: 12, color: "var(--muted)", fontFamily: "'DM Mono', monospace" }}>—</span>}
                     </td>
                     <td style={{ padding: "14px 20px" }}>
                       <span style={{
@@ -528,6 +541,17 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
                   </select>
                 </Field>
 
+                {/* Área */}
+                <Field label="Área de acceso (opcional)">
+                  <input
+                    type="text"
+                    value={form.area}
+                    onChange={set("area")}
+                    placeholder="Ej. Contabilidad, Jurídico…"
+                    style={iStyle}
+                  />
+                </Field>
+
                 {/* Contratos — lista dinámica */}
                 <div>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
@@ -639,6 +663,17 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
                     value={editForm.email}
                     onChange={e => setEditForm(f => ({ ...f, email: e.target.value }))}
                     required
+                    style={iStyle}
+                  />
+                </Field>
+
+                {/* Área */}
+                <Field label="Área de acceso (opcional)">
+                  <input
+                    type="text"
+                    value={editArea}
+                    onChange={e => setEditArea(e.target.value)}
+                    placeholder="Ej. Contabilidad, Jurídico…"
                     style={iStyle}
                   />
                 </Field>

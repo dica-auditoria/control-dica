@@ -8,7 +8,7 @@ import { fetchMiExpedienteAction } from "@/app/actions/empleados";
 import { fetchComunicadosAction } from "@/app/actions/comunicados";
 import { AsistenciaBarChart, DepartamentosChart } from "@/components/dashboard/DashboardCharts";
 
-interface PerfilRow { rol: UserRole; entidad_id: string | null }
+interface PerfilRow { rol: UserRole; entidad_id: string | null; area: string | null }
 interface ArchivoRow { id: string; nombre: string; tipo: string; estado: ArchivoEstado; created_at: string; size_bytes: number; entidades: { nombre: string } | null }
 
 export default async function DashboardPage() {
@@ -17,7 +17,7 @@ export default async function DashboardPage() {
   const { data: { user } } = await supabase.auth.getUser();
   const { data: perfil } = await supabase
     .from("usuarios")
-    .select("rol, entidad_id")
+    .select("rol, entidad_id, area")
     .eq("id", user!.id)
     .single() as { data: PerfilRow | null; error: unknown };
 
@@ -369,6 +369,7 @@ export default async function DashboardPage() {
           requerimientos={requerimientos}
           entidadId={perfil!.entidad_id!}
           archivos={todosArchivos}
+          areaUsuario={perfil!.area ?? null}
         />
       )}
 

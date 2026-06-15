@@ -70,9 +70,15 @@ interface Props {
   requerimientos: Requerimiento[];
   entidadId: string;
   archivos: ArchivoConItemId[];
+  areaUsuario?: string | null;
 }
 
-export default function RequerimientosClienteSection({ requerimientos, entidadId, archivos }: Props) {
+function filtrarItemsPorArea(items: RequerimientoItem[], area?: string | null): RequerimientoItem[] {
+  if (!area) return items;
+  return items.filter(i => !i.area || i.area === area);
+}
+
+export default function RequerimientosClienteSection({ requerimientos, entidadId, archivos, areaUsuario }: Props) {
   const router = useRouter();
 
   const activos     = requerimientos.filter(r => r.estado !== "completado");
@@ -80,9 +86,10 @@ export default function RequerimientosClienteSection({ requerimientos, entidadId
 
   if (requerimientos.length === 0) return null;
 
-  const totalItems = activos.flatMap(r => r.items).length;
-  const entregados = activos.flatMap(r => r.items).filter(i => i.estado === "completado").length;
-  const enRevision = activos.flatMap(r => r.items).filter(i => i.estado === "en_revision").length;
+  const todosItemsActivos = activos.flatMap(r => filtrarItemsPorArea(r.items, areaUsuario));
+  const totalItems = todosItemsActivos.length;
+  const entregados = todosItemsActivos.filter(i => i.estado === "completado").length;
+  const enRevision = todosItemsActivos.filter(i => i.estado === "en_revision").length;
   const porcentaje = totalItems > 0 ? Math.round((entregados / totalItems) * 100) : 0;
 
   return (
@@ -123,6 +130,7 @@ export default function RequerimientosClienteSection({ requerimientos, entidadId
             req={req}
             entidadId={entidadId}
             archivos={archivos}
+            areaUsuario={areaUsuario}
             onRefresh={() => router.refresh()}
           />
         ))}
@@ -141,13 +149,16 @@ export default function RequerimientosClienteSection({ requerimientos, entidadId
 
 // ── Card de requerimiento ─────────────────────────────────────────────────────
 
-function RequerimientoCard({ req, entidadId, archivos, onRefresh }: {
-  req: Requerimiento; entidadId: string; archivos: ArchivoConItemId[]; onRefresh: () => void;
+function RequerimientoCard({ req, entidadId, archivos, areaUsuario, onRefresh }: {
+  req: Requerimiento; entidadId: string; archivos: ArchivoConItemId[]; areaUsuario?: string | null; onRefresh: () => void;
 }) {
   const canUpload = req.estado !== "completado" && req.estado !== "vencido";
 
-  const completados = req.items.filter(i => i.estado === "completado").length;
-  const porcentaje  = req.items.length > 0 ? Math.round((completados / req.items.length) * 100) : 0;
+  const items = filtrarItemsPorArea(req.items, areaUsuario);
+  const completados = items.filter(i => i.estado === "completado").length;
+  const porcentaje  = items.length > 0 ? Math.round((completados / items.length) * 100) : 0;
+
+  if (items.length === 0) return null;
 
   return (
     <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden", boxShadow: "0 1px 3px rgba(15,17,23,0.06)" }}>
@@ -155,13 +166,13 @@ function RequerimientoCard({ req, entidadId, archivos, onRefresh }: {
       <div style={{ padding: "14px 18px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 14 }}>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", marginBottom: 6 }}>{req.titulo}</div>
-          {req.items.length > 0 && (
+          {items.length > 0 && (
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <div style={{ width: 100, height: 4, borderRadius: 2, background: "var(--surface-2)", overflow: "hidden" }}>
                 <div style={{ width: `${porcentaje}%`, height: "100%", background: porcentaje === 100 ? "var(--green)" : "var(--accent)", borderRadius: 2, transition: "width 0.3s" }} />
               </div>
               <span style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "var(--muted)" }}>
-                {completados}/{req.items.length}
+                {completados}/{items.length}
               </span>
             </div>
           )}
@@ -182,13 +193,13 @@ function RequerimientoCard({ req, entidadId, archivos, onRefresh }: {
       )}
 
       {/* Lista de items */}
-      {req.items.length === 0 ? (
+      {items.length === 0 ? (
         <div style={{ padding: "24px 18px", textAlign: "center", color: "var(--muted)", fontSize: 13, fontFamily: "'DM Mono', monospace" }}>
           Sin documentos definidos aún
         </div>
       ) : (
         <div>
-          {req.items
+          {items
             .sort((a, b) => (a.orden ?? 9999) - (b.orden ?? 9999))
             .map((item, idx) => (
               <ItemRow
