@@ -571,6 +571,7 @@ function DocumentosSection({
     fecha_vencimiento: "",
   });
   const [archivo, setArchivo] = useState<File | null>(null);
+  const [dragging, setDragging] = useState(false);
 
   const alertaDoc = docs.find(d => d.estado === "por_vencer");
 
@@ -610,6 +611,7 @@ function DocumentosSection({
       setModalOpen(false);
       setForm({ nombre: TIPOS_DOC[0], numero_documento: "", fecha_vencimiento: "" });
       setArchivo(null);
+      setDragging(false);
     });
   };
 
@@ -734,17 +736,30 @@ function DocumentosSection({
               </MF>
 
               <MF label="Archivo (PDF o imagen)" required>
-                <label style={{
-                  display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-                  gap: 8, padding: "20px 16px", border: `2px dashed ${archivo ? "var(--green)" : "var(--border-strong)"}`,
-                  borderRadius: 6, cursor: "pointer", background: archivo ? "rgba(45,106,79,0.04)" : "var(--surface)",
-                  transition: "all 0.15s",
-                }}>
-                  <span style={{ fontSize: 24 }}>{archivo ? "✅" : "📎"}</span>
+                <label
+                  style={{
+                    display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                    gap: 8, padding: "20px 16px",
+                    border: `2px dashed ${archivo ? "var(--green)" : dragging ? "var(--ink)" : "var(--border-strong)"}`,
+                    borderRadius: 6, cursor: "pointer",
+                    background: archivo ? "rgba(45,106,79,0.04)" : dragging ? "var(--surface-2)" : "var(--surface)",
+                    transition: "all 0.15s",
+                  }}
+                  onDragOver={e => { e.preventDefault(); setDragging(true); }}
+                  onDragEnter={e => { e.preventDefault(); setDragging(true); }}
+                  onDragLeave={() => setDragging(false)}
+                  onDrop={e => {
+                    e.preventDefault();
+                    setDragging(false);
+                    const f = e.dataTransfer.files?.[0];
+                    if (f) setArchivo(f);
+                  }}
+                >
+                  <span style={{ fontSize: 24 }}>{archivo ? "✅" : dragging ? "📂" : "📎"}</span>
                   <span style={{ fontSize: 13, color: archivo ? "var(--green)" : "var(--muted-2)", fontWeight: archivo ? 600 : 400 }}>
-                    {archivo ? archivo.name : "Haz clic para seleccionar archivo"}
+                    {archivo ? archivo.name : dragging ? "Suelta el archivo aquí" : "Arrastra o haz clic para seleccionar"}
                   </span>
-                  {!archivo && <span style={{ fontSize: 11, color: "var(--muted)" }}>PDF, JPG o PNG · máx. 10 MB</span>}
+                  {!archivo && !dragging && <span style={{ fontSize: 11, color: "var(--muted)" }}>PDF, JPG o PNG · máx. 10 MB</span>}
                   <input
                     type="file"
                     accept=".pdf,image/jpeg,image/png,image/webp"
