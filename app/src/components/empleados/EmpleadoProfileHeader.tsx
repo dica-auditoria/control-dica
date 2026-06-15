@@ -55,7 +55,7 @@ export default function EmpleadoProfileHeader({ empleado, fotoUrl, onEditar, sol
               {empleado.codigo_empleado && ` · ${empleado.codigo_empleado}`}
             </div>
             <div style={{ fontSize: 12, fontFamily: "'DM Mono', monospace", color: "var(--muted)" }}>
-              {empleado.email_institucional} · Ingreso: {ingreso}
+              {empleado.email_institucional}{!soloLectura && ` · Ingreso: ${ingreso}`}
             </div>
           </div>
         </div>
