@@ -280,9 +280,14 @@ export default async function DashboardPage() {
 
   // Vista empleado
   if (isEmpleado) {
-    const [{ data: emp }, { data: comuns }] = await Promise.all([
+    const empAdmin = createAdminClient();
+    const [{ data: emp }, { data: comuns }, rAudEntidades, rAudContratos] = await Promise.all([
       fetchMiExpedienteAction(),
       fetchComunicadosAction(),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (empAdmin.from("entidades") as any).select("id, nombre").eq("activo", true).order("nombre") as Promise<{ data: { id: string; nombre: string }[] | null }>,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (empAdmin.from("contratos") as any).select("id, nombre, entidad_id").eq("estado", "vigente").order("nombre") as Promise<{ data: { id: string; nombre: string; entidad_id: string }[] | null }>,
     ]);
 
     return (
@@ -327,6 +332,12 @@ export default async function DashboardPage() {
           <AccesoRapido href="/dashboard/mis-vacaciones" titulo="Mis Vacaciones" desc="Solicitar días de vacaciones o permisos" color="#1B4F8A" />
           <AccesoRapido href="/dashboard/mi-credencial" titulo="Mi Credencial" desc="Credencial digital con código QR" color="var(--accent)" />
         </div>
+
+        {/* Auditoría */}
+        <AuditoriaDashboard
+          entidades={rAudEntidades.data ?? []}
+          contratos={rAudContratos.data ?? []}
+        />
 
         {/* Comunicados activos */}
         {(comuns?.length ?? 0) > 0 && (
