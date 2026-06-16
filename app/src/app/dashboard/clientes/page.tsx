@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import ClientesPageTabs from "@/components/clientes/ClientesPageTabs";
 import type { ClienteListItem } from "@/components/clientes/ClientesView";
 import type { ClienteUsuarioItem } from "@/components/clientes/ClientesAccesoView";
@@ -33,16 +34,18 @@ export default async function ClientesPage() {
 
   if (!perfil || perfil.rol === "cliente") redirect("/dashboard");
 
+  const admin = createAdminClient();
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [rEntidades, rContratos, rArchivos, rUsuariosAll, rClienteUsers] = await Promise.all([
-    (supabase.from("entidades") as any)
+    (admin.from("entidades") as any)
       .select("id, nombre, activo, created_at")
       .order("nombre") as Promise<{ data: EntidadRow[] | null; error: unknown }>,
-    (supabase.from("contratos") as any)
+    (admin.from("contratos") as any)
       .select("entidad_id, estado") as Promise<{ data: ContratoCount[] | null; error: unknown }>,
-    supabase.from("archivos").select("entidad_id").neq("estado", "eliminado"),
-    supabase.from("usuarios").select("entidad_id").not("entidad_id", "is", null),
-    (supabase.from("usuarios") as any)
+    (admin.from("archivos") as any).select("entidad_id").neq("estado", "eliminado"),
+    (admin.from("usuarios") as any).select("entidad_id").not("entidad_id", "is", null),
+    (admin.from("usuarios") as any)
       .select("id, nombre, email, entidad_id, contrato_id, area, activo, created_at, entidades(nombre), contratos(nombre)")
       .eq("rol", "cliente")
       .order("created_at", { ascending: false }) as Promise<{ data: UsuarioClienteRow[] | null; error: unknown }>,
