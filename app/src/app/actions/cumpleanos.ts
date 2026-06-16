@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export interface EmpleadoCumpleanos {
   id: string;
@@ -15,8 +16,11 @@ export async function fetchCumpleanosAction(): Promise<{ data: EmpleadoCumpleano
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { data: null, error: "No autenticado" };
 
+  // Use admin client so all authenticated users can read birthdays regardless of RLS
+  const admin = createAdminClient();
+
   // fecha_nacimiento lives in empleado_datos_personales, not empleados
-  const { data, error } = await (supabase as any)
+  const { data, error } = await (admin as any)
     .from("empleado_datos_personales")
     .select("fecha_nacimiento, empleado:empleados!empleado_datos_personales_empleado_id_fkey(id, nombres, apellido_paterno, apellido_materno, departamento, foto_url, estado)")
     .not("fecha_nacimiento", "is", null) as {
@@ -44,7 +48,7 @@ export async function fetchCumpleanosAction(): Promise<{ data: EmpleadoCumpleano
       const e = r.empleado!;
       let foto_url: string | null = null;
       if (e.foto_url && !e.foto_url.startsWith("http")) {
-        const { data: signed } = await supabase.storage.from("empleado-docs").createSignedUrl(e.foto_url, 3600);
+        const { data: signed } = await admin.storage.from("empleado-docs").createSignedUrl(e.foto_url, 3600);
         foto_url = signed?.signedUrl ?? null;
       } else {
         foto_url = e.foto_url;
