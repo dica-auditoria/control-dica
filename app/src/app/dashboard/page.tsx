@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import type { ArchivoEstado, UserRole } from "@/types/database";
 import ClienteArchivosTable, { type ClienteArchivo } from "@/components/archivos/ClienteArchivosTable";
 import { fetchRequerimientosClienteAction } from "@/app/actions/requerimientos";
@@ -7,6 +8,7 @@ import RequerimientosClienteSection from "@/components/requerimientos/Requerimie
 import { fetchMiExpedienteAction } from "@/app/actions/empleados";
 import { fetchComunicadosAction } from "@/app/actions/comunicados";
 import { AsistenciaBarChart, DepartamentosChart } from "@/components/dashboard/DashboardCharts";
+import AuditoriaDashboard from "@/components/dashboard/AuditoriaDashboard";
 
 interface PerfilRow { rol: UserRole; entidad_id: string | null; area: string | null }
 interface ArchivoRow { id: string; nombre: string; tipo: string; estado: ArchivoEstado; created_at: string; size_bytes: number; entidades: { nombre: string } | null }
@@ -180,6 +182,14 @@ export default async function DashboardPage() {
       .order("created_at", { ascending: false })
       .limit(5) as { data: ArchivoRow[] | null; error: unknown };
 
+    const admin = createAdminClient();
+    const [rAudEntidades, rAudContratos] = await Promise.all([
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (admin.from("entidades") as any).select("id, nombre").eq("activo", true).order("nombre") as Promise<{ data: { id: string; nombre: string }[] | null }>,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (admin.from("contratos") as any).select("id, nombre, entidad_id").eq("estado", "vigente").order("nombre") as Promise<{ data: { id: string; nombre: string; entidad_id: string }[] | null }>,
+    ]);
+
     return (
       <div className="page-pad">
         <div style={{ marginBottom: 28 }}>
@@ -218,6 +228,12 @@ export default async function DashboardPage() {
             <DepartamentosChart datos={deptoChart} />
           </div>
         </div>
+
+        {/* Dashboard Auditoría */}
+        <AuditoriaDashboard
+          entidades={rAudEntidades.data ?? []}
+          contratos={rAudContratos.data ?? []}
+        />
 
         {/* Tabla archivos recientes */}
         <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden", boxShadow: "0 1px 3px rgba(15,17,23,0.08)" }}>
