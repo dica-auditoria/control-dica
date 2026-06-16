@@ -376,168 +376,206 @@ export default function ClienteDetalleView({ cliente: initial, rol, backHref = "
         </div>
 
         {/* Contratos */}
-        <div style={{
-          background: "var(--card)", border: "1px solid var(--border)",
-          borderRadius: 8, overflow: "hidden",
-          boxShadow: "0 1px 3px rgba(15,17,23,0.08)",
-        }}>
+        <div>
           <div style={{
-            padding: "16px 20px",
-            borderBottom: "1px solid var(--border)",
             display: "flex", alignItems: "center", justifyContent: "space-between",
+            marginBottom: 16,
           }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>Contratos</div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>
+              Contratos
+              {cliente.contratos.length > 0 && (
+                <span style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "var(--muted)", marginLeft: 8, fontWeight: 400 }}>
+                  {cliente.contratos.length}
+                </span>
+              )}
+            </div>
           </div>
 
           {cliente.contratos.length === 0 ? (
             <div style={{
-              padding: "48px 20px", textAlign: "center",
-              color: "var(--muted)", fontSize: 13,
-              fontFamily: "'DM Mono', monospace",
+              background: "var(--card)", border: "1px solid var(--border)",
+              borderRadius: 8, padding: "48px 20px", textAlign: "center",
+              color: "var(--muted)", fontSize: 13, fontFamily: "'DM Mono', monospace",
             }}>
               {isAdmin
                 ? "Sin contratos — usa el botón \"Nuevo contrato\" para agregar uno"
                 : "Sin contratos registrados"}
             </div>
           ) : (
-            <table style={{ width: "100%", borderCollapse: "collapse" }}>
-              <thead>
-                <tr style={{ background: "var(--surface)" }}>
-                  <Th>Contrato</Th>
-                  <Th>Concepto</Th>
-                  <Th align="center">Reactivos</Th>
-                  <Th>Vigencia</Th>
-                  <Th>Estado</Th>
-                  {isAdmin && <Th></Th>}
-                </tr>
-              </thead>
-              <tbody>
-                {cliente.contratos.map(c => {
-                  const ev = calcEstadoVisual(c);
-                  return (
-                    <tr
-                      key={c.id}
-                      onClick={() => router.push(`/dashboard/directorio/empresa/${cliente.id}/${c.id}`)}
-                      style={{
-                        borderBottom: "1px solid var(--border)",
-                        cursor: "pointer",
-                        transition: "background 0.1s",
-                      }}
-                      onMouseEnter={e => (e.currentTarget.style.background = "rgba(15,17,23,0.02)")}
-                      onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
-                    >
-                      {/* Contrato */}
-                      <td style={{ padding: "14px 20px" }}>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>{c.nombre}</div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 16 }}>
+              {cliente.contratos.map(c => {
+                const ev = calcEstadoVisual(c);
+                const total       = c.totalReactivos ?? 0;
+                const completados = c.itemsCompletados ?? 0;
+                const auditPct    = total > 0 ? Math.round((completados / total) * 100) : 0;
+                const reqTotal    = c.requerimientosCount ?? 0;
+                const reqActivos  = c.requerimientosActivos ?? 0;
+                const reqPct      = reqTotal > 0 ? Math.round((reqActivos / reqTotal) * 100) : 0;
+                const hallazgos   = c.hallazgosCount ?? 0;
+
+                return (
+                  <div key={c.id} style={{
+                    background: "var(--card)", border: "1px solid var(--border)",
+                    borderRadius: 8, overflow: "hidden",
+                    boxShadow: "0 1px 3px rgba(15,17,23,0.06)",
+                    display: "flex", flexDirection: "column",
+                  }}>
+                    {/* Card header */}
+                    <div style={{
+                      padding: "14px 16px", borderBottom: "1px solid var(--border)",
+                      display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10,
+                    }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", lineHeight: 1.3 }}>
+                          {c.nombre}
+                        </div>
                         {c.numero_contrato && (
                           <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", color: "var(--muted)", marginTop: 2 }}>
                             {c.numero_contrato}
                           </div>
                         )}
-                      </td>
+                      </div>
+                      <span style={{
+                        fontSize: 11, padding: "2px 8px", borderRadius: 100,
+                        background: ev.bg, color: ev.color,
+                        fontFamily: "'DM Mono', monospace", fontWeight: 600,
+                        flexShrink: 0, display: "flex", alignItems: "center", gap: 4,
+                      }}>
+                        <span style={{ width: 5, height: 5, borderRadius: "50%", background: ev.color }} />
+                        {ev.label}
+                      </span>
+                    </div>
 
-                      {/* Concepto */}
-                      <td style={{ padding: "14px 20px", maxWidth: 200 }}>
-                        {c.concepto ? (
-                          <span style={{
-                            fontSize: 12, color: "var(--ink)",
-                            display: "block", overflow: "hidden",
-                            textOverflow: "ellipsis", whiteSpace: "nowrap",
-                          }} title={c.concepto}>
-                            {c.concepto}
+                    {/* Card body */}
+                    <div style={{ padding: "14px 16px", flex: 1, display: "flex", flexDirection: "column", gap: 12 }}>
+                      {/* Concepto badge */}
+                      {c.concepto && (
+                        <span style={{
+                          fontSize: 11, padding: "2px 9px", borderRadius: 100,
+                          background: "var(--surface-2)", color: "var(--muted-2)",
+                          fontFamily: "'DM Mono', monospace", alignSelf: "flex-start",
+                          maxWidth: "100%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                        }} title={c.concepto}>
+                          {c.concepto}
+                        </span>
+                      )}
+
+                      {/* Progreso Auditoría */}
+                      <div>
+                        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
+                          <span style={{ fontSize: 11, color: "var(--muted)", fontFamily: "'DM Mono', monospace" }}>
+                            Progreso Auditoría
                           </span>
-                        ) : (
-                          <span style={{ fontSize: 12, color: "var(--muted)", fontFamily: "'DM Mono', monospace" }}>—</span>
-                        )}
-                      </td>
+                          <span style={{
+                            fontSize: 11, fontWeight: 700, fontFamily: "'DM Mono', monospace",
+                            color: auditPct === 100 ? "var(--green)" : auditPct >= 60 ? "#a16207" : "var(--accent)",
+                          }}>
+                            {auditPct}%
+                          </span>
+                        </div>
+                        <div style={{ height: 6, borderRadius: 3, background: "var(--surface-2)", overflow: "hidden" }}>
+                          <div style={{
+                            height: "100%", borderRadius: 3, transition: "width 0.3s",
+                            width: `${auditPct}%`,
+                            background: auditPct === 100 ? "var(--green)" : auditPct >= 60 ? "#F59E0B" : "var(--accent)",
+                          }} />
+                        </div>
+                        <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", color: "var(--muted)", marginTop: 3 }}>
+                          {completados} de {total} reactivos completados
+                        </div>
+                      </div>
 
-                      {/* Reactivos */}
-                      <td style={{ padding: "14px 20px", textAlign: "center" }}>
-                        <span style={{
-                          display: "inline-flex", alignItems: "center", justifyContent: "center",
-                          width: 32, height: 32, borderRadius: "50%",
-                          background: (c.totalReactivos ?? 0) > 0 ? "var(--tint-blue)" : "var(--surface-2)",
-                          color: (c.totalReactivos ?? 0) > 0 ? "#1B4F8A" : "var(--muted)",
-                          fontSize: 13, fontWeight: 700,
-                          fontFamily: "'DM Mono', monospace",
-                        }}>
-                          {c.totalReactivos ?? 0}
+                      {/* Entrega Requerimientos */}
+                      <div>
+                        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
+                          <span style={{ fontSize: 11, color: "var(--muted)", fontFamily: "'DM Mono', monospace" }}>
+                            Entrega Requerimientos
+                          </span>
+                          <span style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "var(--muted)" }}>
+                            {reqTotal > 0 ? `${reqActivos} de ${reqTotal}` : "—"}
+                          </span>
+                        </div>
+                        <div style={{ height: 6, borderRadius: 3, background: "var(--surface-2)", overflow: "hidden" }}>
+                          <div style={{ height: "100%", borderRadius: 3, width: `${reqPct}%`, background: "#1B4F8A" }} />
+                        </div>
+                        <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", color: "var(--muted)", marginTop: 3 }}>
+                          {reqTotal === 0
+                            ? "Sin requerimientos"
+                            : `${reqActivos} activo${reqActivos !== 1 ? "s" : ""} de ${reqTotal} total`}
+                        </div>
+                      </div>
+
+                      {/* Observaciones + Vigencia */}
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                          <span style={{ fontSize: 11, color: "var(--muted)", fontFamily: "'DM Mono', monospace" }}>Observaciones</span>
+                          <span style={{
+                            fontSize: 12, fontFamily: "'DM Mono', monospace", fontWeight: 700,
+                            color: hallazgos > 0 ? "#D97706" : "var(--muted)",
+                          }}>
+                            {hallazgos}
+                          </span>
+                        </div>
+                        <span style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", color: "var(--muted)" }}>
+                          {new Date(c.fecha_inicio + "T12:00:00").toLocaleDateString("es-MX")}
+                          {c.fecha_fin ? ` – ${new Date(c.fecha_fin + "T12:00:00").toLocaleDateString("es-MX")}` : ""}
                         </span>
-                      </td>
+                      </div>
+                    </div>
 
-                      {/* Vigencia */}
-                      <td style={{ padding: "14px 20px", fontSize: 12, fontFamily: "'DM Mono', monospace", color: "var(--muted-2)" }}>
-                        {c.fecha_fin ? (
-                          <>
-                            <div style={{ fontWeight: 600, color: "var(--ink)" }}>
-                              {new Date(c.fecha_fin + "T12:00:00").toLocaleDateString("es-MX")}
-                            </div>
-                            <div style={{ color: "var(--muted)", marginTop: 1 }}>
-                              desde {new Date(c.fecha_inicio + "T12:00:00").toLocaleDateString("es-MX")}
-                            </div>
-                          </>
-                        ) : (
-                          <div style={{ color: "var(--muted)" }}>
-                            desde {new Date(c.fecha_inicio + "T12:00:00").toLocaleDateString("es-MX")}
-                          </div>
-                        )}
-                      </td>
-
-                      {/* Estado */}
-                      <td style={{ padding: "14px 20px" }}>
-                        <span style={{
-                          display: "inline-flex", alignItems: "center", gap: 5,
-                          padding: "3px 9px", borderRadius: 100,
-                          fontSize: 11, fontWeight: 600,
-                          fontFamily: "'DM Mono', monospace",
-                          background: ev.bg, color: ev.color,
-                        }}>
-                          <span style={{ width: 5, height: 5, borderRadius: "50%", background: ev.color, flexShrink: 0 }} />
-                          {ev.label}
-                        </span>
-                      </td>
-
-                      {isAdmin && (
-                        <td style={{ padding: "14px 20px", textAlign: "right", whiteSpace: "nowrap" }}
-                          onClick={e => e.stopPropagation()}>
+                    {/* Card footer */}
+                    <div style={{
+                      padding: "10px 16px", borderTop: "1px solid var(--border)",
+                      display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8,
+                      background: "var(--surface)",
+                    }}>
+                      <div style={{ display: "flex", gap: 6 }}>
+                        {isAdmin && (
                           <button
                             onClick={() => abrirEditar(c)}
                             style={{
                               padding: "5px 12px", background: "var(--card)",
-                              color: "var(--ink)",
-                              border: "1px solid var(--border-strong)",
-                              borderRadius: 4, fontSize: 12,
-                              cursor: "pointer",
+                              color: "var(--ink)", border: "1px solid var(--border-strong)",
+                              borderRadius: 4, fontSize: 12, cursor: "pointer",
                               fontFamily: "'DM Sans', sans-serif",
-                              marginRight: 6,
                             }}
                           >
                             Editar
                           </button>
-                          {isSuperadmin && (
-                            <button
-                              onClick={() => handleEliminar(c)}
-                              disabled={eliminando === c.id}
-                              style={{
-                                padding: "5px 12px", background: "var(--card)",
-                                color: "var(--accent)",
-                                border: "1px solid rgba(200,71,42,0.25)",
-                                borderRadius: 4, fontSize: 12,
-                                cursor: eliminando === c.id ? "not-allowed" : "pointer",
-                                opacity: eliminando === c.id ? 0.5 : 1,
-                                fontFamily: "'DM Sans', sans-serif",
-                              }}
-                            >
-                              {eliminando === c.id ? "…" : "Eliminar"}
-                            </button>
-                          )}
-                        </td>
-                      )}
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                        )}
+                        {isSuperadmin && (
+                          <button
+                            onClick={() => handleEliminar(c)}
+                            disabled={eliminando === c.id}
+                            style={{
+                              padding: "5px 12px", background: "var(--card)",
+                              color: "var(--accent)", border: "1px solid rgba(200,71,42,0.25)",
+                              borderRadius: 4, fontSize: 12,
+                              cursor: eliminando === c.id ? "not-allowed" : "pointer",
+                              opacity: eliminando === c.id ? 0.5 : 1,
+                              fontFamily: "'DM Sans', sans-serif",
+                            }}
+                          >
+                            {eliminando === c.id ? "…" : "Eliminar"}
+                          </button>
+                        )}
+                      </div>
+                      <Link
+                        href={`/dashboard/directorio/empresa/${cliente.id}/${c.id}`}
+                        style={{
+                          padding: "6px 16px", background: "var(--ink)", color: "white",
+                          borderRadius: 4, fontSize: 12, fontWeight: 600,
+                          textDecoration: "none", fontFamily: "'DM Sans', sans-serif",
+                          display: "flex", alignItems: "center", gap: 5,
+                        }}
+                      >
+                        Acceder →
+                      </Link>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           )}
         </div>
       </div>

@@ -229,29 +229,66 @@ export async function fetchClienteConContratosAction(entidadId: string) {
   // Fetch reactivos (items) for all requerimientos
   const reqIds = reqs.map(r => r.id);
   let totalReactivos = 0;
-  const reactivosPorContrato: Record<string, number> = {};
+  const reactivosPorContrato:       Record<string, number> = {};
+  const completadosPorContrato:     Record<string, number> = {};
+  const enRevisionPorContrato:      Record<string, number> = {};
+  const requerimientosCountPorContrato:   Record<string, number> = {};
+  const requerimientosActivosPorContrato: Record<string, number> = {};
+
+  const reqToContrato: Record<string, string | null> = {};
+  for (const r of reqs) {
+    reqToContrato[r.id] = r.contrato_id;
+    if (r.contrato_id) {
+      requerimientosCountPorContrato[r.contrato_id] = (requerimientosCountPorContrato[r.contrato_id] ?? 0) + 1;
+      if (["pendiente", "en_revision"].includes(r.estado)) {
+        requerimientosActivosPorContrato[r.contrato_id] = (requerimientosActivosPorContrato[r.contrato_id] ?? 0) + 1;
+      }
+    }
+  }
 
   if (reqIds.length > 0) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: items } = await (admin.from("requerimiento_items") as any)
-      .select("requerimiento_id")
-      .in("requerimiento_id", reqIds) as { data: Array<{ requerimiento_id: string }> | null };
+      .select("requerimiento_id, estado")
+      .in("requerimiento_id", reqIds) as { data: Array<{ requerimiento_id: string; estado: string }> | null };
 
     totalReactivos = (items ?? []).length;
 
-    const reqToContrato: Record<string, string | null> = {};
-    for (const r of reqs) reqToContrato[r.id] = r.contrato_id;
-
     for (const item of (items ?? [])) {
       const cid = reqToContrato[item.requerimiento_id];
-      if (cid) reactivosPorContrato[cid] = (reactivosPorContrato[cid] ?? 0) + 1;
+      if (cid) {
+        reactivosPorContrato[cid]   = (reactivosPorContrato[cid]   ?? 0) + 1;
+        if (item.estado === "completado")   completadosPorContrato[cid]  = (completadosPorContrato[cid]  ?? 0) + 1;
+        if (item.estado === "en_revision")  enRevisionPorContrato[cid]   = (enRevisionPorContrato[cid]   ?? 0) + 1;
+      }
     }
   }
 
-  // Attach totalReactivos to each contract
+  // Fetch hallazgos count per contract (graceful — table may not exist yet)
+  const hallazgosPorContrato: Record<string, number> = {};
+  const contratoIds = (rContratos.data ?? []).map(c => c.id);
+  if (contratoIds.length > 0) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: hData, error: hErr } = await (admin.from("hallazgos") as any)
+      .select("contrato_id")
+      .eq("entidad_id", entidadId)
+      .in("contrato_id", contratoIds) as { data: Array<{ contrato_id: string }> | null; error: { message: string } | null };
+    if (!hErr) {
+      for (const h of (hData ?? [])) {
+        if (h.contrato_id) hallazgosPorContrato[h.contrato_id] = (hallazgosPorContrato[h.contrato_id] ?? 0) + 1;
+      }
+    }
+  }
+
+  // Attach per-contract stats
   const contratos = (rContratos.data ?? []).map(c => ({
     ...c,
-    totalReactivos: reactivosPorContrato[c.id] ?? 0,
+    totalReactivos:        reactivosPorContrato[c.id]           ?? 0,
+    itemsCompletados:      completadosPorContrato[c.id]         ?? 0,
+    itemsEnRevision:       enRevisionPorContrato[c.id]          ?? 0,
+    requerimientosCount:   requerimientosCountPorContrato[c.id] ?? 0,
+    requerimientosActivos: requerimientosActivosPorContrato[c.id] ?? 0,
+    hallazgosCount:        hallazgosPorContrato[c.id]           ?? 0,
   }));
 
   return {

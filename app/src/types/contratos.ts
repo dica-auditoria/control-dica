@@ -19,8 +19,13 @@ export interface Contrato {
   referencias: string | null;
   created_at: string;
   updated_at: string;
-  // Computed field (not in DB), populated by fetchClienteConContratosAction
+  // Computed fields (not in DB), populated by fetchClienteConContratosAction
   totalReactivos?: number;
+  itemsCompletados?: number;
+  itemsEnRevision?: number;
+  requerimientosCount?: number;
+  requerimientosActivos?: number;
+  hallazgosCount?: number;
 }
 
 export interface CrearContratoInput {
