@@ -4,6 +4,7 @@ import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { registrarLoginAction } from "@/app/actions/audit";
+import { DicaLogo } from "@/components/ui/DicaLogo";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -44,22 +45,30 @@ export default function LoginPage() {
         position: "relative",
         overflow: "hidden",
       }}>
-        <div style={{ zIndex: 1 }}>
-          <h1 style={{
-            fontFamily: "'DM Serif Display', serif",
-            fontSize: 48,
-            lineHeight: 1.1,
-            color: "rgba(255,255,255,0.88)",
-            marginBottom: 20,
-          }}>
-            Gestión documental{" "}
-            <em style={{ fontStyle: "italic", color: "#8DC63F" }}>segura</em>{" "}
-            y auditable.
-          </h1>
-          <p style={{ fontSize: 15, color: "rgba(255,255,255,0.45)", lineHeight: 1.7, maxWidth: 340 }}>
-            Plataforma centralizada para la carga, custodia y trazabilidad de documentos
-            bajo estándares ISO 27001.
-          </p>
+        {/* Logos */}
+        <div style={{ zIndex: 1, display: "flex", flexDirection: "column", gap: 40 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 24 }}>
+            <DicaLogo variant="white" fontSize={32} />
+            <AuditrackLogo />
+          </div>
+
+          <div>
+            <h1 style={{
+              fontFamily: "'DM Serif Display', serif",
+              fontSize: 44,
+              lineHeight: 1.1,
+              color: "rgba(255,255,255,0.88)",
+              marginBottom: 20,
+            }}>
+              Gestión documental{" "}
+              <em style={{ fontStyle: "italic", color: "#8DC63F" }}>segura</em>{" "}
+              y auditable.
+            </h1>
+            <p style={{ fontSize: 15, color: "rgba(255,255,255,0.45)", lineHeight: 1.7, maxWidth: 340 }}>
+              Plataforma centralizada para la carga, custodia y trazabilidad de documentos
+              bajo estándares ISO 27001.
+            </p>
+          </div>
         </div>
 
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap", zIndex: 1 }}>
@@ -197,6 +206,39 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+function AuditrackLogo() {
+  const green = "#8DC63F";
+  return (
+    <svg viewBox="0 0 220 44" width={160} height={32} xmlns="http://www.w3.org/2000/svg" aria-label="AUDITRACK">
+      {/* A */}
+      <polygon points="0,36 10,8 20,36 16,36 10,18 4,36" fill={green} />
+      <rect x="4.5" y="26" width="11" height="3.5" fill={green} />
+      {/* U */}
+      <path d="M24,8 L24,28 Q24,38 34,38 Q44,38 44,28 L44,8 L40,8 L40,28 Q40,34 34,34 Q28,34 28,28 L28,8 Z" fill={green} />
+      {/* D */}
+      <path d="M48,8 L48,36 L58,36 Q72,36 72,22 Q72,8 58,8 Z M52,12 L57,12 Q68,12 68,22 Q68,32 57,32 L52,32 Z" fill={green} />
+      {/* I */}
+      <rect x="76" y="8" width="4" height="28" fill={green} />
+      {/* T */}
+      <rect x="84" y="8" width="20" height="4" fill={green} />
+      <rect x="92" y="8" width="4" height="28" fill={green} />
+      {/* R */}
+      <path d="M108,8 L108,36 L112,36 L112,24 L119,24 L126,36 L131,36 L123,23 Q130,21 130,15.5 Q130,8 120,8 Z M112,12 L119,12 Q126,12 126,15.5 Q126,20 119,20 L112,20 Z" fill={green} />
+      {/* A */}
+      <polygon points="134,36 144,8 154,36 150,36 144,18 138,36" fill={green} />
+      <rect x="138.5" y="26" width="11" height="3.5" fill={green} />
+      {/* C */}
+      <path d="M182,14 Q175,8 168,14 Q162,19 162,22 Q162,30 168,34 Q175,40 182,34 L179,31 Q175,36 170,31 Q165,27 165,22 Q165,17 170,13 Q175,8 179,13 Z" fill={green} />
+      {/* K */}
+      <rect x="186" y="8" width="4" height="28" fill={green} />
+      <polygon points="190,21 203,8 208,8 195,21 208,36 203,36" fill={green} />
+      {/* ® */}
+      <circle cx="214" cy="11" r="5.5" fill="none" stroke={green} strokeWidth="1.2" />
+      <text x="214" y="14.5" textAnchor="middle" fontSize="6" fill={green} fontFamily="sans-serif" fontWeight="bold">R</text>
+    </svg>
   );
 }
 
