@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import * as XLSX from "xlsx";
 import ActivoDetalleModal from "./ActivoDetalleModal";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import {
@@ -156,6 +157,46 @@ export default function InventarioView({ activos: inicial, categorias, empleados
 
   const set = (k: keyof CrearActivoInput, v: string | null) => setForm(f => ({ ...f, [k]: v }));
 
+  const exportarExcel = () => {
+    const fmt = (d: string | null) => d ? new Date(d).toLocaleDateString("es-MX") : "";
+    const filas = lista.map(a => ({
+      "Nombre":             a.nombre,
+      "Categoría":          a.categoria_nombre ?? "",
+      "Marca":              a.marca ?? "",
+      "Modelo":             a.modelo ?? "",
+      "Número de activo":   a.numero_activo ?? "",
+      "Número de serie":    a.numero_serie ?? "",
+      "Estado":             a.estado,
+      "Condición":          a.condicion ?? "",
+      "Asignado a":         a.empleado_nombre ?? "",
+      "Fecha asignación":   fmt(a.fecha_asignacion),
+      "Sistema operativo":  a.sistema_operativo ?? "",
+      "Procesador":         a.procesador ?? "",
+      "RAM":                a.ram ?? "",
+      "Almacenamiento":     a.almacenamiento ?? "",
+      "Tipo adquisición":   a.tipo_adquisicion ?? "",
+      "Ubicación":          a.ubicacion_nombre ?? "",
+      "Fecha registro":     fmt(a.fecha_registro),
+      "Observaciones":      a.observaciones_fisicas ?? "",
+      "Notas":              a.notas ?? "",
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(filas);
+
+    // Ancho de columnas
+    ws["!cols"] = [
+      { wch: 24 }, { wch: 18 }, { wch: 14 }, { wch: 18 }, { wch: 16 },
+      { wch: 18 }, { wch: 14 }, { wch: 12 }, { wch: 24 }, { wch: 16 },
+      { wch: 18 }, { wch: 20 }, { wch: 8  }, { wch: 14 }, { wch: 14 },
+      { wch: 16 }, { wch: 14 }, { wch: 28 }, { wch: 28 },
+    ];
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Inventario");
+    const fecha = new Date().toLocaleDateString("es-MX").replace(/\//g, "-");
+    XLSX.writeFile(wb, `inventario_${fecha}.xlsx`);
+  };
+
   return (
     <>
       {/* Header */}
@@ -164,7 +205,17 @@ export default function InventarioView({ activos: inicial, categorias, empleados
           <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: "var(--ink)", margin: 0 }}>Inventario</h1>
           <p style={{ fontSize: 13, color: "var(--muted)", marginTop: 4 }}>Activos de cómputo y periféricos · Asignación a empleados</p>
         </div>
-        <button onClick={abrirNuevo} style={btnP}>+ Nuevo activo</button>
+        <div style={{ display: "flex", gap: 10 }}>
+          <button onClick={exportarExcel} style={{ ...btnP, background: "var(--green)", display: "flex", alignItems: "center", gap: 7 }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            Exportar Excel
+          </button>
+          <button onClick={abrirNuevo} style={btnP}>+ Nuevo activo</button>
+        </div>
       </div>
 
       <div style={{ padding: "24px 32px" }}>
