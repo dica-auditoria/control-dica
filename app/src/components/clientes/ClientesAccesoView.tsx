@@ -45,6 +45,40 @@ const EMPTY: FormState = {
 
 export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }: Props) {
   const [usuarios, setUsuarios] = useState(inicial);
+
+  // ── Búsqueda y filtros ──────────────────────────────────────────────────────
+  const [busqueda, setBusqueda]       = useState("");
+  const [filtroEmpresa, setFiltroEmpresa]   = useState("");
+  const [filtroContrato, setFiltroContrato] = useState("");
+  const [filtroArea, setFiltroArea]         = useState("");
+  const [filtroEstado, setFiltroEstado]     = useState<"" | "activo" | "inactivo">("");
+
+  // ── Paginación ──────────────────────────────────────────────────────────────
+  const [pagina, setPagina]         = useState(1);
+  const [porPagina, setPorPagina]   = useState(10);
+
+  const usuariosFiltrados = usuarios.filter(u => {
+    const q = busqueda.toLowerCase();
+    if (q && !u.nombre.toLowerCase().includes(q) && !u.email.toLowerCase().includes(q)) return false;
+    if (filtroEmpresa  && u.entidad_id !== filtroEmpresa)                        return false;
+    if (filtroContrato && u.contrato_nombre !== filtroContrato)                  return false;
+    if (filtroArea     && (u.area ?? "") !== filtroArea)                         return false;
+    if (filtroEstado === "activo"   && !u.activo)                                return false;
+    if (filtroEstado === "inactivo" &&  u.activo)                                return false;
+    return true;
+  });
+
+  const totalPaginas  = Math.max(1, Math.ceil(usuariosFiltrados.length / porPagina));
+  const paginaActual  = Math.min(pagina, totalPaginas);
+  const inicio        = (paginaActual - 1) * porPagina;
+  const usuariosPagina = usuariosFiltrados.slice(inicio, inicio + porPagina);
+
+  const resetPagina = () => setPagina(1);
+
+  // Opciones únicas para filtros de contrato y área
+  const optsContratos = Array.from(new Set(usuarios.map(u => u.contrato_nombre).filter(Boolean))) as string[];
+  const optsAreas     = Array.from(new Set(usuarios.map(u => u.area).filter(Boolean))) as string[];
+
   const [modalOpen, setModalOpen] = useState(false);
   const [form, setForm] = useState<FormState>(EMPTY);
   const [contratos, setContratos] = useState<Contrato[]>([]);
@@ -218,11 +252,11 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
       <div style={{ padding: "24px 32px" }}>
 
         {/* Header sección */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
           <div>
             <div style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)" }}>Accesos de clientes</div>
             <div style={{ fontSize: 12, fontFamily: "'DM Mono', monospace", color: "var(--muted)", marginTop: 2 }}>
-              {usuarios.length} usuario{usuarios.length !== 1 ? "s" : ""} con acceso al sistema
+              {usuariosFiltrados.length} de {usuarios.length} usuario{usuarios.length !== 1 ? "s" : ""} con acceso al sistema
             </div>
           </div>
           {puedeGestionar && (
@@ -238,6 +272,59 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
               }}
             >
               <PlusIcon /> Nuevo acceso
+            </button>
+          )}
+        </div>
+
+        {/* Buscador y filtros */}
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 16, alignItems: "center" }}>
+          {/* Buscador */}
+          <div style={{ position: "relative", flex: "1 1 200px", minWidth: 180 }}>
+            <svg style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }}
+              width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="2" strokeLinecap="round">
+              <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input
+              type="text"
+              placeholder="Buscar por nombre o correo…"
+              value={busqueda}
+              onChange={e => { setBusqueda(e.target.value); resetPagina(); }}
+              style={{ ...iStyle, paddingLeft: 32, width: "100%", boxSizing: "border-box" }}
+            />
+          </div>
+
+          {/* Filtro empresa */}
+          <select value={filtroEmpresa} onChange={e => { setFiltroEmpresa(e.target.value); resetPagina(); }} style={{ ...iStyle, flex: "1 1 160px", minWidth: 140 }}>
+            <option value="">Todas las empresas</option>
+            {entidades.map(e => <option key={e.id} value={e.id}>{e.nombre}</option>)}
+          </select>
+
+          {/* Filtro contrato */}
+          <select value={filtroContrato} onChange={e => { setFiltroContrato(e.target.value); resetPagina(); }} style={{ ...iStyle, flex: "1 1 160px", minWidth: 140 }}>
+            <option value="">Todos los contratos</option>
+            {optsContratos.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+
+          {/* Filtro área */}
+          <select value={filtroArea} onChange={e => { setFiltroArea(e.target.value); resetPagina(); }} style={{ ...iStyle, flex: "1 1 130px", minWidth: 120 }}>
+            <option value="">Todas las áreas</option>
+            {optsAreas.map(a => <option key={a} value={a}>{a}</option>)}
+          </select>
+
+          {/* Filtro estado */}
+          <select value={filtroEstado} onChange={e => { setFiltroEstado(e.target.value as "" | "activo" | "inactivo"); resetPagina(); }} style={{ ...iStyle, flex: "0 0 130px" }}>
+            <option value="">Todos los estados</option>
+            <option value="activo">Activo</option>
+            <option value="inactivo">Inactivo</option>
+          </select>
+
+          {/* Limpiar filtros */}
+          {(busqueda || filtroEmpresa || filtroContrato || filtroArea || filtroEstado) && (
+            <button
+              onClick={() => { setBusqueda(""); setFiltroEmpresa(""); setFiltroContrato(""); setFiltroArea(""); setFiltroEstado(""); resetPagina(); }}
+              style={{ ...btnSmall, color: "var(--accent)", borderColor: "rgba(200,71,42,0.25)", whiteSpace: "nowrap" }}
+            >
+              Limpiar
             </button>
           )}
         </div>
@@ -260,16 +347,16 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
               </tr>
             </thead>
             <tbody>
-              {usuarios.length === 0 ? (
+              {usuariosPagina.length === 0 ? (
                 <tr>
-                  <td colSpan={4} style={{
+                  <td colSpan={7} style={{
                     padding: "40px 20px", textAlign: "center",
                     color: "var(--muted)", fontSize: 13, fontFamily: "'DM Mono', monospace",
                   }}>
-                    Sin accesos configurados
+                    {usuarios.length === 0 ? "Sin accesos configurados" : "Sin resultados para los filtros aplicados"}
                   </td>
                 </tr>
-              ) : usuarios.map(u => {
+              ) : usuariosPagina.map(u => {
                 const initials = u.nombre.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
                 return (
                   <tr key={u.id} style={{ borderBottom: "1px solid var(--border)" }}>
@@ -361,6 +448,53 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
               })}
             </tbody>
           </table>
+        </div>
+
+        {/* Paginación */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12, marginTop: 16 }}>
+          {/* Selector de filas por página */}
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ fontSize: 12, color: "var(--muted)", fontFamily: "'DM Mono', monospace" }}>Mostrar</span>
+            {[5, 10, 25, 50, 100].map(n => (
+              <button
+                key={n}
+                onClick={() => { setPorPagina(n); setPagina(1); }}
+                style={{
+                  padding: "4px 10px", borderRadius: 4, fontSize: 12,
+                  fontFamily: "'DM Mono', monospace", cursor: "pointer",
+                  border: porPagina === n ? "1.5px solid var(--ink)" : "1px solid var(--border-strong)",
+                  background: porPagina === n ? "var(--ink)" : "var(--card)",
+                  color: porPagina === n ? "white" : "var(--muted-2)",
+                  fontWeight: porPagina === n ? 600 : 400,
+                }}
+              >
+                {n}
+              </button>
+            ))}
+          </div>
+
+          {/* Info y navegación */}
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ fontSize: 12, color: "var(--muted)", fontFamily: "'DM Mono', monospace" }}>
+              {inicio + 1}–{Math.min(inicio + porPagina, usuariosFiltrados.length)} de {usuariosFiltrados.length}
+            </span>
+            <div style={{ display: "flex", gap: 4 }}>
+              <button onClick={() => setPagina(1)} disabled={paginaActual === 1} style={btnPage(paginaActual === 1)}>«</button>
+              <button onClick={() => setPagina(p => Math.max(1, p - 1))} disabled={paginaActual === 1} style={btnPage(paginaActual === 1)}>‹</button>
+              {Array.from({ length: totalPaginas }, (_, i) => i + 1)
+                .filter(p => p === 1 || p === totalPaginas || Math.abs(p - paginaActual) <= 1)
+                .reduce<(number | "…")[]>((acc, p, i, arr) => {
+                  if (i > 0 && (p as number) - (arr[i - 1] as number) > 1) acc.push("…");
+                  acc.push(p); return acc;
+                }, [])
+                .map((p, i) => p === "…"
+                  ? <span key={`e${i}`} style={{ padding: "4px 6px", fontSize: 12, color: "var(--muted)" }}>…</span>
+                  : <button key={p} onClick={() => setPagina(p as number)} style={btnPage(false, paginaActual === p)}>{p}</button>
+                )}
+              <button onClick={() => setPagina(p => Math.min(totalPaginas, p + 1))} disabled={paginaActual === totalPaginas} style={btnPage(paginaActual === totalPaginas)}>›</button>
+              <button onClick={() => setPagina(totalPaginas)} disabled={paginaActual === totalPaginas} style={btnPage(paginaActual === totalPaginas)}>»</button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -798,6 +932,17 @@ const btnSmall: React.CSSProperties = {
   border: "1px solid var(--border-strong)", borderRadius: 4,
   fontSize: 12, cursor: "pointer", fontFamily: "'DM Sans', sans-serif",
 };
+
+const btnPage = (disabled: boolean, active = false): React.CSSProperties => ({
+  padding: "4px 9px", borderRadius: 4, fontSize: 12,
+  fontFamily: "'DM Mono', monospace", cursor: disabled ? "default" : "pointer",
+  border: active ? "1.5px solid var(--ink)" : "1px solid var(--border-strong)",
+  background: active ? "var(--ink)" : "var(--card)",
+  color: active ? "white" : disabled ? "var(--muted)" : "var(--muted-2)",
+  opacity: disabled ? 0.4 : 1,
+  fontWeight: active ? 600 : 400,
+  minWidth: 30, textAlign: "center" as const,
+});
 
 const btnOutline: React.CSSProperties = {
   padding: "9px 16px", background: "var(--card)", color: "var(--ink)",
