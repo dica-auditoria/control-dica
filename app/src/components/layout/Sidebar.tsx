@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import ThemeSelector from "@/components/ui/ThemeSelector";
 import { registrarLogoutAction } from "@/app/actions/audit";
+import { DicaLogo } from "@/components/ui/DicaLogo";
 
 interface Usuario {
   id: string;
@@ -158,8 +159,13 @@ export default function Sidebar({ usuario, solicitudesPendientes = 0, requerimie
         <ThemeSelector onBack={() => setShowTheme(false)} />
       ) : (
         <>
+          {/* Logo */}
+          <div style={{ padding: "20px 20px 8px" }}>
+            <DicaLogo variant="white" fontSize={24} />
+          </div>
+
           {/* Nav */}
-          <nav style={{ flex: 1, padding: "16px 12px", display: "flex", flexDirection: "column", gap: 2 }}>
+          <nav style={{ flex: 1, padding: "8px 12px", display: "flex", flexDirection: "column", gap: 2 }}>
             <div style={{ fontSize: 9, fontFamily: "'DM Mono', monospace", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.2)", padding: "12px 8px 6px" }}>
               Navegación
             </div>
