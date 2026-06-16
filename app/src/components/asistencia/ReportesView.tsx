@@ -61,7 +61,7 @@ export default function ReportesView() {
   const [fechaInicio, setFechaInicio] = useState(hoy);
   const [fechaFin, setFechaFin]       = useState(hoy);
   const [horaEntrada, setHoraEntrada]       = useState("09:00");
-  const [horaTolerancias, setHoraTolerancias] = useState("09:15");
+  const [horaTolerancias, setHoraTolerancias] = useState("09:10");
   const [departamento, setDepartamento] = useState("todos");
   const [empleados, setEmpleados]     = useState<ReporteEmpleado[]>([]);
   const [fechas, setFechas]           = useState<string[]>([]);
