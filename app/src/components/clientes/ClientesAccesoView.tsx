@@ -149,7 +149,8 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
     setEliminando(null);
   };
 
-  const puedeGestionar = rol === "admin" || rol === "superadmin";
+  const puedeGestionar = ["admin", "superadmin", "empleado", "rrhh"].includes(rol);
+  const puedeEliminar  = ["superadmin", "empleado", "rrhh"].includes(rol);
 
   // Cargar contratos disponibles cuando cambia la empresa (modal nuevo)
   useEffect(() => {
@@ -339,7 +340,7 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
                         >
                           {toggling === u.id ? "…" : u.activo ? "Desactivar" : "Activar"}
                         </button>
-                        {rol === "superadmin" && (
+                        {puedeEliminar && (
                           <button
                             onClick={() => handleEliminar(u)}
                             disabled={eliminando === u.id}
