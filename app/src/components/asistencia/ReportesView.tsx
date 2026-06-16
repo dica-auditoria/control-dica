@@ -22,7 +22,7 @@ const STATUS_COLOR: Record<string, { bg: string; color: string }> = {
   comision:      { bg: "rgba(249,115,22,0.12)",  color: "#ea580c" },
 };
 
-function exportCSV(empleados: ReporteEmpleado[], fechas: string[], seleccionados: Set<string>, horaEntrada: string) {
+function exportCSV(empleados: ReporteEmpleado[], fechas: string[], seleccionados: Set<string>, horaEntrada: string, horaTolerancias: string) {
   const filas: string[][] = [];
   const lista = seleccionados.size > 0 ? empleados.filter(e => seleccionados.has(e.id)) : empleados;
 
@@ -42,7 +42,7 @@ function exportCSV(empleados: ReporteEmpleado[], fechas: string[], seleccionados
 
   // Summary row
   filas.push([]);
-  filas.push([`Reporte generado: ${new Date().toLocaleString("es-MX")}`, `Hora entrada: ${horaEntrada}`, seleccionados.size > 0 ? `(${seleccionados.size} empleados seleccionados)` : `(todos los empleados)`, ""]);
+  filas.push([`Reporte generado: ${new Date().toLocaleString("es-MX")}`, `Hora entrada: ${horaEntrada}`, `Tolerancia: ${horaTolerancias}`, seleccionados.size > 0 ? `(${seleccionados.size} empleados seleccionados)` : `(todos los empleados)`]);
 
   const csv = filas.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
   const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
@@ -60,7 +60,8 @@ export default function ReportesView() {
   const hoy = new Date().toISOString().split("T")[0];
   const [fechaInicio, setFechaInicio] = useState(hoy);
   const [fechaFin, setFechaFin]       = useState(hoy);
-  const [horaEntrada, setHoraEntrada] = useState("09:00");
+  const [horaEntrada, setHoraEntrada]       = useState("09:00");
+  const [horaTolerancias, setHoraTolerancias] = useState("09:15");
   const [departamento, setDepartamento] = useState("todos");
   const [empleados, setEmpleados]     = useState<ReporteEmpleado[]>([]);
   const [fechas, setFechas]           = useState<string[]>([]);
@@ -81,7 +82,7 @@ export default function ReportesView() {
     setError(null);
     setSeleccionados(new Set());
     startTransition(async () => {
-      const r = await fetchReporteRangoAction({ fechaInicio, fechaFin, horaEntrada, departamento });
+      const r = await fetchReporteRangoAction({ fechaInicio, fechaFin, horaEntrada, horaTolerancias, departamento });
       if (r.error) { setError(r.error); return; }
       setEmpleados(r.data ?? []);
       setFechas(r.fechas ?? []);
@@ -108,7 +109,7 @@ export default function ReportesView() {
           <p style={{ fontSize: 13, color: "var(--muted)", marginTop: 4 }}>Rango de fechas · Tardanzas · Exportar Excel</p>
         </div>
         {consultado && (
-          <button onClick={() => exportCSV(empleados, fechas, seleccionados, horaEntrada)} style={btnPrimary}>
+          <button onClick={() => exportCSV(empleados, fechas, seleccionados, horaEntrada, horaTolerancias)} style={btnPrimary}>
             ⬇ Exportar {seleccionados.size > 0 ? `(${seleccionados.size} sel.)` : "Excel"}
           </button>
         )}
@@ -128,6 +129,10 @@ export default function ReportesView() {
           <div>
             <label style={lbl}>Hora de entrada</label>
             <input type="time" style={{ ...iSt, fontFamily: "'DM Mono', monospace" }} value={horaEntrada} onChange={e => setHoraEntrada(e.target.value)} />
+          </div>
+          <div>
+            <label style={lbl}>Hora de tolerancia</label>
+            <input type="time" style={{ ...iSt, fontFamily: "'DM Mono', monospace" }} value={horaTolerancias} onChange={e => setHoraTolerancias(e.target.value)} />
           </div>
           <div>
             <label style={lbl}>Departamento</label>

@@ -413,13 +413,16 @@ export async function fetchReporteRangoAction(opts: {
   fechaInicio: string;
   fechaFin: string;
   horaEntrada?: string;
+  horaTolerancias?: string;
   departamento?: string;
 }) {
   const { supabase, error: authErr } = await verificarAdmin();
   if (authErr || !supabase) return { error: authErr, data: null, fechas: [] as string[] };
 
   const horaEntrada = opts.horaEntrada ?? "09:00";
-  const [hh, mm] = horaEntrada.split(":").map(Number);
+  // Tardanza se calcula contra la tolerancia; si no se indica, usa la hora de entrada
+  const horaTolerancias = opts.horaTolerancias ?? horaEntrada;
+  const [hh, mm] = horaTolerancias.split(":").map(Number);
 
   // All active employees
   let empQuery = db(supabase, "empleados")
