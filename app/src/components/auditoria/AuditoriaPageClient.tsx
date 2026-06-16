@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { fetchAuditoriaResumenAction, type AuditoriaResumen } from "@/app/actions/auditoria";
 import RequerimientosAuditoriaTab from "./RequerimientosAuditoriaTab";
+import HallazgosTab from "./HallazgosTab";
 
 interface EntidadOption  { id: string; nombre: string }
 interface ContratoOption { id: string; nombre: string; entidad_id: string }
@@ -100,15 +101,6 @@ export default function AuditoriaPageClient({ entidades, contratos }: Props) {
               }}
             >
               {t === "requerimientos" ? "Requerimientos" : "Hallazgos"}
-              {t === "hallazgos" && (
-                <span style={{
-                  fontSize: 9, padding: "1px 5px", borderRadius: 100,
-                  background: "var(--surface-2)", color: "var(--muted)",
-                  fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.06em",
-                }}>
-                  Próx.
-                </span>
-              )}
             </button>
           ))}
         </div>
@@ -124,18 +116,10 @@ export default function AuditoriaPageClient({ entidades, contratos }: Props) {
           sinEntidad={!selectedEntidad}
         />
       ) : (
-        <div style={{
-          background: "var(--card)", border: "1px solid var(--border)",
-          borderRadius: 8, padding: "56px 20px", textAlign: "center",
-        }}>
-          <div style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)", marginBottom: 10 }}>
-            Hallazgos
-          </div>
-          <div style={{ fontSize: 13, color: "var(--muted)", fontFamily: "'DM Mono', monospace", maxWidth: 420, margin: "0 auto", lineHeight: 1.6 }}>
-            Próximamente — esta sección mostrará observaciones, nivel de riesgo (Alto / Medio / Bajo),
-            importe observado y fuente de financiamiento por área
-          </div>
-        </div>
+        <HallazgosTab
+          entidadId={selectedEntidad}
+          contratoId={selectedContrato}
+        />
       )}
     </div>
   );
