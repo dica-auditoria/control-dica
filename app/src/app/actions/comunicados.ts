@@ -33,25 +33,30 @@ async function verificarAdmin() {
   return { supabase, ok: ["admin", "superadmin", "rrhh"].includes(p?.rol ?? "") as boolean, user };
 }
 
-async function signImagen(supabase: ReturnType<typeof createClient>, path: string | null): Promise<string | null> {
+async function signImagen(path: string | null): Promise<string | null> {
   if (!path) return null;
-  const { data } = await supabase.storage.from("empleado-docs").createSignedUrl(path, 3600);
+  const admin = createAdminClient();
+  const { data } = await admin.storage.from("empleado-docs").createSignedUrl(path, 3600);
   return data?.signedUrl ?? null;
 }
 
 export async function fetchComunicadosAction() {
   const supabase = createClient();
-  const { data, error } = await supabase
-    .from("comunicados" as never)
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: null, error: "No autenticado" };
+
+  const admin = createAdminClient();
+  const { data, error } = await (admin as any)
+    .from("comunicados")
     .select("*")
-    .order("created_at", { ascending: false }) as unknown as { data: Comunicado[] | null; error: unknown };
+    .order("created_at", { ascending: false }) as { data: Comunicado[] | null; error: unknown };
   if (error) return { data: null, error: "Error al cargar comunicados" };
 
-  // Generar URLs firmadas para imágenes
+  // Generar URLs firmadas para imágenes usando admin client (bypasa RLS del storage)
   const withSigned = await Promise.all(
     (data ?? []).map(async c => ({
       ...c,
-      imagen_signed: await signImagen(supabase, c.imagen_url),
+      imagen_signed: await signImagen(c.imagen_url),
     }))
   );
 
