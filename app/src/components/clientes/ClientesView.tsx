@@ -98,10 +98,7 @@ function ClienteCard({ cliente: c }: { cliente: ClienteListItem }) {
             🏛
           </div>
           <div style={{ minWidth: 0 }}>
-            <div style={{
-              fontSize: 14, fontWeight: 600, color: "var(--ink)",
-              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-            }}>
+            <div style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", lineHeight: 1.35 }}>
               {c.nombre}
             </div>
             <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", color: "var(--muted)", marginTop: 2 }}>

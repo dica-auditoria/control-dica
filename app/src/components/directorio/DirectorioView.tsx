@@ -21,6 +21,8 @@ export interface EmpresaDirectorioItem {
   created_at: string;
   totalContratos: number;
   contratosVigentes: number;
+  totalArchivos: number;
+  totalUsuarios: number;
 }
 
 interface Props {
@@ -94,7 +96,7 @@ export default function DirectorioView({ oficinas, entidades, empresas: initialE
     const result = await crearEntidadAction(nombreEmpresa);
     if (result.error) { setErrorEmpresa(result.error); setSubmittingEmpresa(false); return; }
     if (result.entidad) {
-      setEmpresas(prev => [...prev, { ...result.entidad!, totalContratos: 0, contratosVigentes: 0 }]);
+      setEmpresas(prev => [...prev, { ...result.entidad!, totalContratos: 0, contratosVigentes: 0, totalArchivos: 0, totalUsuarios: 0 }]);
     }
     setNombreEmpresa("");
     setModalEmpresaOpen(false);
@@ -487,6 +489,14 @@ function EmpresaCard({ empresa }: { empresa: EmpresaDirectorioItem }) {
         <div style={{ textAlign: "center" }}>
           <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 24, color: "var(--green)", lineHeight: 1 }}>{empresa.contratosVigentes}</div>
           <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", color: "var(--muted)", textTransform: "uppercase", marginTop: 2 }}>Vigentes</div>
+        </div>
+        <div style={{ textAlign: "center" }}>
+          <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 24, color: "var(--ink)", lineHeight: 1 }}>{empresa.totalArchivos}</div>
+          <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", color: "var(--muted)", textTransform: "uppercase", marginTop: 2 }}>Archivos</div>
+        </div>
+        <div style={{ textAlign: "center" }}>
+          <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 24, color: "var(--ink)", lineHeight: 1 }}>{empresa.totalUsuarios}</div>
+          <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", color: "var(--muted)", textTransform: "uppercase", marginTop: 2 }}>Usuarios</div>
         </div>
       </div>
 

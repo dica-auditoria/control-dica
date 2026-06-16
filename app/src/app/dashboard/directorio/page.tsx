@@ -9,6 +9,8 @@ import type { EmpresaDirectorioItem } from "@/components/directorio/DirectorioVi
 interface PerfilRow { rol: string }
 interface EntidadRow { id: string; nombre: string; activo: boolean; created_at: string }
 interface ContratoRow { entidad_id: string; estado: string }
+interface ArchivoRow { entidad_id: string }
+interface UsuarioRow { entidad_id: string | null }
 
 export default async function DirectorioPage() {
   const supabase = createClient();
@@ -27,13 +29,15 @@ export default async function DirectorioPage() {
   const admin = createAdminClient();
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [rOficinas, rEntidades, rContratos] = await Promise.all([
+  const [rOficinas, rEntidades, rContratos, rArchivos, rUsuarios] = await Promise.all([
     fetchUbicacionesAction("oficina"),
     (admin.from("entidades") as any)
       .select("id, nombre, activo, created_at")
       .order("nombre") as Promise<{ data: EntidadRow[] | null; error: unknown }>,
     (admin.from("contratos") as any)
       .select("entidad_id, estado") as Promise<{ data: ContratoRow[] | null; error: unknown }>,
+    admin.from("archivos").select("entidad_id").neq("estado", "eliminado") as unknown as Promise<{ data: ArchivoRow[] | null; error: unknown }>,
+    admin.from("usuarios").select("entidad_id").eq("rol", "cliente").not("entidad_id", "is", null) as unknown as Promise<{ data: UsuarioRow[] | null; error: unknown }>,
   ]);
 
   const entidades: EntidadOption[] = (rEntidades.data ?? [])
@@ -49,6 +53,16 @@ export default async function DirectorioPage() {
     });
   }
 
+  const archivosMap = new Map<string, number>();
+  for (const a of rArchivos.data ?? []) {
+    archivosMap.set(a.entidad_id, (archivosMap.get(a.entidad_id) ?? 0) + 1);
+  }
+
+  const usuariosMap = new Map<string, number>();
+  for (const u of rUsuarios.data ?? []) {
+    if (u.entidad_id) usuariosMap.set(u.entidad_id, (usuariosMap.get(u.entidad_id) ?? 0) + 1);
+  }
+
   const empresas: EmpresaDirectorioItem[] = (rEntidades.data ?? []).map(e => ({
     id: e.id,
     nombre: e.nombre,
@@ -56,6 +70,8 @@ export default async function DirectorioPage() {
     created_at: e.created_at,
     totalContratos: contratosMap.get(e.id)?.total ?? 0,
     contratosVigentes: contratosMap.get(e.id)?.vigentes ?? 0,
+    totalArchivos: archivosMap.get(e.id) ?? 0,
+    totalUsuarios: usuariosMap.get(e.id) ?? 0,
   }));
 
   return (
