@@ -187,6 +187,7 @@ export default function Sidebar({ usuario, solicitudesPendientes = 0, requerimie
                       width: 3, background: "#8DC63F", borderRadius: "0 2px 2px 0",
                     }} />
                   )}
+                  <NavIcon name={item.icon} active={isActive} />
                   {item.label}
                   {badge !== null && (
                     <span style={{
@@ -242,6 +243,33 @@ export default function Sidebar({ usuario, solicitudesPendientes = 0, requerimie
       )}
     </aside>
   );
+}
+
+function NavIcon({ name, active }: { name: string; active: boolean }) {
+  const color = active ? "rgba(255,255,255,0.9)" : "rgba(255,255,255,0.45)";
+  const s = { width: 16, height: 16, flexShrink: 0 as const };
+  const p = { fill: "none", stroke: color, strokeWidth: 1.75, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
+  switch (name) {
+    case "shield":    return <svg {...s} viewBox="0 0 24 24"><path {...p} d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>;
+    case "search":    return <svg {...s} viewBox="0 0 24 24"><circle {...p} cx="11" cy="11" r="8"/><line {...p} x1="21" y1="21" x2="16.65" y2="16.65"/></svg>;
+    case "users":     return <svg {...s} viewBox="0 0 24 24"><path {...p} d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle {...p} cx="9" cy="7" r="4"/><path {...p} d="M23 21v-2a4 4 0 0 0-3-3.87"/><path {...p} d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>;
+    case "user":      return <svg {...s} viewBox="0 0 24 24"><path {...p} d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle {...p} cx="12" cy="7" r="4"/></svg>;
+    case "calendar":  return <svg {...s} viewBox="0 0 24 24"><rect {...p} x="3" y="4" width="18" height="18" rx="2"/><line {...p} x1="16" y1="2" x2="16" y2="6"/><line {...p} x1="8" y1="2" x2="8" y2="6"/><line {...p} x1="3" y1="10" x2="21" y2="10"/></svg>;
+    case "bell":      return <svg {...s} viewBox="0 0 24 24"><path {...p} d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path {...p} d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>;
+    case "files":     return <svg {...s} viewBox="0 0 24 24"><path {...p} d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline {...p} points="14 2 14 8 20 8"/><line {...p} x1="16" y1="13" x2="8" y2="13"/><line {...p} x1="16" y1="17" x2="8" y2="17"/></svg>;
+    case "building":  return <svg {...s} viewBox="0 0 24 24"><path {...p} d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline {...p} points="9 22 9 12 15 12 15 22"/></svg>;
+    case "map":       return <svg {...s} viewBox="0 0 24 24"><polygon {...p} points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line {...p} x1="8" y1="2" x2="8" y2="18"/><line {...p} x1="16" y1="6" x2="16" y2="22"/></svg>;
+    case "audit":     return <svg {...s} viewBox="0 0 24 24"><path {...p} d="M9 11l3 3L22 4"/><path {...p} d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>;
+    case "clock":     return <svg {...s} viewBox="0 0 24 24"><circle {...p} cx="12" cy="12" r="10"/><polyline {...p} points="12 6 12 12 16 14"/></svg>;
+    case "checkin":   return <svg {...s} viewBox="0 0 24 24"><path {...p} d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle {...p} cx="12" cy="10" r="3"/></svg>;
+    case "card":      return <svg {...s} viewBox="0 0 24 24"><rect {...p} x="1" y="4" width="22" height="16" rx="2"/><line {...p} x1="1" y1="10" x2="23" y2="10"/></svg>;
+    case "cake":      return <svg {...s} viewBox="0 0 24 24"><path {...p} d="M20 21v-8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8"/><path {...p} d="M4 16s.5-1 2-1 2.5 2 4 2 2.5-2 4-2 2.5 2 4 2 2-1 2-1"/><line {...p} x1="2" y1="21" x2="22" y2="21"/><path {...p} d="M7 8v2"/><path {...p} d="M12 8v2"/><path {...p} d="M17 8v2"/><path {...p} d="M7 4l.5 2"/><path {...p} d="M12 4l.5 2"/><path {...p} d="M17 4l.5 2"/></svg>;
+    case "box":       return <svg {...s} viewBox="0 0 24 24"><path {...p} d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline {...p} points="3.27 6.96 12 12.01 20.73 6.96"/><line {...p} x1="12" y1="22.08" x2="12" y2="12"/></svg>;
+    case "alert":     return <svg {...s} viewBox="0 0 24 24"><circle {...p} cx="12" cy="12" r="10"/><line {...p} x1="12" y1="8" x2="12" y2="12"/><line {...p} x1="12" y1="16" x2="12.01" y2="16"/></svg>;
+    case "pending":   return <svg {...s} viewBox="0 0 24 24"><circle {...p} cx="12" cy="12" r="10"/><polyline {...p} points="12 6 12 12 16 14"/></svg>;
+    case "log":       return <svg {...s} viewBox="0 0 24 24"><path {...p} d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline {...p} points="14 2 14 8 20 8"/><line {...p} x1="16" y1="13" x2="8" y2="13"/><line {...p} x1="12" y1="17" x2="8" y2="17"/><polyline {...p} points="10 9 9 9 8 9"/></svg>;
+    default:          return <svg {...s} viewBox="0 0 24 24"><circle {...p} cx="12" cy="12" r="4"/></svg>;
+  }
 }
 
 function PaletteIcon() {
