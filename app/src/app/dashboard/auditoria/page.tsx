@@ -3,7 +3,13 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import AuditoriaPageClient from "@/components/auditoria/AuditoriaPageClient";
 
-interface PerfilRow { rol: string }
+interface PerfilRow { rol: string; departamento: string | null }
+
+const DEPTS_AUDITORIA = [
+  "Dirección General", "Dirección de Administración",
+  "Gerencia de Auditoría", "Gerencia de Proyectos",
+  "Coordinación de Sistemas", "Líderes de Auditoría",
+];
 
 export default async function AuditoriaPage() {
   const supabase = createClient();
@@ -12,11 +18,15 @@ export default async function AuditoriaPage() {
 
   const { data: perfil } = await supabase
     .from("usuarios")
-    .select("rol")
+    .select("rol, departamento")
     .eq("id", user.id)
     .single() as { data: PerfilRow | null; error: unknown };
 
-  if (!perfil || !["admin", "superadmin"].includes(perfil.rol)) redirect("/dashboard");
+  const puedeAcceder = perfil && (
+    ["admin", "superadmin"].includes(perfil.rol) ||
+    (["empleado", "rrhh"].includes(perfil.rol) && !!perfil.departamento && DEPTS_AUDITORIA.includes(perfil.departamento))
+  );
+  if (!puedeAcceder) redirect("/dashboard");
 
   const admin = createAdminClient();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

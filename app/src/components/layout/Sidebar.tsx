@@ -22,6 +22,16 @@ const DEPTS_CON_SOLICITUDES = [
   "Gerencia de RH",
   "Gerencia de Auditoría",
   "Gerencia de Proyectos",
+  "Coordinación de Sistemas",
+  "Líderes de Auditoría",
+];
+
+const DEPTS_CON_AUDITORIA = [
+  "Dirección General",
+  "Dirección de Administración",
+  "Gerencia de Auditoría",
+  "Gerencia de Proyectos",
+  "Coordinación de Sistemas",
   "Líderes de Auditoría",
 ];
 
@@ -96,9 +106,19 @@ export default function Sidebar({ usuario, solicitudesPendientes = 0, requerimie
     : usuario.rol === "rrhh" ? NAV_RRHH
     : NAV_ADMIN;
 
-  const navItems = (usuario.rol === "empleado" || usuario.rol === "rrhh") && usuario.departamento && DEPTS_CON_SOLICITUDES.includes(usuario.departamento)
-    ? [...baseNav, { href: "/dashboard/solicitudes", label: "Solicitudes", icon: "alert" }]
-    : baseNav;
+  const isEmpleadoOrRrhh = usuario.rol === "empleado" || usuario.rol === "rrhh";
+  const dept = usuario.departamento ?? "";
+  let navItems = [...baseNav];
+  if (isEmpleadoOrRrhh && dept && DEPTS_CON_AUDITORIA.includes(dept)) {
+    navItems = [
+      ...navItems,
+      { href: "/dashboard/clientes", label: "Clientes", icon: "building" },
+      { href: "/dashboard/auditoria", label: "Auditoría", icon: "audit" },
+    ];
+  }
+  if (isEmpleadoOrRrhh && dept && DEPTS_CON_SOLICITUDES.includes(dept)) {
+    navItems = [...navItems, { href: "/dashboard/solicitudes", label: "Solicitudes", icon: "alert" }];
+  }
 
   const handleLogout = async () => {
     await registrarLogoutAction().catch(() => {});
