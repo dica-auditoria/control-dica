@@ -42,6 +42,7 @@ const NAV_ADMIN = [
   { href: "/dashboard/archivos", label: "Archivos", icon: "files" },
   { href: "/dashboard/clientes", label: "Clientes", icon: "building" },
   { href: "/dashboard/directorio", label: "Directorio", icon: "map" },
+  { href: "/dashboard/auditoria", label: "Auditoría", icon: "audit" },
   { href: "/dashboard/asistencia", label: "Asistencia", icon: "clock" },
   { href: "/dashboard/mi-asistencia", label: "Mi Check-in", icon: "checkin" },
   { href: "/dashboard/mi-credencial", label: "Mi Credencial", icon: "card" },
