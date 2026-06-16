@@ -20,18 +20,26 @@ export default async function DashboardLayout({ children }: { children: React.Re
   if (!perfil) redirect("/login");
 
   // Empleados / RRHH: obtener departamento y verificar aviso de privacidad
-  if ((perfil.rol === "empleado" || perfil.rol === "rrhh") && user.email) {
+  if (perfil.rol === "empleado" || perfil.rol === "rrhh") {
     const admin = createAdminClient();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: emp } = await (admin.from("empleados") as any)
-      .select("id, departamento, empleado_privacidad(id)")
-      .eq("email_institucional", user.email)
-      .maybeSingle() as { data: { id: string; departamento: string | null; empleado_privacidad: { id: string }[] } | null };
+    const empAdmin = admin.from("empleados") as any;
 
-    if (emp) {
-      perfil.departamento = emp.departamento;
-      if (!emp.empleado_privacidad || emp.empleado_privacidad.length === 0) {
-        redirect("/empleado/aviso-privacidad");
+    // Prefer lookup by empleado_id stored in auth metadata (reliable even if email differs)
+    const empleadoIdMeta = user.user_metadata?.empleado_id as string | undefined;
+    const empQuery = empleadoIdMeta
+      ? empAdmin.select("id, departamento, empleado_privacidad(id)").eq("id", empleadoIdMeta)
+      : user.email
+        ? empAdmin.select("id, departamento, empleado_privacidad(id)").eq("email_institucional", user.email)
+        : null;
+
+    if (empQuery) {
+      const { data: emp } = await empQuery.maybeSingle() as { data: { id: string; departamento: string | null; empleado_privacidad: { id: string }[] } | null };
+      if (emp) {
+        perfil.departamento = emp.departamento;
+        if (!emp.empleado_privacidad || emp.empleado_privacidad.length === 0) {
+          redirect("/empleado/aviso-privacidad");
+        }
       }
     }
   }
