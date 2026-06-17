@@ -332,14 +332,18 @@ export async function eliminarClienteAction(userId: string) {
 
   const admin = createAdminClient();
 
-  // Limpiar registros relacionados antes de borrar de auth (evita FK constraint)
+  // Limpiar registros con FK ON DELETE RESTRICT antes de borrar de auth.
+  // Nota: después de ejecutar fix_usuario_delete_constraints.sql en Supabase
+  // estos pasos no serán necesarios (las FKs pasarán a ON DELETE SET NULL).
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const adm = admin as any;
   await Promise.allSettled([
+    // usuario_contratos tiene ON DELETE CASCADE — se borra solo, pero por si acaso
     adm.from("usuario_contratos").delete().eq("usuario_id", userId),
-    adm.from("solicitudes_eliminacion").delete().eq("usuario_id", userId),
-    adm.from("credenciales_acceso").delete().eq("usuario_id", userId),
-    adm.from("requerimientos_acceso").delete().eq("usuario_id", userId),
+    // solicitudes_eliminacion.solicitado_por tiene ON DELETE RESTRICT
+    adm.from("solicitudes_eliminacion").delete().eq("solicitado_por", userId),
+    // audit_log.usuario_id tiene ON DELETE RESTRICT — borrar entradas del usuario
+    adm.from("audit_log").delete().eq("usuario_id", userId),
   ]);
 
   const { error } = await admin.auth.admin.deleteUser(userId);
