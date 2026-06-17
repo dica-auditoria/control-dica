@@ -466,11 +466,11 @@ export async function importarReactivosContratoAction(
 
   // Obtener o crear el requerimiento base del contrato
   const { data: existing } = await (admin.from("requerimientos") as any)
-    .select("id, fecha_limite")
+    .select("id, fecha_limite, estado")
     .eq("contrato_id", contratoId)
     .order("created_at", { ascending: true })
     .limit(1)
-    .single() as { data: { id: string; fecha_limite: string } | null; error: unknown };
+    .single() as { data: { id: string; fecha_limite: string; estado: string } | null; error: unknown };
 
   let requerimientoId: string;
   let fechaLimiteReq: string;
@@ -484,8 +484,11 @@ export async function importarReactivosContratoAction(
     fechaLimiteReq = fechaLimiteInput ?? existing.fecha_limite;
 
     if (fechaLimiteInput) {
+      const hoy = new Date().toISOString().slice(0, 10);
+      const reqUpdate: Record<string, unknown> = { fecha_limite: fechaLimiteInput };
+      if (existing.estado === "vencido" && fechaLimiteInput >= hoy) reqUpdate.estado = "pendiente";
       await (admin.from("requerimientos") as any)
-        .update({ fecha_limite: fechaLimiteInput })
+        .update(reqUpdate)
         .eq("id", existing.id);
     }
 
