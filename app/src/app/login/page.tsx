@@ -23,7 +23,14 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
-      setError("Credenciales incorrectas. Verifica tu correo y contraseña.");
+      const msg = error.message?.toLowerCase() ?? "";
+      if (msg.includes("banned") || msg.includes("disabled") || msg.includes("user_banned")) {
+        setError("Tu cuenta está desactivada. Contacta al administrador.");
+      } else if (msg.includes("email not confirmed")) {
+        setError("Confirma tu correo electrónico antes de acceder.");
+      } else {
+        setError("Credenciales incorrectas. Verifica tu correo y contraseña.");
+      }
       setLoading(false);
       return;
     }
