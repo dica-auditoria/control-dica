@@ -332,8 +332,18 @@ export async function eliminarClienteAction(userId: string) {
 
   const admin = createAdminClient();
 
+  // Limpiar registros relacionados antes de borrar de auth (evita FK constraint)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const adm = admin as any;
+  await Promise.allSettled([
+    adm.from("usuario_contratos").delete().eq("usuario_id", userId),
+    adm.from("solicitudes_eliminacion").delete().eq("usuario_id", userId),
+    adm.from("credenciales_acceso").delete().eq("usuario_id", userId),
+    adm.from("requerimientos_acceso").delete().eq("usuario_id", userId),
+  ]);
+
   const { error } = await admin.auth.admin.deleteUser(userId);
-  if (error) return { error: error.message };
+  if (error) return { error: `Error al eliminar: ${error.message}` };
 
   revalidatePath("/dashboard/clientes");
   revalidatePath("/dashboard/usuarios");
