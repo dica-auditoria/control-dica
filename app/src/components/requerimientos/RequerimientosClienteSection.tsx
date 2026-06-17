@@ -113,6 +113,7 @@ export default function RequerimientosClienteSection({ requerimientos, entidadId
   const [filtroSeccion, setFiltroSeccion]   = useState("");
   const [showScrollTop, setShowScrollTop]   = useState(false);
   const [activeSeccion, setActiveSeccion]   = useState<string>("");
+  const [sidebarVisible, setSidebarVisible] = useState(true);
 
   const activos    = requerimientos.filter(r => r.estado !== "completado");
   const completados = requerimientos.filter(r => r.estado === "completado");
@@ -240,19 +241,28 @@ export default function RequerimientosClienteSection({ requerimientos, entidadId
         {/* ── Barra lateral ── */}
         {secciones.length > 1 && (
           <div style={{
-            width: 196, flexShrink: 0,
+            width: sidebarVisible ? 196 : 40, flexShrink: 0,
             position: "sticky", top: 8,
-            maxHeight: "calc(100vh - 48px)", overflowY: "auto",
+            maxHeight: "calc(100vh - 48px)", overflowY: sidebarVisible ? "auto" : "hidden",
             background: "var(--card)", border: "1px solid var(--border)",
             borderRadius: 8, boxShadow: "0 1px 4px rgba(15,17,23,0.06)",
-            scrollbarWidth: "thin",
+            scrollbarWidth: "thin", transition: "width 0.2s",
           }}>
-            <div style={{ padding: "10px 12px 6px", borderBottom: "1px solid var(--border)" }}>
-              <span style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--muted)" }}>
-                Secciones
-              </span>
+            <div style={{ padding: "10px 10px 6px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6 }}>
+              {sidebarVisible && (
+                <span style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--muted)" }}>
+                  Secciones
+                </span>
+              )}
+              <button
+                onClick={() => setSidebarVisible(v => !v)}
+                title={sidebarVisible ? "Ocultar secciones" : "Mostrar secciones"}
+                style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", padding: 2, display: "flex", marginLeft: sidebarVisible ? "auto" : 0 }}
+              >
+                {sidebarVisible ? <PanelCollapseIcon /> : <PanelExpandIcon />}
+              </button>
             </div>
-            <div style={{ padding: "6px 0 8px" }}>
+            <div style={{ padding: "6px 0 8px", display: sidebarVisible ? "block" : "none" }}>
               {secciones.map(s => {
                 const pct = s.total > 0 ? Math.round((s.completados / s.total) * 100) : 0;
                 const isActive = activeSeccion === s.key;
@@ -599,6 +609,7 @@ function ItemRow({ item, idx, entidadId, contratoId, archivosItem, canUpload, on
         <span style={{ flex: 1, fontSize: 13, color: "var(--ink)", textDecoration: estado === "completado" ? "line-through" : "none", opacity: estado === "completado" ? 0.55 : 1 }}>{item.nombre}</span>
         <span style={{ display: "flex", alignItems: "center", gap: 5, flexShrink: 0 }}>
           {archivosItem.length > 0 && <span style={{ fontSize: 10, padding: "2px 7px", borderRadius: 100, background: "rgba(45,166,95,0.12)", color: "#1B7A3E", fontFamily: "'DM Mono', monospace" }}>{archivosItem.length} archivo{archivosItem.length !== 1 ? "s" : ""}</span>}
+          <DeadlineBadge fecha={item.fecha_limite} extendida={item.extendida} />
           {item.fecha_limite && (
             <span style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "var(--muted)", whiteSpace: "nowrap", flexShrink: 0 }}>
               {formatFechaCorta(item.fecha_limite)}
@@ -607,11 +618,10 @@ function ItemRow({ item, idx, entidadId, contratoId, archivosItem, canUpload, on
                 color: diasLabel(item.fecha_limite).startsWith("-") ? "#C8472A" : diasLabel(item.fecha_limite) === "hoy" ? "#92400E" : "var(--muted-2)",
                 fontWeight: 600,
               }}>
-                {diasLabel(item.fecha_limite) === "hoy" ? "· hoy" : `· ${diasLabel(item.fecha_limite)}`}
+                · {diasLabel(item.fecha_limite)}
               </span>
             </span>
           )}
-          <DeadlineBadge fecha={item.fecha_limite} extendida={item.extendida} />
           <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 100, background: st.bg, color: st.color, fontFamily: "'DM Mono', monospace", fontWeight: 600 }}>{st.label}</span>
         </span>
       </div>
@@ -726,4 +736,6 @@ function FileIcon()     { return <svg width="15" height="15" viewBox="0 0 24 24"
 function SearchIcon()   { return <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>; }
 function ChevronIcon()  { return <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6" /></svg>; }
 function SendIcon()     { return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>; }
-function DownloadIcon() { return <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>; }
+function DownloadIcon()      { return <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>; }
+function PanelCollapseIcon() { return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="3" width="18" height="18" rx="2" /><line x1="9" y1="3" x2="9" y2="21" /><polyline points="5 9 3 9" /><polyline points="15 9 21 9" /><line x1="15" y1="12" x2="21" y2="12" /><line x1="15" y1="15" x2="21" y2="15" /></svg>; }
+function PanelExpandIcon()   { return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="3" width="18" height="18" rx="2" /><line x1="9" y1="3" x2="9" y2="21" /><polyline points="13 9 9 9" /></svg>; }
