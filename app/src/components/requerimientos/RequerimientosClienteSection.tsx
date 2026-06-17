@@ -20,6 +20,17 @@ function formatFecha(f: string) {
   return new Date(f + "T12:00:00").toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "numeric" });
 }
 
+function formatFechaCorta(f: string) {
+  return new Date(f + "T12:00:00").toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "2-digit" });
+}
+
+function diasLabel(f: string): string {
+  const dias = Math.ceil((new Date(f + "T23:59:59").getTime() - Date.now()) / 86400000);
+  if (dias === 0) return "hoy";
+  if (dias > 0) return `${dias}d`;
+  return `${dias}d`;
+}
+
 function formatBytes(b: number) {
   if (b < 1024) return `${b} B`;
   if (b < 1048576) return `${(b / 1024).toFixed(1)} KB`;
@@ -588,6 +599,18 @@ function ItemRow({ item, idx, entidadId, contratoId, archivosItem, canUpload, on
         <span style={{ flex: 1, fontSize: 13, color: "var(--ink)", textDecoration: estado === "completado" ? "line-through" : "none", opacity: estado === "completado" ? 0.55 : 1 }}>{item.nombre}</span>
         <span style={{ display: "flex", alignItems: "center", gap: 5, flexShrink: 0 }}>
           {archivosItem.length > 0 && <span style={{ fontSize: 10, padding: "2px 7px", borderRadius: 100, background: "rgba(45,166,95,0.12)", color: "#1B7A3E", fontFamily: "'DM Mono', monospace" }}>{archivosItem.length} archivo{archivosItem.length !== 1 ? "s" : ""}</span>}
+          {item.fecha_limite && (
+            <span style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "var(--muted)", whiteSpace: "nowrap", flexShrink: 0 }}>
+              {formatFechaCorta(item.fecha_limite)}
+              <span style={{
+                marginLeft: 4,
+                color: diasLabel(item.fecha_limite).startsWith("-") ? "#C8472A" : diasLabel(item.fecha_limite) === "hoy" ? "#92400E" : "var(--muted-2)",
+                fontWeight: 600,
+              }}>
+                {diasLabel(item.fecha_limite) === "hoy" ? "· hoy" : `· ${diasLabel(item.fecha_limite)}`}
+              </span>
+            </span>
+          )}
           <DeadlineBadge fecha={item.fecha_limite} extendida={item.extendida} />
           <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 100, background: st.bg, color: st.color, fontFamily: "'DM Mono', monospace", fontWeight: 600 }}>{st.label}</span>
         </span>
