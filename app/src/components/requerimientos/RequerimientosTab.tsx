@@ -163,7 +163,7 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
   const [showImport, setShowImport]                   = useState(false);
   const [showActualizarFecha, setShowActualizarFecha] = useState(false);
   const [showAddItem, setShowAddItem]                 = useState(false);
-  const [editingItem, setEditingItem]                 = useState<{ id: string; nombre: string; rubro: string | null; descripcion: string | null } | null>(null);
+  const [editingItem, setEditingItem]                 = useState<{ id: string; nombre: string; rubro: string | null; descripcion: string | null; numero: string | null } | null>(null);
   const [eliminandoId, setEliminandoId]               = useState<string | null>(null);
   const [reorderingId, setReorderingId]               = useState<string | null>(null);
   const [downloadingId, setDownloadingId]             = useState<string | null>(null);
@@ -445,7 +445,7 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
                         ↓
                       </button>
                       <button
-                        onClick={() => setEditingItem({ id: item.id, nombre: item.nombre, rubro: item.rubro, descripcion: item.descripcion })}
+                        onClick={() => setEditingItem({ id: item.id, nombre: item.nombre, rubro: item.rubro, descripcion: item.descripcion, numero: item.numero ?? null })}
                         title="Editar reactivo"
                         style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", padding: 4, display: "flex", borderRadius: 4 }}
                       >
@@ -823,11 +823,12 @@ function AgregarReactivoModal({ contratoId, entidadId, onClose, onAdded }: {
 // ── Editar Item Modal ─────────────────────────────────────────────────────────
 
 function EditarItemModal({ item, onClose, onSaved }: {
-  item: { id: string; nombre: string; rubro: string | null; descripcion: string | null };
+  item: { id: string; nombre: string; rubro: string | null; descripcion: string | null; numero: string | null };
   onClose: () => void;
   onSaved: () => void;
 }) {
   const [nombre, setNombre]           = useState(item.nombre);
+  const [numero, setNumero]           = useState(item.numero ?? "");
   const [rubro, setRubro]             = useState(item.rubro ?? "");
   const [descripcion, setDescripcion] = useState(item.descripcion ?? "");
   const [saving, setSaving]           = useState(false);
@@ -836,7 +837,7 @@ function EditarItemModal({ item, onClose, onSaved }: {
   const handleGuardar = async () => {
     if (!nombre.trim()) return;
     setSaving(true); setError(null);
-    const result = await editarItemAction(item.id, { nombre, rubro, descripcion });
+    const result = await editarItemAction(item.id, { nombre, rubro, descripcion, numero });
     if (result.error) { setError(result.error); setSaving(false); return; }
     onSaved();
   };
@@ -852,11 +853,19 @@ function EditarItemModal({ item, onClose, onSaved }: {
         </div>
 
         <div style={{ padding: 20, display: "flex", flexDirection: "column", gap: 14 }}>
-          <div>
-            <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "var(--ink)", marginBottom: 6, fontFamily: "'DM Sans', sans-serif" }}>
-              Nombre <span style={{ color: "var(--accent)" }}>*</span>
-            </label>
-            <input autoFocus type="text" value={nombre} onChange={e => setNombre(e.target.value)} onKeyDown={e => { if (e.key === "Enter") handleGuardar(); }} style={inputSt} />
+          <div style={{ display: "flex", gap: 10 }}>
+            <div style={{ width: 100, flexShrink: 0 }}>
+              <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "var(--ink)", marginBottom: 6, fontFamily: "'DM Sans', sans-serif" }}>
+                Numeral
+              </label>
+              <input type="text" value={numero} onChange={e => setNumero(e.target.value)} placeholder="1.1" style={{ ...inputSt, fontFamily: "'DM Mono', monospace" }} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "var(--ink)", marginBottom: 6, fontFamily: "'DM Sans', sans-serif" }}>
+                Nombre <span style={{ color: "var(--accent)" }}>*</span>
+              </label>
+              <input autoFocus type="text" value={nombre} onChange={e => setNombre(e.target.value)} onKeyDown={e => { if (e.key === "Enter") handleGuardar(); }} style={inputSt} />
+            </div>
           </div>
 
           <div>
