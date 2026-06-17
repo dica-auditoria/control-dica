@@ -6,11 +6,13 @@ import Link from "next/link";
 import UploadZone from "@/components/archivos/UploadZone";
 import ArchivoExplorer from "@/components/archivos/ArchivoExplorer";
 import RequerimientosTab from "@/components/requerimientos/RequerimientosTab";
+import RequerimientosClienteSection from "@/components/requerimientos/RequerimientosClienteSection";
+import type { ClienteArchivo } from "@/components/archivos/ClienteArchivosTable";
 import type { ArchivoContratoItem } from "@/app/actions/archivos";
 import type { Contrato } from "@/types/contratos";
 import type { Requerimiento } from "@/types/requerimientos";
 
-type TabDestino = "cliente" | "empleado";
+type TabDestino = "cliente" | "empleado" | "portal";
 
 interface Props {
   contrato: Contrato;
@@ -31,10 +33,10 @@ export default function ContratoArchivosView({
 
   const isAdmin = rol === "admin" || rol === "superadmin";
   const isEmpleado = rol === "empleado" || rol === "rrhh";
-  // Employees can upload/manage only in the "empleado" tab
-  const canUpload = isAdmin || (isEmpleado && tab === "empleado");
+  // Employees can upload/manage only in the "empleado" tab; nobody uploads in portal view
+  const canUpload = tab !== "portal" && (isAdmin || (isEmpleado && tab === "empleado"));
   const explorerIsAdmin = isAdmin || (isEmpleado && tab === "empleado");
-  const archivos = tab === "cliente" ? archivosCliente : archivosEmpleado;
+  const archivos = tab === "empleado" ? archivosEmpleado : archivosCliente;
   const requerimientosActivos = requerimientos.filter(r => r.estado !== "completado").length;
 
   const dirección = [
@@ -52,7 +54,7 @@ export default function ContratoArchivosView({
   // Close upload panel when switching to a tab where upload is not allowed
   const handleTabChange = (t: TabDestino) => {
     setTab(t);
-    if (isEmpleado && t === "cliente") setUploadOpen(false);
+    if (t === "portal" || (isEmpleado && t === "cliente")) setUploadOpen(false);
   };
 
   const tabConfig: Record<"cliente" | "empleado", { label: string; emptyMsg: string; uploadLabel: string }> = {
@@ -119,7 +121,7 @@ export default function ContratoArchivosView({
 
         {/* Tabs */}
         <div style={{ display: "flex", gap: 2 }}>
-          {(["cliente", "empleado"] as TabDestino[]).map(t => {
+          {(["cliente", "empleado"] as ("cliente" | "empleado")[]).map(t => {
             const count = t === "cliente" ? archivosCliente.length : archivosEmpleado.length;
             const isActive = tab === t;
             return (
@@ -133,82 +135,102 @@ export default function ContratoArchivosView({
               </button>
             );
           })}
+          {requerimientos.length > 0 && (
+            <button onClick={() => handleTabChange("portal")}
+              style={{ padding: "8px 18px", border: "none", borderBottom: tab === "portal" ? "2px solid #1B4F8A" : "2px solid transparent", background: "none", color: tab === "portal" ? "#1B4F8A" : "var(--muted-2)", fontSize: 13, fontWeight: tab === "portal" ? 600 : 400, cursor: "pointer", fontFamily: "'DM Sans', sans-serif", marginBottom: -1, display: "flex", alignItems: "center", gap: 8 }}>
+              Vista Portal
+              <span style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", padding: "1px 6px", borderRadius: 100, background: tab === "portal" ? "rgba(27,79,138,0.1)" : "var(--surface-2)", color: tab === "portal" ? "#1B4F8A" : "var(--muted)" }}>{requerimientosActivos}</span>
+            </button>
+          )}
         </div>
       </div>
 
-      <div style={{ padding: "24px 32px" }}>
-        {/* Info contrato */}
-        <div style={{
-          background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8,
-          padding: "14px 20px", marginBottom: 20,
-          display: "flex", gap: 32, flexWrap: "wrap",
-          boxShadow: "0 1px 3px rgba(15,17,23,0.06)",
-        }}>
-          {contrato.fecha_inicio && (
-            <InfoItem label="Vigencia">
-              {new Date(contrato.fecha_inicio + "T12:00:00").toLocaleDateString("es-MX")}
-              {contrato.fecha_fin && ` — ${new Date(contrato.fecha_fin + "T12:00:00").toLocaleDateString("es-MX")}`}
-            </InfoItem>
-          )}
-          {dirección && <InfoItem label="Dirección">{dirección}</InfoItem>}
-        </div>
-
-        {/* Upload zone */}
-        {uploadOpen && (
-          <div style={{
-            background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8,
-            padding: "20px 24px", marginBottom: 20,
-            boxShadow: "0 1px 3px rgba(15,17,23,0.06)",
-          }}>
-            <div style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--muted)", marginBottom: 16 }}>
-              {tabConfig[tab].uploadLabel}
-            </div>
-            <UploadZone
-              entidadId={entidadId}
-              contratoId={contrato.id}
-              destino={tab}
-              onDone={handleUploadDone}
-            />
-          </div>
-        )}
-
-        {/* Requerimientos — solo en tab cliente */}
-        {tab === "cliente" && (
-          <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden", boxShadow: "0 1px 3px rgba(15,17,23,0.06)", marginBottom: 20 }}>
-            <RequerimientosTab
-              requerimientos={requerimientos}
-              archivos={archivosCliente}
-              entidadId={entidadId}
-              contratoId={contrato.id}
-              isSuperAdmin={rol === "superadmin"}
-              rol={rol}
-            />
-          </div>
-        )}
-
-        {/* Tabla archivos */}
-        <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden", boxShadow: "0 1px 3px rgba(15,17,23,0.06)" }}>
-          <div style={{ padding: "14px 20px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)" }}>
-              Archivos — {tabConfig[tab].label}
-            </div>
-            <span style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", padding: "1px 7px", borderRadius: 100, background: "var(--surface-2)", color: "var(--muted-2)" }}>
-              {archivos.length}
-            </span>
-          </div>
-          <ArchivoExplorer
-            archivos={archivos}
-            isAdmin={explorerIsAdmin}
+      {/* ── Vista Portal ── */}
+      {tab === "portal" ? (
+        <div style={{ padding: "24px 32px" }}>
+          <RequerimientosClienteSection
+            requerimientos={requerimientos}
             entidadId={entidadId}
-            contratoId={contrato.id}
-            destino={tab}
-            nombreZip={`${contrato.nombre}-${tab}`}
-            emptyMsg={canUpload
-              ? `${tabConfig[tab].emptyMsg} — usa el botón "Subir" para agregar`
-              : tabConfig[tab].emptyMsg}
+            archivos={archivosCliente as unknown as (ClienteArchivo & { requerimiento_item_id: string | null })[]}
+            areaUsuario={null}
+            readOnly={true}
           />
         </div>
-      </div>
+      ) : (
+        <div style={{ padding: "24px 32px" }}>
+          {/* Info contrato */}
+          <div style={{
+            background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8,
+            padding: "14px 20px", marginBottom: 20,
+            display: "flex", gap: 32, flexWrap: "wrap",
+            boxShadow: "0 1px 3px rgba(15,17,23,0.06)",
+          }}>
+            {contrato.fecha_inicio && (
+              <InfoItem label="Vigencia">
+                {new Date(contrato.fecha_inicio + "T12:00:00").toLocaleDateString("es-MX")}
+                {contrato.fecha_fin && ` — ${new Date(contrato.fecha_fin + "T12:00:00").toLocaleDateString("es-MX")}`}
+              </InfoItem>
+            )}
+            {dirección && <InfoItem label="Dirección">{dirección}</InfoItem>}
+          </div>
+
+          {/* Upload zone */}
+          {uploadOpen && (
+            <div style={{
+              background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8,
+              padding: "20px 24px", marginBottom: 20,
+              boxShadow: "0 1px 3px rgba(15,17,23,0.06)",
+            }}>
+              <div style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--muted)", marginBottom: 16 }}>
+                {tabConfig[tab as "cliente" | "empleado"].uploadLabel}
+              </div>
+              <UploadZone
+                entidadId={entidadId}
+                contratoId={contrato.id}
+                destino={tab as "cliente" | "empleado"}
+                onDone={handleUploadDone}
+              />
+            </div>
+          )}
+
+          {/* Requerimientos — solo en tab cliente */}
+          {tab === "cliente" && (
+            <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden", boxShadow: "0 1px 3px rgba(15,17,23,0.06)", marginBottom: 20 }}>
+              <RequerimientosTab
+                requerimientos={requerimientos}
+                archivos={archivosCliente}
+                entidadId={entidadId}
+                contratoId={contrato.id}
+                isSuperAdmin={rol === "superadmin"}
+                rol={rol}
+              />
+            </div>
+          )}
+
+          {/* Tabla archivos */}
+          <div style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden", boxShadow: "0 1px 3px rgba(15,17,23,0.06)" }}>
+            <div style={{ padding: "14px 20px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)" }}>
+                Archivos — {tabConfig[tab as "cliente" | "empleado"].label}
+              </div>
+              <span style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", padding: "1px 7px", borderRadius: 100, background: "var(--surface-2)", color: "var(--muted-2)" }}>
+                {archivos.length}
+              </span>
+            </div>
+            <ArchivoExplorer
+              archivos={archivos}
+              isAdmin={explorerIsAdmin}
+              entidadId={entidadId}
+              contratoId={contrato.id}
+              destino={tab as "cliente" | "empleado"}
+              nombreZip={`${contrato.nombre}-${tab}`}
+              emptyMsg={canUpload
+                ? `${tabConfig[tab as "cliente" | "empleado"].emptyMsg} — usa el botón "Subir" para agregar`
+                : tabConfig[tab as "cliente" | "empleado"].emptyMsg}
+            />
+          </div>
+        </div>
+      )}
     </>
   );
 }

@@ -81,6 +81,7 @@ interface Props {
   entidadId: string;
   archivos: ArchivoConItemId[];
   areaUsuario?: string | null;
+  readOnly?: boolean;
 }
 
 interface SeccionInfo {
@@ -102,7 +103,7 @@ function seccionKey(item: RequerimientoItem): string {
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export default function RequerimientosClienteSection({ requerimientos, entidadId, archivos, areaUsuario }: Props) {
+export default function RequerimientosClienteSection({ requerimientos, entidadId, archivos, areaUsuario, readOnly }: Props) {
   const router = useRouter();
   const topRef  = useRef<HTMLDivElement>(null);
 
@@ -397,6 +398,7 @@ export default function RequerimientosClienteSection({ requerimientos, entidadId
                 req={req}
                 entidadId={entidadId}
                 archivos={archivos}
+                readOnly={readOnly}
                 areaUsuario={areaUsuario}
                 filtroFn={hayFiltros ? filtroFn : undefined}
                 onRefresh={() => router.refresh()}
@@ -436,10 +438,10 @@ export default function RequerimientosClienteSection({ requerimientos, entidadId
 
 // ── Card de requerimiento ─────────────────────────────────────────────────────
 
-function RequerimientoCard({ req, entidadId, archivos, areaUsuario, filtroFn, onRefresh }: {
+function RequerimientoCard({ req, entidadId, archivos, areaUsuario, filtroFn, onRefresh, readOnly }: {
   req: Requerimiento; entidadId: string; archivos: ArchivoConItemId[]; areaUsuario?: string | null;
   filtroFn?: (item: RequerimientoItem) => boolean;
-  onRefresh: () => void;
+  onRefresh: () => void; readOnly?: boolean;
 }) {
   const canUpload = req.estado !== "completado" && req.estado !== "vencido";
 
@@ -529,6 +531,7 @@ function RequerimientoCard({ req, entidadId, archivos, areaUsuario, filtroFn, on
                   contratoId={req.contrato_id ?? undefined}
                   archivosItem={archivos.filter(a => a.requerimiento_item_id === item.id)}
                   canUpload={canUpload}
+                  readOnly={readOnly}
                   onRefresh={onRefresh}
                 />
               ))}
@@ -542,9 +545,9 @@ function RequerimientoCard({ req, entidadId, archivos, areaUsuario, filtroFn, on
 
 // ── Fila de item ──────────────────────────────────────────────────────────────
 
-function ItemRow({ item, idx, entidadId, contratoId, archivosItem, canUpload, onRefresh }: {
+function ItemRow({ item, idx, entidadId, contratoId, archivosItem, canUpload, readOnly, onRefresh }: {
   item: RequerimientoItem; idx: number; entidadId: string; contratoId?: string;
-  archivosItem: ArchivoConItemId[]; canUpload: boolean; onRefresh: () => void;
+  archivosItem: ArchivoConItemId[]; canUpload: boolean; readOnly?: boolean; onRefresh: () => void;
 }) {
   const [open, setOpen]               = useState(false);
   const [comentarios, setComentarios] = useState<Comentario[] | null>(null);
@@ -657,7 +660,7 @@ function ItemRow({ item, idx, entidadId, contratoId, archivosItem, canUpload, on
                 </div>
               </div>
             )}
-            {canUpload && estado !== "completado" ? (
+            {canUpload && estado !== "completado" && !readOnly ? (
               <div>
                 {archivosItem.length === 0 && <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--muted)", marginBottom: 8 }}>Subir documento</div>}
                 <UploadZone entidadId={entidadId} contratoId={contratoId} destino="cliente" requerimientoItemId={item.id} onDone={onRefresh} />
