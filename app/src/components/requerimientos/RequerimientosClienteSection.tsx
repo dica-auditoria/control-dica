@@ -132,7 +132,7 @@ export default function RequerimientosClienteSection({ requerimientos, entidadId
   for (const item of todosItemsActivos) {
     const key = seccionKey(item);
     if (!seccionesMap.has(key)) {
-      seccionesMap.set(key, { key, label: item.area ?? `Sección ${key}`, total: 0, completados: 0, enRevision: 0 });
+      seccionesMap.set(key, { key, label: item.area ?? "", total: 0, completados: 0, enRevision: 0 });
     }
     const s = seccionesMap.get(key)!;
     s.total++;
@@ -274,7 +274,7 @@ export default function RequerimientosClienteSection({ requerimientos, entidadId
                   >
                     <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
                       <span style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: isActive ? "var(--accent)" : "var(--muted)", fontWeight: isActive ? 700 : 400, minWidth: 20 }}>
-                        §{s.key}
+                        {s.key}
                       </span>
                       <span style={{ fontSize: 11, color: "var(--ink)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>
                         {s.label}
@@ -498,7 +498,7 @@ function RequerimientoCard({ req, entidadId, archivos, areaUsuario, filtroFn, on
                 }}
               >
                 <span style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", color: "var(--accent)", fontWeight: 700, minWidth: 28 }}>
-                  §{key}
+                  {key}
                 </span>
                 {primeraArea && (
                   <span style={{ fontSize: 11, padding: "1px 8px", borderRadius: 100, background: "rgba(27,79,138,0.1)", fontFamily: "'DM Mono', monospace", color: "#1B4F8A" }}>
