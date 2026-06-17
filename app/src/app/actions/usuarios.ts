@@ -15,10 +15,19 @@ function db(supabase: SupabaseServer, table: string) {
   return supabase.from(table as never) as unknown as DbQuery;
 }
 
+const DEPTS_ACCESO_CLIENTES = [
+  "Dirección General",
+  "Dirección de Administración",
+  "Gerencia de Auditoría",
+  "Gerencia de Proyectos",
+  "Coordinación de Sistemas",
+  "Líderes de Auditoría",
+];
+
 async function verificarAdmin() {
   const supabase = createClient();
   const { data: { user }, error } = await supabase.auth.getUser();
-  if (error || !user) return { supabase: null, userId: null, error: "No autenticado" };
+  if (error || !user) return { supabase: null, userId: null, rol: null, error: "No autenticado" };
 
   const { data: perfil } = await supabase
     .from("usuarios")
@@ -26,10 +35,33 @@ async function verificarAdmin() {
     .eq("id", user.id)
     .single() as { data: PerfilRow | null; error: unknown };
 
-  if (!perfil || !["admin", "superadmin"].includes(perfil.rol)) {
-    return { supabase: null, userId: null, error: "Acción no autorizada" };
+  if (!perfil) return { supabase: null, userId: null, rol: null, error: "Acción no autorizada" };
+
+  // Admins siempre tienen acceso
+  if (["admin", "superadmin"].includes(perfil.rol)) {
+    return { supabase, userId: user.id, rol: perfil.rol, error: null };
   }
-  return { supabase, userId: user.id, rol: perfil.rol, error: null };
+
+  // Empleados/RRHH en departamentos autorizados también tienen acceso
+  if (["empleado", "rrhh"].includes(perfil.rol)) {
+    const admin = createAdminClient();
+    const empleadoId = user.user_metadata?.empleado_id as string | undefined;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const q = empleadoId
+      ? (admin.from("empleados") as any).select("departamento").eq("id", empleadoId).maybeSingle()
+      : user.email
+        ? (admin.from("empleados") as any).select("departamento").eq("email_institucional", user.email).maybeSingle()
+        : null;
+
+    if (q) {
+      const { data: emp } = await q as { data: { departamento: string } | null };
+      if (emp && DEPTS_ACCESO_CLIENTES.includes(emp.departamento)) {
+        return { supabase, userId: user.id, rol: perfil.rol, error: null };
+      }
+    }
+  }
+
+  return { supabase: null, userId: null, rol: null, error: "Acción no autorizada" };
 }
 
 async function getRequestIp() {
@@ -295,7 +327,7 @@ export async function toggleActivoClienteAction(userId: string, activo: boolean)
 export async function eliminarClienteAction(userId: string) {
   const { supabase, userId: actorId, rol, error: authErr } = await verificarAdmin();
   if (authErr || !supabase || !actorId) return { error: authErr };
-  if (rol !== "superadmin") return { error: "Solo el superadmin puede eliminar usuarios" };
+  if (!["superadmin", "empleado", "rrhh"].includes(rol ?? "")) return { error: "Sin permisos para eliminar usuarios" };
   if (userId === actorId) return { error: "No puedes eliminar tu propia cuenta" };
 
   const admin = createAdminClient();
