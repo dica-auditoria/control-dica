@@ -8,6 +8,7 @@ import type { ClienteUsuarioItem } from "@/components/clientes/ClientesAccesoVie
 interface PerfilRow { rol: string }
 interface EntidadRow { id: string; nombre: string; activo: boolean; created_at: string }
 interface ContratoCount { entidad_id: string; estado: string }
+interface StatsRow { entidad_id: string; archivo_count: number; usuario_count: number }
 interface UsuarioClienteRow {
   id: string;
   nombre: string;
@@ -37,14 +38,15 @@ export default async function ClientesPage() {
   const admin = createAdminClient();
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [rEntidades, rContratos, rArchivos, rUsuariosAll, rClienteUsers] = await Promise.all([
+  const [rEntidades, rContratos, rStats, rClienteUsers] = await Promise.all([
     (admin.from("entidades") as any)
       .select("id, nombre, activo, created_at")
       .order("nombre") as Promise<{ data: EntidadRow[] | null; error: unknown }>,
     (admin.from("contratos") as any)
       .select("entidad_id, estado") as Promise<{ data: ContratoCount[] | null; error: unknown }>,
-    (admin.from("archivos") as any).select("entidad_id").neq("estado", "eliminado"),
-    (admin.from("usuarios") as any).select("entidad_id").not("entidad_id", "is", null),
+    // RPC function bypasses Supabase's 1000-row PostgREST limit
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (admin.rpc("get_directorio_stats") as any) as Promise<{ data: StatsRow[] | null; error: unknown }>,
     (admin.from("usuarios") as any)
       .select("id, nombre, email, entidad_id, contrato_id, area, activo, created_at, entidades(nombre), contratos(nombre)")
       .eq("rol", "cliente")
@@ -61,14 +63,12 @@ export default async function ClientesPage() {
     });
   }
 
-  const archivosMap = new Map<string, number>();
-  for (const a of (rArchivos.data ?? []) as Array<{ entidad_id: string }>) {
-    archivosMap.set(a.entidad_id, (archivosMap.get(a.entidad_id) ?? 0) + 1);
-  }
-
-  const usuariosMap = new Map<string, number>();
-  for (const u of (rUsuariosAll.data ?? []) as Array<{ entidad_id: string }>) {
-    if (u.entidad_id) usuariosMap.set(u.entidad_id, (usuariosMap.get(u.entidad_id) ?? 0) + 1);
+  const statsMap = new Map<string, { archivos: number; usuarios: number }>();
+  for (const s of (rStats.data ?? []) as StatsRow[]) {
+    statsMap.set(s.entidad_id, {
+      archivos: Number(s.archivo_count),
+      usuarios: Number(s.usuario_count),
+    });
   }
 
   const clientes: ClienteListItem[] = (rEntidades.data ?? []).map(e => ({
@@ -78,8 +78,8 @@ export default async function ClientesPage() {
     created_at: e.created_at,
     totalContratos: contratosMap.get(e.id)?.total ?? 0,
     contratosVigentes: contratosMap.get(e.id)?.vigentes ?? 0,
-    totalArchivos: archivosMap.get(e.id) ?? 0,
-    totalUsuarios: usuariosMap.get(e.id) ?? 0,
+    totalArchivos: statsMap.get(e.id)?.archivos ?? 0,
+    totalUsuarios: statsMap.get(e.id)?.usuarios ?? 0,
   }));
 
   const clienteUsers: ClienteUsuarioItem[] = (rClienteUsers.data ?? []).map(u => ({
