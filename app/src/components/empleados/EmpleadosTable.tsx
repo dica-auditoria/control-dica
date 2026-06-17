@@ -5,7 +5,14 @@ import StatusBadge from "@/components/ui/StatusBadge";
 import { iniciales, nombreCompleto } from "@/lib/empleados/utils";
 import type { EmpleadoListItem } from "@/types/empleados";
 
-export default function EmpleadosTable({ empleados, onEliminar }: { empleados: EmpleadoListItem[]; onEliminar?: (id: string, nombre: string) => void }) {
+interface TableProps {
+  empleados: EmpleadoListItem[];
+  onEliminar?: (id: string, nombre: string) => void;
+  onToggleEstado?: (id: string, nombre: string, estadoActual: EmpleadoListItem["estado"]) => void;
+  toggling?: string | null;
+}
+
+export default function EmpleadosTable({ empleados, onEliminar, onToggleEstado, toggling }: TableProps) {
   if (empleados.length === 0) {
     return (
       <div style={{
@@ -25,7 +32,7 @@ export default function EmpleadosTable({ empleados, onEliminar }: { empleados: E
     <table style={{ width: "100%", borderCollapse: "collapse" }}>
       <thead>
         <tr style={{ background: "var(--surface)" }}>
-          {["Empleado", "Puesto", "Departamento", "Perfil", "Estado", ...(onEliminar ? [""] : [])].map((h, i) => (
+          {["Empleado", "Puesto", "Departamento", "Perfil", "Estado", ...((onEliminar || onToggleEstado) ? [""] : [])].map((h, i) => (
             <th key={i} style={thStyle}>{h}</th>
           ))}
         </tr>
@@ -74,19 +81,41 @@ export default function EmpleadosTable({ empleados, onEliminar }: { empleados: E
             <td style={tdStyle}>
               <StatusBadge estado={e.estado} />
             </td>
-            {onEliminar && (
-              <td style={{ ...tdStyle, textAlign: "right" }}>
-                <button
-                  onClick={() => onEliminar(e.id, `${e.nombres} ${e.apellido_paterno}`)}
-                  style={{
-                    padding: "5px 12px", background: "var(--card)",
-                    border: "1px solid rgba(200,71,42,0.3)", borderRadius: 4,
-                    fontSize: 12, cursor: "pointer", color: "var(--accent)",
-                    fontFamily: "'DM Sans', sans-serif",
-                  }}
-                >
-                  Eliminar
-                </button>
+            {(onEliminar || onToggleEstado) && (
+              <td style={{ ...tdStyle, textAlign: "right", whiteSpace: "nowrap" }}>
+                <div style={{ display: "flex", gap: 6, justifyContent: "flex-end" }}>
+                  {onToggleEstado && (
+                    <button
+                      onClick={() => onToggleEstado(e.id, `${e.nombres} ${e.apellido_paterno}`, e.estado)}
+                      disabled={toggling === e.id}
+                      style={{
+                        padding: "5px 12px", background: "var(--card)",
+                        border: e.estado === "inactivo"
+                          ? "1px solid rgba(45,106,79,0.35)"
+                          : "1px solid rgba(181,86,14,0.35)",
+                        borderRadius: 4, fontSize: 12, cursor: "pointer",
+                        color: e.estado === "inactivo" ? "var(--green)" : "var(--amber)",
+                        fontFamily: "'DM Sans', sans-serif",
+                        opacity: toggling === e.id ? 0.5 : 1,
+                      }}
+                    >
+                      {toggling === e.id ? "…" : e.estado === "inactivo" ? "Activar" : "Desactivar"}
+                    </button>
+                  )}
+                  {onEliminar && (
+                    <button
+                      onClick={() => onEliminar(e.id, `${e.nombres} ${e.apellido_paterno}`)}
+                      style={{
+                        padding: "5px 12px", background: "var(--card)",
+                        border: "1px solid rgba(200,71,42,0.3)", borderRadius: 4,
+                        fontSize: 12, cursor: "pointer", color: "var(--accent)",
+                        fontFamily: "'DM Sans', sans-serif",
+                      }}
+                    >
+                      Eliminar
+                    </button>
+                  )}
+                </div>
               </td>
             )}
           </tr>

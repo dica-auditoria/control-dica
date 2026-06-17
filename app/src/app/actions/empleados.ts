@@ -671,6 +671,18 @@ export async function eliminarEmpleadoAction(empleadoId: string) {
   return { success: true };
 }
 
+export async function toggleEstadoEmpleadoAction(empleadoId: string, nuevoEstado: "activo" | "inactivo") {
+  await verificarAdmin();
+  const admin = createAdminClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (admin.from("empleados") as any)
+    .update({ estado: nuevoEstado })
+    .eq("id", empleadoId);
+  if (error) return { error: "Error al actualizar el estado del empleado." };
+  revalidatePath("/dashboard/empleados");
+  return { success: true };
+}
+
 export async function fetchSubordinadosAction() {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();

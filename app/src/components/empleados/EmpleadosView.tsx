@@ -7,7 +7,7 @@ import EmpleadoStatsCards from "./EmpleadoStatsCards";
 import EmpleadosFiltersBar from "./EmpleadosFilters";
 import EmpleadosTable from "./EmpleadosTable";
 import { exportarEmpleadosCSVAction } from "@/app/actions/exportar";
-import { eliminarEmpleadoAction } from "@/app/actions/empleados";
+import { eliminarEmpleadoAction, toggleEstadoEmpleadoAction } from "@/app/actions/empleados";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import type { EmpleadoListItem, EmpleadosStats } from "@/types/empleados";
 
@@ -31,6 +31,7 @@ export default function EmpleadosView({ initialEmpleados, initialStats, titulo, 
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmTarget, setConfirmTarget] = useState<{ id: string; nombre: string } | null>(null);
   const [elimError, setElimError] = useState<string | null>(null);
+  const [toggling, setToggling] = useState<string | null>(null);
 
   const displayStats = stats ?? initialStats;
 
@@ -55,6 +56,14 @@ export default function EmpleadosView({ initialEmpleados, initialStats, titulo, 
     if (res.error) { setElimError(res.error); return; }
     setConfirmOpen(false);
     setConfirmTarget(null);
+  };
+
+  const handleToggleEstado = async (id: string, nombre: string, estadoActual: EmpleadoListItem["estado"]) => {
+    const nuevoEstado = estadoActual === "inactivo" ? "activo" : "inactivo";
+    if (!confirm(`¿${nuevoEstado === "inactivo" ? "Desactivar" : "Activar"} a "${nombre}"?`)) return;
+    setToggling(id);
+    await toggleEstadoEmpleadoAction(id, nuevoEstado);
+    setToggling(null);
   };
 
   const handleExport = async () => {
@@ -131,7 +140,12 @@ export default function EmpleadosView({ initialEmpleados, initialStats, titulo, 
           overflow: "hidden", boxShadow: "0 1px 3px rgba(15,17,23,0.08)",
           opacity: loading ? 0.6 : 1, transition: "opacity 0.15s",
         }}>
-          <EmpleadosTable empleados={paginated} onEliminar={!ocultarNuevo ? pedirEliminar : undefined} />
+          <EmpleadosTable
+            empleados={paginated}
+            onEliminar={!ocultarNuevo ? pedirEliminar : undefined}
+            onToggleEstado={!ocultarNuevo ? handleToggleEstado : undefined}
+            toggling={toggling}
+          />
 
           {/* Paginación */}
           {totalPages > 1 && (
