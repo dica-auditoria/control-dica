@@ -254,7 +254,7 @@ export default function RequerimientosClienteSection({ requerimientos, entidadId
                       if (isFiltro) setFiltroSeccion(""); else setFiltroSeccion(s.key);
                     }}
                     style={{
-                      width: "100%", textAlign: "left", background: "none",
+                      width: "100%", textAlign: "left",
                       border: "none", cursor: "pointer",
                       padding: "7px 12px",
                       borderLeft: isActive ? "2px solid var(--accent)" : "2px solid transparent",
