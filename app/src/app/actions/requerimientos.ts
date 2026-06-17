@@ -296,6 +296,40 @@ export async function extenderFechaAction(requerimientoId: string, nuevaFecha: s
   return { success: true };
 }
 
+// ── ACTUALIZAR FECHA GLOBAL (todos los reactivos del contrato) ───────────────
+
+export async function actualizarFechaContratoAction(contratoId: string, nuevaFecha: string) {
+  const { perfil, error: authErr } = await getUser();
+  if (authErr || !perfil) return { error: authErr };
+  if (!["admin", "superadmin", "rrhh", "empleado"].includes(perfil.rol)) return { error: "No autorizado" };
+
+  const admin = createAdminClient();
+  const hoy = new Date().toISOString().slice(0, 10);
+
+  const { data: reqs } = await (admin.from("requerimientos") as any)
+    .select("id, estado, entidad_id")
+    .eq("contrato_id", contratoId) as { data: Array<{ id: string; estado: string; entidad_id: string }> | null; error: unknown };
+
+  if (!reqs?.length) return { error: "No hay requerimientos en este contrato" };
+
+  const reqIds = reqs.map(r => r.id);
+  const entidadId = reqs[0].entidad_id;
+
+  for (const req of reqs) {
+    const updates: Record<string, unknown> = { fecha_limite: nuevaFecha };
+    if (req.estado === "vencido" && nuevaFecha >= hoy) updates.estado = "pendiente";
+    await (admin.from("requerimientos") as any).update(updates).eq("id", req.id);
+  }
+
+  await (admin.from("requerimiento_items") as any)
+    .update({ fecha_limite: nuevaFecha })
+    .in("requerimiento_id", reqIds)
+    .neq("estado", "completado");
+
+  revalidate(entidadId, contratoId);
+  return { success: true };
+}
+
 // ── ELIMINAR REQUERIMIENTO ────────────────────────────────────────────────────
 
 export async function eliminarRequerimientoAction(requerimientoId: string) {

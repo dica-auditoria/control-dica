@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import type { Requerimiento, RequerimientoItem } from "@/types/requerimientos";
 import type { ArchivoContratoItem } from "@/app/actions/archivos";
 import type { Comentario } from "@/app/actions/comentarios";
-import { toggleItemCompletoAction, importarReactivosContratoAction, extenderFechaItemAction, chequearImpactoImportAction, agregarItemContratoAction, editarItemAction, eliminarItemAction, reordenarItemAction } from "@/app/actions/requerimientos";
+import { toggleItemCompletoAction, importarReactivosContratoAction, extenderFechaItemAction, chequearImpactoImportAction, agregarItemContratoAction, editarItemAction, eliminarItemAction, reordenarItemAction, actualizarFechaContratoAction } from "@/app/actions/requerimientos";
 import { deleteArchivoAction } from "@/app/actions/archivos";
 import { getDownloadUrlAction } from "@/app/actions/storage";
 import { fetchComentariosItemAction, agregarComentarioAction } from "@/app/actions/comentarios";
@@ -161,6 +161,7 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
 
   const [expandedItem, setExpandedItem]               = useState<string | null>(null);
   const [showImport, setShowImport]                   = useState(false);
+  const [showActualizarFecha, setShowActualizarFecha] = useState(false);
   const [showAddItem, setShowAddItem]                 = useState(false);
   const [editingItem, setEditingItem]                 = useState<{ id: string; nombre: string; rubro: string | null; descripcion: string | null } | null>(null);
   const [eliminandoId, setEliminandoId]               = useState<string | null>(null);
@@ -325,6 +326,9 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
         )}
         {!esCliente && (
           <>
+            <button onClick={() => setShowActualizarFecha(true)} style={btnSm("var(--card)", "var(--ink)", "1px solid var(--border-strong)")}>
+              <CalendarIcon /> Actualizar fecha
+            </button>
             <button onClick={() => setShowAddItem(true)} style={btnSm("var(--card)", "var(--ink)", "1px solid var(--border-strong)")}>
               <PlusIcon /> Agregar reactivo
             </button>
@@ -666,6 +670,14 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
         </div>
       )}
 
+      {showActualizarFecha && (
+        <ActualizarFechaModal
+          contratoId={contratoId}
+          onClose={() => setShowActualizarFecha(false)}
+          onUpdated={() => { setShowActualizarFecha(false); router.refresh(); }}
+        />
+      )}
+
       {showImport && (
         <ImportarCSVModal
           contratoId={contratoId}
@@ -873,6 +885,82 @@ function EditarItemModal({ item, onClose, onSaved }: {
             style={{ padding: "8px 20px", background: "var(--ink)", color: "white", border: "none", borderRadius: 4, fontSize: 13, fontWeight: 600, cursor: (!nombre.trim() || saving) ? "not-allowed" : "pointer", opacity: (!nombre.trim() || saving) ? 0.5 : 1 }}>
             {saving ? "Guardando…" : "Guardar"}
           </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Actualizar Fecha Modal ────────────────────────────────────────────────────
+
+function ActualizarFechaModal({ contratoId, onClose, onUpdated }: {
+  contratoId: string; onClose: () => void; onUpdated: () => void;
+}) {
+  const [fecha, setFecha]   = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError]   = useState<string | null>(null);
+  const [ok, setOk]         = useState(false);
+
+  const handleGuardar = async () => {
+    if (!fecha) return;
+    setSaving(true); setError(null);
+    const result = await actualizarFechaContratoAction(contratoId, fecha);
+    if (result.error) { setError(result.error); setSaving(false); return; }
+    setOk(true);
+    setTimeout(onUpdated, 1000);
+  };
+
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 1200, background: "var(--overlay)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div style={{ background: "var(--card)", borderRadius: 10, width: "100%", maxWidth: 380, boxShadow: "0 24px 64px rgba(15,17,23,0.25)", overflow: "hidden" }}>
+        <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", background: "var(--surface)" }}>
+          <div style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)" }}>Actualizar fecha límite</div>
+          <div style={{ fontSize: 11, color: "var(--muted)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>
+            Aplica la nueva fecha a todos los reactivos pendientes del contrato
+          </div>
+        </div>
+
+        <div style={{ padding: 20, display: "flex", flexDirection: "column", gap: 14 }}>
+          {ok ? (
+            <div style={{ padding: "10px 14px", background: "rgba(45,166,95,0.08)", border: "1px solid rgba(45,166,95,0.25)", borderRadius: 6, fontSize: 13, color: "#1B7A3E" }}>
+              ✓ Fecha actualizada correctamente
+            </div>
+          ) : (
+            <>
+              <div>
+                <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "var(--ink)", marginBottom: 6, fontFamily: "'DM Sans', sans-serif" }}>
+                  Nueva fecha límite
+                </label>
+                <input
+                  autoFocus
+                  type="date"
+                  value={fecha}
+                  onChange={e => setFecha(e.target.value)}
+                  min={new Date().toISOString().slice(0, 10)}
+                  style={{ width: "100%", height: 36, padding: "0 10px", border: "1px solid var(--border-strong)", borderRadius: 6, fontSize: 13, fontFamily: "'DM Sans', sans-serif", background: "var(--card)", color: "var(--ink)", outline: "none", boxSizing: "border-box" }}
+                />
+              </div>
+              <div style={{ padding: "8px 12px", background: "rgba(66,153,225,0.07)", borderRadius: 6, fontSize: 12, color: "#2B6CB0", fontFamily: "'DM Mono', monospace" }}>
+                Los reactivos ya entregados no se modifican. Si el contrato estaba vencido, se reactiva automáticamente.
+              </div>
+              {error && (
+                <div style={{ padding: "8px 12px", background: "rgba(200,71,42,0.06)", borderRadius: 4, fontSize: 12, color: "var(--accent)" }}>{error}</div>
+              )}
+            </>
+          )}
+        </div>
+
+        <div style={{ padding: "12px 20px", borderTop: "1px solid var(--border)", display: "flex", gap: 8, justifyContent: "flex-end" }}>
+          <button type="button" onClick={onClose} style={{ padding: "8px 16px", border: "1px solid var(--border)", borderRadius: 4, background: "none", cursor: "pointer", fontSize: 13 }}>
+            {ok ? "Cerrar" : "Cancelar"}
+          </button>
+          {!ok && (
+            <button onClick={handleGuardar} disabled={!fecha || saving}
+              style={{ padding: "8px 20px", background: "var(--ink)", color: "white", border: "none", borderRadius: 4, fontSize: 13, fontWeight: 600, cursor: (!fecha || saving) ? "not-allowed" : "pointer", opacity: (!fecha || saving) ? 0.5 : 1 }}>
+              {saving ? "Guardando…" : "Actualizar"}
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -1130,6 +1218,7 @@ function badgeStyle(color: string, bg: string): React.CSSProperties {
   return { fontSize: 11, padding: "2px 8px", borderRadius: 100, background: bg, color, fontFamily: "'DM Mono', monospace" };
 }
 
+function CalendarIcon() { return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>; }
 function ChevronIcon()  { return <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6" /></svg>; }
 function PlusIcon()     { return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>; }
 function EditIcon()     { return <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>; }
