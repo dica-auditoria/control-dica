@@ -80,6 +80,14 @@ function filtrarItemsPorArea(items: RequerimientoItem[], area?: string | null): 
 
 export default function RequerimientosClienteSection({ requerimientos, entidadId, archivos, areaUsuario }: Props) {
   const router = useRouter();
+  const topRef = useRef<HTMLDivElement>(null);
+
+  const [busqueda, setBusqueda]       = useState("");
+  const [filtroArea, setFiltroArea]   = useState("");
+  const [filtroRubro, setFiltroRubro] = useState("");
+  const [filtroEstado, setFiltroEstado] = useState("");
+  const [filtroSeccion, setFiltroSeccion] = useState("");
+  const [showScrollTop, setShowScrollTop] = useState(false);
 
   const activos     = requerimientos.filter(r => r.estado !== "completado");
   const completados = requerimientos.filter(r => r.estado === "completado");
@@ -92,10 +100,50 @@ export default function RequerimientosClienteSection({ requerimientos, entidadId
   const enRevision = todosItemsActivos.filter(i => i.estado === "en_revision").length;
   const porcentaje = totalItems > 0 ? Math.round((entregados / totalItems) * 100) : 0;
 
+  // Opciones únicas para los filtros
+  const areas    = Array.from(new Set(todosItemsActivos.map(i => i.area).filter(Boolean))).sort() as string[];
+  const rubros   = Array.from(new Set(todosItemsActivos.map(i => i.rubro).filter(Boolean))).sort() as string[];
+  const secciones = Array.from(new Set(
+    todosItemsActivos.map(i => i.numero ? i.numero.split(".")[0] : null).filter(Boolean)
+  )).sort((a, b) => parseInt(a!) - parseInt(b!)) as string[];
+
+  const hayFiltros = busqueda || filtroArea || filtroRubro || filtroEstado || filtroSeccion;
+
+  const filtroFn = (item: RequerimientoItem): boolean => {
+    const norm = busqueda.toLowerCase().trim();
+    if (norm && !item.nombre.toLowerCase().includes(norm) && !(item.rubro ?? "").toLowerCase().includes(norm)) return false;
+    if (filtroArea && item.area !== filtroArea) return false;
+    if (filtroRubro && item.rubro !== filtroRubro) return false;
+    if (filtroEstado && item.estado !== filtroEstado) return false;
+    if (filtroSeccion && (item.numero ?? "").split(".")[0] !== filtroSeccion) return false;
+    return true;
+  };
+
+  const limpiar = () => { setBusqueda(""); setFiltroArea(""); setFiltroRubro(""); setFiltroEstado(""); setFiltroSeccion(""); };
+
+  const itemsFiltrados = hayFiltros ? todosItemsActivos.filter(filtroFn) : todosItemsActivos;
+
+  // Scroll-to-top listener
+  useEffect(() => {
+    const onScroll = () => setShowScrollTop(window.scrollY > 300);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  const scrollTop = () => {
+    topRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const selectSt: React.CSSProperties = {
+    height: 32, padding: "0 8px", border: "1px solid var(--border-strong)", borderRadius: 4,
+    fontSize: 12, fontFamily: "'DM Sans', sans-serif", background: "var(--card)",
+    color: "var(--ink)", cursor: "pointer", outline: "none",
+  };
+
   return (
-    <div style={{ marginBottom: 28 }}>
+    <div style={{ marginBottom: 28 }} ref={topRef}>
       {/* Header + barra de progreso general */}
-      <div style={{ marginBottom: 16 }}>
+      <div style={{ marginBottom: 12 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
           <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 18, color: "var(--ink)", margin: 0 }}>
             Documentos requeridos
@@ -123,6 +171,83 @@ export default function RequerimientosClienteSection({ requerimientos, entidadId
         )}
       </div>
 
+      {/* Barra de filtros sticky */}
+      <div style={{
+        position: "sticky", top: 0, zIndex: 30,
+        background: "var(--surface)", borderRadius: 8,
+        border: "1px solid var(--border)",
+        padding: "10px 12px", marginBottom: 12,
+        display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center",
+        boxShadow: "0 2px 8px rgba(15,17,23,0.07)",
+      }}>
+        {/* Buscador */}
+        <div style={{ position: "relative", flex: "1 1 160px", minWidth: 140 }}>
+          <span style={{ position: "absolute", left: 8, top: "50%", transform: "translateY(-50%)", color: "var(--muted)", pointerEvents: "none", display: "flex" }}>
+            <SearchIcon />
+          </span>
+          <input
+            type="text"
+            placeholder="Buscar reactivo…"
+            value={busqueda}
+            onChange={e => setBusqueda(e.target.value)}
+            style={{ width: "100%", paddingLeft: 28, paddingRight: busqueda ? 24 : 8, height: 32, border: "1px solid var(--border-strong)", borderRadius: 4, fontSize: 12, fontFamily: "'DM Sans', sans-serif", background: "var(--card)", color: "var(--ink)", outline: "none", boxSizing: "border-box" }}
+          />
+          {busqueda && (
+            <button onClick={() => setBusqueda("")} style={{ position: "absolute", right: 6, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--muted)", padding: 0, lineHeight: 1, fontSize: 14 }}>×</button>
+          )}
+        </div>
+
+        {/* Filtro sección (primer nivel del numeral) */}
+        {secciones.length > 1 && (
+          <select value={filtroSeccion} onChange={e => setFiltroSeccion(e.target.value)} style={selectSt}>
+            <option value="">Sección</option>
+            {secciones.map(s => <option key={s} value={s}>§ {s}</option>)}
+          </select>
+        )}
+
+        {/* Filtro área */}
+        {areas.length > 0 && (
+          <select value={filtroArea} onChange={e => setFiltroArea(e.target.value)} style={selectSt}>
+            <option value="">Área</option>
+            {areas.map(a => <option key={a} value={a}>{a}</option>)}
+          </select>
+        )}
+
+        {/* Filtro rubro */}
+        {rubros.length > 0 && (
+          <select value={filtroRubro} onChange={e => setFiltroRubro(e.target.value)} style={selectSt}>
+            <option value="">Rubro</option>
+            {rubros.map(r => <option key={r} value={r}>{r}</option>)}
+          </select>
+        )}
+
+        {/* Filtro estado */}
+        <select value={filtroEstado} onChange={e => setFiltroEstado(e.target.value)} style={selectSt}>
+          <option value="">Estado</option>
+          <option value="pendiente">Pendiente</option>
+          <option value="en_revision">En revisión</option>
+          <option value="completado">Entregado</option>
+        </select>
+
+        {/* Contador + limpiar */}
+        <span style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "var(--muted)", whiteSpace: "nowrap" }}>
+          {hayFiltros ? `${itemsFiltrados.length} de ${totalItems}` : `${totalItems} reactivos`}
+        </span>
+
+        {hayFiltros && (
+          <button onClick={limpiar} style={{ height: 32, padding: "0 12px", background: "var(--card)", border: "1px solid var(--border-strong)", borderRadius: 4, fontSize: 12, cursor: "pointer", color: "var(--muted)", fontFamily: "'DM Sans', sans-serif", whiteSpace: "nowrap" }}>
+            × Limpiar
+          </button>
+        )}
+      </div>
+
+      {/* Resultado de filtros */}
+      {hayFiltros && itemsFiltrados.length === 0 && (
+        <div style={{ padding: "24px", textAlign: "center", color: "var(--muted)", fontSize: 13, fontFamily: "'DM Mono', monospace", background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8 }}>
+          Sin resultados para los filtros aplicados
+        </div>
+      )}
+
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         {activos.map(req => (
           <RequerimientoCard
@@ -131,6 +256,7 @@ export default function RequerimientosClienteSection({ requerimientos, entidadId
             entidadId={entidadId}
             archivos={archivos}
             areaUsuario={areaUsuario}
+            filtroFn={hayFiltros ? filtroFn : undefined}
             onRefresh={() => router.refresh()}
           />
         ))}
@@ -143,18 +269,40 @@ export default function RequerimientosClienteSection({ requerimientos, entidadId
           </details>
         )}
       </div>
+
+      {/* Botón flotante scroll al inicio */}
+      {showScrollTop && (
+        <button
+          onClick={scrollTop}
+          title="Ir al inicio"
+          style={{
+            position: "fixed", bottom: 24, right: 24, zIndex: 100,
+            width: 44, height: 44, borderRadius: "50%",
+            background: "var(--ink)", color: "white", border: "none",
+            cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+            boxShadow: "0 4px 16px rgba(15,17,23,0.25)",
+            fontSize: 18, lineHeight: 1,
+          }}
+        >
+          ↑
+        </button>
+      )}
     </div>
   );
 }
 
 // ── Card de requerimiento ─────────────────────────────────────────────────────
 
-function RequerimientoCard({ req, entidadId, archivos, areaUsuario, onRefresh }: {
-  req: Requerimiento; entidadId: string; archivos: ArchivoConItemId[]; areaUsuario?: string | null; onRefresh: () => void;
+function RequerimientoCard({ req, entidadId, archivos, areaUsuario, filtroFn, onRefresh }: {
+  req: Requerimiento; entidadId: string; archivos: ArchivoConItemId[]; areaUsuario?: string | null;
+  filtroFn?: (item: RequerimientoItem) => boolean;
+  onRefresh: () => void;
 }) {
   const canUpload = req.estado !== "completado" && req.estado !== "vencido";
 
-  const items = filtrarItemsPorArea(req.items, areaUsuario);
+  let items = filtrarItemsPorArea(req.items, areaUsuario);
+  if (filtroFn) items = items.filter(filtroFn);
+
   const completados = items.filter(i => i.estado === "completado").length;
   const porcentaje  = items.length > 0 ? Math.round((completados / items.length) * 100) : 0;
 
@@ -193,28 +341,22 @@ function RequerimientoCard({ req, entidadId, archivos, areaUsuario, onRefresh }:
       )}
 
       {/* Lista de items */}
-      {items.length === 0 ? (
-        <div style={{ padding: "24px 18px", textAlign: "center", color: "var(--muted)", fontSize: 13, fontFamily: "'DM Mono', monospace" }}>
-          Sin documentos definidos aún
-        </div>
-      ) : (
-        <div>
-          {items
-            .sort((a, b) => (a.orden ?? 9999) - (b.orden ?? 9999))
-            .map((item, idx) => (
-              <ItemRow
-                key={item.id}
-                item={item}
-                idx={idx}
-                entidadId={entidadId}
-                contratoId={req.contrato_id ?? undefined}
-                archivosItem={archivos.filter(a => a.requerimiento_item_id === item.id)}
-                canUpload={canUpload}
-                onRefresh={onRefresh}
-              />
-            ))}
-        </div>
-      )}
+      <div>
+        {items
+          .sort((a, b) => (a.orden ?? 9999) - (b.orden ?? 9999))
+          .map((item, idx) => (
+            <ItemRow
+              key={item.id}
+              item={item}
+              idx={idx}
+              entidadId={entidadId}
+              contratoId={req.contrato_id ?? undefined}
+              archivosItem={archivos.filter(a => a.requerimiento_item_id === item.id)}
+              canUpload={canUpload}
+              onRefresh={onRefresh}
+            />
+          ))}
+      </div>
     </div>
   );
 }
@@ -237,6 +379,7 @@ function ItemRow({ item, idx, entidadId, contratoId, archivosItem, canUpload, on
   const [enviando, setEnviando]       = useState(false);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const bottomRef                     = useRef<HTMLDivElement>(null);
+  const rowRef                        = useRef<HTMLDivElement>(null);
 
   const handleDownload = async (archivoId: string, key: string, filename: string) => {
     setDownloadingId(archivoId);
@@ -264,6 +407,13 @@ function ItemRow({ item, idx, entidadId, contratoId, archivosItem, canUpload, on
     }
   };
 
+  const handleClose = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setOpen(false);
+    // Scroll suave a la fila para no perder el contexto
+    setTimeout(() => rowRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 50);
+  };
+
   useEffect(() => {
     if (comentarios !== null) {
       bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -285,7 +435,7 @@ function ItemRow({ item, idx, entidadId, contratoId, archivosItem, canUpload, on
   const nivelSub = (item.numero?.match(/\./g) || []).length;
 
   return (
-    <div style={{ borderBottom: "1px solid var(--border)", borderLeft: nivelSub > 0 ? "2px solid var(--border-strong)" : "none", marginLeft: nivelSub * 14 }}>
+    <div ref={rowRef} style={{ borderBottom: "1px solid var(--border)", borderLeft: nivelSub > 0 ? "2px solid var(--border-strong)" : "none", marginLeft: nivelSub * 14 }}>
       {/* Fila colapsada */}
       <div
         onClick={handleToggle}
@@ -339,7 +489,23 @@ function ItemRow({ item, idx, entidadId, contratoId, archivosItem, canUpload, on
 
       {/* Panel expandido: izquierda archivos/upload + derecha chat */}
       {open && (
-        <div style={{ background: "rgba(15,17,23,0.015)", borderTop: "1px solid var(--border)", display: "flex", gap: 0 }}>
+        <div style={{ background: "rgba(15,17,23,0.015)", borderTop: "1px solid var(--border)", display: "flex", gap: 0, position: "relative" }}>
+
+          {/* Botón cerrar panel */}
+          <button
+            onClick={handleClose}
+            title="Cerrar"
+            style={{
+              position: "absolute", top: 10, right: 10, zIndex: 10,
+              width: 26, height: 26, borderRadius: "50%",
+              background: "var(--surface-2)", border: "1px solid var(--border)",
+              cursor: "pointer", color: "var(--muted)", fontSize: 14,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              lineHeight: 1,
+            }}
+          >
+            ×
+          </button>
 
           {/* Columna izquierda */}
           <div style={{ flex: 1, padding: "14px 18px 18px 56px", borderRight: "1px solid var(--border)", minWidth: 0 }}>
@@ -503,12 +669,7 @@ function ItemRow({ item, idx, entidadId, contratoId, archivosItem, canUpload, on
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 
-function ChevronIcon() {
-  return <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6" /></svg>;
-}
-function SendIcon() {
-  return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>;
-}
-function DownloadIcon() {
-  return <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>;
-}
+function SearchIcon()   { return <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>; }
+function ChevronIcon()  { return <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6" /></svg>; }
+function SendIcon()     { return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>; }
+function DownloadIcon() { return <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>; }
