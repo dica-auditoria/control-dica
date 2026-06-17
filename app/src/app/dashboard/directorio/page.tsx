@@ -36,8 +36,8 @@ export default async function DirectorioPage() {
       .order("nombre") as Promise<{ data: EntidadRow[] | null; error: unknown }>,
     (admin.from("contratos") as any)
       .select("entidad_id, estado") as Promise<{ data: ContratoRow[] | null; error: unknown }>,
-    admin.from("archivos").select("entidad_id").neq("estado", "eliminado") as unknown as Promise<{ data: ArchivoRow[] | null; error: unknown }>,
-    admin.from("usuarios").select("entidad_id").eq("rol", "cliente").not("entidad_id", "is", null) as unknown as Promise<{ data: UsuarioRow[] | null; error: unknown }>,
+    (admin.from("archivos") as any).select("entidad_id").neq("estado", "eliminado").neq("tipo", "carpeta").limit(100000) as Promise<{ data: ArchivoRow[] | null; error: unknown }>,
+    (admin.from("usuarios") as any).select("entidad_id").eq("rol", "cliente").not("entidad_id", "is", null).limit(10000) as Promise<{ data: UsuarioRow[] | null; error: unknown }>,
   ]);
 
   const entidades: EntidadOption[] = (rEntidades.data ?? [])
