@@ -95,10 +95,12 @@ export default function RequerimientosClienteSection({ requerimientos, entidadId
   if (requerimientos.length === 0) return null;
 
   const todosItemsActivos = activos.flatMap(r => filtrarItemsPorArea(r.items, areaUsuario));
-  const totalItems = todosItemsActivos.length;
-  const entregados = todosItemsActivos.filter(i => i.estado === "completado").length;
-  const enRevision = todosItemsActivos.filter(i => i.estado === "en_revision").length;
-  const porcentaje = totalItems > 0 ? Math.round((entregados / totalItems) * 100) : 0;
+  const totalItems  = todosItemsActivos.length;
+  const entregados  = todosItemsActivos.filter(i => i.estado === "completado").length;
+  const enRevision  = todosItemsActivos.filter(i => i.estado === "en_revision").length;
+  const pendientes  = todosItemsActivos.filter(i => i.estado === "pendiente").length;
+  const porcentaje  = totalItems > 0 ? Math.round((entregados / totalItems) * 100) : 0;
+  const totalArchivos = archivos.filter(a => todosItemsActivos.some(i => i.id === a.requerimiento_item_id)).length;
 
   // Opciones únicas para los filtros
   const areas    = Array.from(new Set(todosItemsActivos.map(i => i.area).filter(Boolean))).sort() as string[];
@@ -169,6 +171,44 @@ export default function RequerimientosClienteSection({ requerimientos, entidadId
             </span>
           </div>
         )}
+      </div>
+
+      {/* Cards de resumen */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginBottom: 14 }}>
+        <StatCard
+          label="Pendientes"
+          value={pendientes}
+          color="#6B7280"
+          bg="rgba(107,114,128,0.08)"
+          icon={<ClockIcon />}
+          onClick={() => setFiltroEstado(filtroEstado === "pendiente" ? "" : "pendiente")}
+          active={filtroEstado === "pendiente"}
+        />
+        <StatCard
+          label="En revisión"
+          value={enRevision}
+          color="#92400E"
+          bg="rgba(251,191,36,0.12)"
+          icon={<ReviewIcon />}
+          onClick={() => setFiltroEstado(filtroEstado === "en_revision" ? "" : "en_revision")}
+          active={filtroEstado === "en_revision"}
+        />
+        <StatCard
+          label="Entregados"
+          value={entregados}
+          color="#1B7A3E"
+          bg="rgba(45,166,95,0.1)"
+          icon={<CheckIcon />}
+          onClick={() => setFiltroEstado(filtroEstado === "completado" ? "" : "completado")}
+          active={filtroEstado === "completado"}
+        />
+        <StatCard
+          label="Archivos subidos"
+          value={totalArchivos}
+          color="#1B4F8A"
+          bg="rgba(27,79,138,0.08)"
+          icon={<FileIcon />}
+        />
       </div>
 
       {/* Barra de filtros sticky */}
@@ -667,8 +707,49 @@ function ItemRow({ item, idx, entidadId, contratoId, archivosItem, canUpload, on
   );
 }
 
+// ── Stat Card ─────────────────────────────────────────────────────────────────
+
+function StatCard({ label, value, color, bg, icon, onClick, active }: {
+  label: string; value: number; color: string; bg: string;
+  icon: React.ReactNode; onClick?: () => void; active?: boolean;
+}) {
+  return (
+    <div
+      onClick={onClick}
+      style={{
+        background: active ? bg : "var(--card)",
+        border: `1px solid ${active ? color + "44" : "var(--border)"}`,
+        borderRadius: 8, padding: "14px 16px",
+        cursor: onClick ? "pointer" : "default",
+        transition: "background 0.15s, border-color 0.15s",
+        display: "flex", flexDirection: "column", gap: 8,
+        boxShadow: "0 1px 3px rgba(15,17,23,0.05)",
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <span style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+          {label}
+        </span>
+        <span style={{ color, opacity: 0.7, display: "flex" }}>{icon}</span>
+      </div>
+      <div style={{ fontSize: 28, fontWeight: 700, color, fontFamily: "'DM Serif Display', serif", lineHeight: 1 }}>
+        {value}
+      </div>
+      {onClick && (
+        <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", color: active ? color : "var(--muted)" }}>
+          {active ? "Clic para limpiar filtro" : "Clic para filtrar"}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Icons ─────────────────────────────────────────────────────────────────────
 
+function ClockIcon()    { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>; }
+function ReviewIcon()   { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>; }
+function CheckIcon()    { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12" /></svg>; }
+function FileIcon()     { return <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>; }
 function SearchIcon()   { return <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>; }
 function ChevronIcon()  { return <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6" /></svg>; }
 function SendIcon()     { return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>; }
