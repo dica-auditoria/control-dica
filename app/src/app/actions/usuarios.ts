@@ -416,3 +416,24 @@ export async function updateUserContratosAction(userId: string, contratosIds: st
   revalidatePath("/dashboard/clientes");
   return { success: true };
 }
+
+export async function asignarContratosEnMasaAction(userIds: string[], contratosIds: string[]) {
+  const { supabase, error: authErr } = await verificarAdmin();
+  if (authErr || !supabase) return { error: authErr };
+
+  const admin = createAdminClient();
+
+  const rows = userIds.flatMap(userId =>
+    contratosIds.map(contrato_id => ({ usuario_id: userId, contrato_id }))
+  );
+
+  // Insert ignorando duplicados (usuario ya tiene ese contrato)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (admin.from("usuario_contratos") as any)
+    .upsert(rows, { onConflict: "usuario_id,contrato_id", ignoreDuplicates: true });
+
+  if (error) return { error: "Error al asignar contratos en masa" };
+
+  revalidatePath("/dashboard/clientes");
+  return { success: true };
+}

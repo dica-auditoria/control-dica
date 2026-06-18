@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { crearUsuarioAction, editarClienteAction, toggleActivoClienteAction, eliminarClienteAction, fetchUserContratosAction, updateUserContratosAction } from "@/app/actions/usuarios";
+import { crearUsuarioAction, editarClienteAction, toggleActivoClienteAction, eliminarClienteAction, fetchUserContratosAction, updateUserContratosAction, asignarContratosEnMasaAction } from "@/app/actions/usuarios";
 import { fetchContratosAction } from "@/app/actions/contratos";
 import type { Contrato } from "@/types/contratos";
 
@@ -102,6 +102,71 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
   const [editLoadingContratos, setEditLoadingContratos] = useState(false);
   const [toggling, setToggling] = useState<string | null>(null);
   const [eliminando, setEliminando] = useState<string | null>(null);
+
+  // ── Selección múltiple ──────────────────────────────────────────────────────
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const toggleSelect = (id: string) =>
+    setSelectedIds(prev => { const s = new Set(prev); s.has(id) ? s.delete(id) : s.add(id); return s; });
+  const toggleSelectAll = () => {
+    if (selectedIds.size === usuariosPagina.length) setSelectedIds(new Set());
+    else setSelectedIds(new Set(usuariosPagina.map(u => u.id)));
+  };
+
+  // ── Modal asignación masiva ─────────────────────────────────────────────────
+  const [bulkModal, setBulkModal] = useState(false);
+  const [bulkEmpresaId, setBulkEmpresaId] = useState("");
+  const [bulkContratos, setBulkContratos] = useState<Contrato[]>([]);
+  const [bulkContratosIds, setBulkContratosIds] = useState<Set<string>>(new Set());
+  const [bulkLoadingContratos, setBulkLoadingContratos] = useState(false);
+  const [bulkSubmitting, setBulkSubmitting] = useState(false);
+  const [bulkError, setBulkError] = useState("");
+  const [bulkSuccess, setBulkSuccess] = useState(false);
+
+  const handleBulkEmpresaChange = async (id: string) => {
+    setBulkEmpresaId(id);
+    setBulkContratosIds(new Set());
+    setBulkContratos([]);
+    if (!id) return;
+    setBulkLoadingContratos(true);
+    const result = await fetchContratosAction(id);
+    setBulkContratos((result.data ?? []).filter(c => c.estado === "vigente"));
+    setBulkLoadingContratos(false);
+  };
+
+  const handleBulkSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setBulkError("");
+    if (bulkContratosIds.size === 0) { setBulkError("Selecciona al menos un contrato"); return; }
+    setBulkSubmitting(true);
+    const result = await asignarContratosEnMasaAction(Array.from(selectedIds), Array.from(bulkContratosIds));
+    if (result.error) { setBulkError(result.error ?? "Error"); setBulkSubmitting(false); return; }
+    // Actualizar lista local: agregar nombres de contratos a cada usuario seleccionado
+    const nombresAgregados = bulkContratos.filter(c => bulkContratosIds.has(c.id)).map(c => c.nombre);
+    setUsuarios(prev => prev.map(u => {
+      if (!selectedIds.has(u.id)) return u;
+      const nuevos = nombresAgregados.filter(n => !u.contratos_list.includes(n));
+      return { ...u, contratos_list: [...u.contratos_list, ...nuevos] };
+    }));
+    setBulkSuccess(true);
+    setBulkSubmitting(false);
+    setTimeout(() => {
+      setBulkModal(false);
+      setBulkSuccess(false);
+      setBulkEmpresaId("");
+      setBulkContratos([]);
+      setBulkContratosIds(new Set());
+      setSelectedIds(new Set());
+    }, 1200);
+  };
+
+  const abrirBulkModal = () => {
+    setBulkError("");
+    setBulkSuccess(false);
+    setBulkEmpresaId("");
+    setBulkContratos([]);
+    setBulkContratosIds(new Set());
+    setBulkModal(true);
+  };
 
   const abrirEditar = async (u: ClienteUsuarioItem) => {
     setEditForm({ nombre: u.nombre, email: u.email, password: "", confirmar: "" });
@@ -255,6 +320,34 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
     <>
       <div style={{ padding: "24px 32px" }}>
 
+        {/* Barra selección múltiple */}
+        {selectedIds.size > 0 && (
+          <div style={{
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+            padding: "10px 16px", marginBottom: 12,
+            background: "rgba(27,79,138,0.07)", border: "1.5px solid rgba(27,79,138,0.25)",
+            borderRadius: 6,
+          }}>
+            <span style={{ fontSize: 13, fontWeight: 600, color: "#1B4F8A" }}>
+              {selectedIds.size} usuario{selectedIds.size !== 1 ? "s" : ""} seleccionado{selectedIds.size !== 1 ? "s" : ""}
+            </span>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button
+                onClick={() => setSelectedIds(new Set())}
+                style={{ ...btnSmall, color: "var(--muted-2)" }}
+              >
+                Limpiar
+              </button>
+              <button
+                onClick={abrirBulkModal}
+                style={{ ...btnSmall, color: "#1B4F8A", borderColor: "rgba(27,79,138,0.35)", fontWeight: 600 }}
+              >
+                + Asignar contratos
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Header sección */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
           <div>
@@ -341,6 +434,16 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr style={{ background: "var(--surface)" }}>
+                {puedeGestionar && (
+                  <th style={{ padding: "10px 12px 10px 20px", width: 32 }}>
+                    <input
+                      type="checkbox"
+                      checked={usuariosPagina.length > 0 && selectedIds.size === usuariosPagina.length}
+                      onChange={toggleSelectAll}
+                      style={{ cursor: "pointer", accentColor: "#1B4F8A" }}
+                    />
+                  </th>
+                )}
                 <Th>Usuario</Th>
                 <Th>Empresa</Th>
                 <Th>Contrato</Th>
@@ -353,7 +456,7 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
             <tbody>
               {usuariosPagina.length === 0 ? (
                 <tr>
-                  <td colSpan={7} style={{
+                  <td colSpan={puedeGestionar ? 8 : 7} style={{
                     padding: "40px 20px", textAlign: "center",
                     color: "var(--muted)", fontSize: 13, fontFamily: "'DM Mono', monospace",
                   }}>
@@ -362,8 +465,19 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
                 </tr>
               ) : usuariosPagina.map(u => {
                 const initials = u.nombre.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
+                const isSelected = selectedIds.has(u.id);
                 return (
-                  <tr key={u.id} style={{ borderBottom: "1px solid var(--border)" }}>
+                  <tr key={u.id} style={{ borderBottom: "1px solid var(--border)", background: isSelected ? "rgba(27,79,138,0.04)" : undefined }}>
+                    {puedeGestionar && (
+                      <td style={{ padding: "14px 12px 14px 20px", width: 32 }}>
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => toggleSelect(u.id)}
+                          style={{ cursor: "pointer", accentColor: "#1B4F8A" }}
+                        />
+                      </td>
+                    )}
                     <td style={{ padding: "14px 20px" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                         <div style={{
@@ -767,6 +881,99 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
                 </button>
                 <button type="submit" disabled={submitting} style={btnPrimary}>
                   {submitting ? "Creando acceso…" : "Crear acceso"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal asignación masiva de contratos */}
+      {bulkModal && (
+        <div
+          style={{ position: "fixed", inset: 0, background: "var(--overlay)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50, padding: 24 }}
+          onClick={e => { if (e.target === e.currentTarget && !bulkSubmitting) setBulkModal(false); }}
+        >
+          <div style={{ background: "var(--card)", borderRadius: 10, width: "100%", maxWidth: 440, boxShadow: "0 12px 40px rgba(15,17,23,0.2)" }}>
+            <div style={{ padding: "20px 24px 16px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div>
+                <div style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)" }}>Asignar contratos en bloque</div>
+                <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 2 }}>
+                  {selectedIds.size} usuario{selectedIds.size !== 1 ? "s" : ""} seleccionado{selectedIds.size !== 1 ? "s" : ""}
+                  {" · "}Se agregarán a sus contratos existentes
+                </div>
+              </div>
+              <button onClick={() => setBulkModal(false)} disabled={bulkSubmitting} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", padding: 4 }}>
+                <XIcon />
+              </button>
+            </div>
+
+            <form onSubmit={handleBulkSubmit}>
+              <div style={{ padding: "20px 24px", display: "flex", flexDirection: "column", gap: 16 }}>
+
+                <Field label="Empresa *">
+                  <select value={bulkEmpresaId} onChange={e => handleBulkEmpresaChange(e.target.value)} required style={iStyle}>
+                    <option value="">— Selecciona una empresa —</option>
+                    {entidades.map(e => <option key={e.id} value={e.id}>{e.nombre}</option>)}
+                  </select>
+                </Field>
+
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--muted-2)", fontFamily: "'DM Mono', monospace", marginBottom: 8 }}>
+                    Contratos a agregar *
+                  </div>
+                  {!bulkEmpresaId ? (
+                    <div style={{ fontSize: 12, color: "var(--muted)", fontFamily: "'DM Mono', monospace" }}>Primero selecciona una empresa</div>
+                  ) : bulkLoadingContratos ? (
+                    <div style={{ fontSize: 12, color: "var(--muted)", fontFamily: "'DM Mono', monospace" }}>Cargando contratos…</div>
+                  ) : bulkContratos.length === 0 ? (
+                    <div style={{ fontSize: 12, color: "var(--amber)", fontFamily: "'DM Mono', monospace" }}>Sin contratos vigentes en esta empresa</div>
+                  ) : (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 220, overflowY: "auto", padding: "2px 0" }}>
+                      {bulkContratos.map(c => (
+                        <label key={c.id} style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", padding: "8px 12px", borderRadius: 6, border: `1.5px solid ${bulkContratosIds.has(c.id) ? "rgba(27,79,138,0.5)" : "var(--border-strong)"}`, background: bulkContratosIds.has(c.id) ? "rgba(27,79,138,0.05)" : "var(--card)" }}>
+                          <input
+                            type="checkbox"
+                            checked={bulkContratosIds.has(c.id)}
+                            onChange={() => setBulkContratosIds(prev => {
+                              const s = new Set(prev);
+                              s.has(c.id) ? s.delete(c.id) : s.add(c.id);
+                              return s;
+                            })}
+                            style={{ marginTop: 2, accentColor: "#1B4F8A", flexShrink: 0 }}
+                          />
+                          <div>
+                            <div style={{ fontSize: 13, color: "var(--ink)", fontWeight: bulkContratosIds.has(c.id) ? 600 : 400 }}>{c.nombre}</div>
+                            {c.numero_contrato && <div style={{ fontSize: 11, color: "var(--muted)", fontFamily: "'DM Mono', monospace", marginTop: 1 }}>{c.numero_contrato}</div>}
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {bulkError && (
+                  <div style={{ padding: "8px 12px", background: "var(--red-light)", borderRadius: 4, fontSize: 12, color: "var(--accent)" }}>
+                    {bulkError}
+                  </div>
+                )}
+                {bulkSuccess && (
+                  <div style={{ padding: "8px 12px", background: "var(--green-light)", borderRadius: 4, fontSize: 12, color: "var(--green)", fontWeight: 600 }}>
+                    ✓ Contratos asignados correctamente
+                  </div>
+                )}
+              </div>
+
+              <div style={{ padding: "14px 24px", borderTop: "1px solid var(--border)", display: "flex", gap: 10, justifyContent: "flex-end" }}>
+                <button type="button" onClick={() => setBulkModal(false)} style={btnOutline} disabled={bulkSubmitting}>
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={bulkSubmitting || bulkContratosIds.size === 0}
+                  style={{ ...btnPrimary, background: "#1B4F8A", opacity: bulkContratosIds.size === 0 ? 0.5 : 1 }}
+                >
+                  {bulkSubmitting ? "Asignando…" : `Agregar ${bulkContratosIds.size > 0 ? bulkContratosIds.size : ""} contrato${bulkContratosIds.size !== 1 ? "s" : ""}`}
                 </button>
               </div>
             </form>
