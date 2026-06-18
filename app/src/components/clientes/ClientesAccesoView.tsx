@@ -13,6 +13,7 @@ export interface ClienteUsuarioItem {
   entidad_nombre: string | null;
   contrato_id: string | null;
   contrato_nombre: string | null;
+  contratos_list: string[];
   area: string | null;
   activo: boolean;
   created_at: string;
@@ -61,7 +62,7 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
     const q = busqueda.toLowerCase();
     if (q && !u.nombre.toLowerCase().includes(q) && !u.email.toLowerCase().includes(q)) return false;
     if (filtroEmpresa  && u.entidad_id !== filtroEmpresa)                        return false;
-    if (filtroContrato && u.contrato_nombre !== filtroContrato)                  return false;
+    if (filtroContrato && !u.contratos_list.includes(filtroContrato))             return false;
     if (filtroArea     && (u.area ?? "") !== filtroArea)                         return false;
     if (filtroEstado === "activo"   && !u.activo)                                return false;
     if (filtroEstado === "inactivo" &&  u.activo)                                return false;
@@ -76,7 +77,7 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
   const resetPagina = () => setPagina(1);
 
   // Opciones únicas para filtros de contrato y área
-  const optsContratos = Array.from(new Set(usuarios.map(u => u.contrato_nombre).filter(Boolean))) as string[];
+  const optsContratos = Array.from(new Set(usuarios.flatMap(u => u.contratos_list)));
   const optsAreas     = Array.from(new Set(usuarios.map(u => u.area).filter(Boolean))) as string[];
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -154,8 +155,9 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
     if (rContratos.error) { setEditError(rContratos.error); setEditSubmitting(false); return; }
 
     const primerNombre = editContratos.find(c => c.id === contratosValidos[0])?.nombre ?? null;
+    const contratosNombresEdit = contratosValidos.map(cid => editContratos.find(c => c.id === cid)?.nombre ?? "").filter(Boolean);
     setUsuarios(prev => prev.map(u => u.id === editModal!.id
-      ? { ...u, nombre: editForm.nombre, email: editForm.email, contrato_id: contratosValidos[0], contrato_nombre: primerNombre, area: editArea.trim() || null }
+      ? { ...u, nombre: editForm.nombre, email: editForm.email, contrato_id: contratosValidos[0], contrato_nombre: primerNombre, contratos_list: contratosNombresEdit, area: editArea.trim() || null }
       : u
     ));
     setEditModal(null);
@@ -228,6 +230,7 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
 
     const entidad = entidades.find(e => e.id === form.entidad_id);
     const primerContrato = contratos.find(c => c.id === contratosValidos[0]);
+    const contratosNombresNuevo = contratosValidos.map(cid => contratos.find(c => c.id === cid)?.nombre ?? "").filter(Boolean);
     setUsuarios(prev => [{
       id: result.userId!,
       nombre: form.nombre.trim(),
@@ -236,6 +239,7 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
       entidad_nombre: entidad?.nombre ?? null,
       contrato_id: contratosValidos[0] ?? null,
       contrato_nombre: primerContrato?.nombre ?? null,
+      contratos_list: contratosNombresNuevo,
       area: form.area.trim() || null,
       activo: true,
       created_at: new Date().toISOString(),
@@ -381,10 +385,16 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
                         ? <span style={{ fontSize: 13, color: "var(--ink)" }}>{u.entidad_nombre}</span>
                         : <span style={{ fontSize: 12, color: "var(--muted)", fontFamily: "'DM Mono', monospace" }}>—</span>}
                     </td>
-                    <td style={{ padding: "14px 20px" }}>
-                      {u.contrato_nombre
-                        ? <span style={{ fontSize: 12, color: "var(--ink)" }}>{u.contrato_nombre}</span>
-                        : <span style={{ fontSize: 12, color: "var(--muted)", fontFamily: "'DM Mono', monospace" }}>Sin contrato</span>}
+                    <td style={{ padding: "12px 20px" }}>
+                      {u.contratos_list.length > 0 ? (
+                        <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                          {u.contratos_list.map((c, i) => (
+                            <span key={i} style={{ fontSize: 11, color: "var(--ink)", lineHeight: 1.4 }}>{c}</span>
+                          ))}
+                        </div>
+                      ) : (
+                        <span style={{ fontSize: 12, color: "var(--muted)", fontFamily: "'DM Mono', monospace" }}>Sin contrato</span>
+                      )}
                     </td>
                     <td style={{ padding: "14px 20px" }}>
                       {u.area

@@ -21,6 +21,10 @@ interface UsuarioClienteRow {
   entidades: { nombre: string } | null;
   contratos: { nombre: string } | null;
 }
+interface UserContratoRow {
+  usuario_id: string;
+  contratos: { nombre: string } | null;
+}
 
 export default async function ClientesPage() {
   const supabase = createClient();
@@ -38,7 +42,7 @@ export default async function ClientesPage() {
   const admin = createAdminClient();
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [rEntidades, rContratos, rStats, rClienteUsers] = await Promise.all([
+  const [rEntidades, rContratos, rStats, rClienteUsers, rUserContratos] = await Promise.all([
     (admin.from("entidades") as any)
       .select("id, nombre, activo, created_at")
       .order("nombre") as Promise<{ data: EntidadRow[] | null; error: unknown }>,
@@ -51,6 +55,10 @@ export default async function ClientesPage() {
       .select("id, nombre, email, entidad_id, contrato_id, area, activo, created_at, entidades(nombre), contratos(nombre)")
       .eq("rol", "cliente")
       .order("created_at", { ascending: false }) as Promise<{ data: UsuarioClienteRow[] | null; error: unknown }>,
+    // All contracts per user (many-to-many)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (admin.from("usuario_contratos") as any)
+      .select("usuario_id, contratos(nombre)") as Promise<{ data: UserContratoRow[] | null; error: unknown }>,
   ]);
 
   // Stats para tarjetas de empresas
@@ -82,6 +90,14 @@ export default async function ClientesPage() {
     totalUsuarios: statsMap.get(e.id)?.usuarios ?? 0,
   }));
 
+  const userContratosMap = new Map<string, string[]>();
+  for (const uc of rUserContratos.data ?? []) {
+    if (!uc.contratos) continue;
+    const list = userContratosMap.get(uc.usuario_id) ?? [];
+    list.push(uc.contratos.nombre);
+    userContratosMap.set(uc.usuario_id, list);
+  }
+
   const clienteUsers: ClienteUsuarioItem[] = (rClienteUsers.data ?? []).map(u => ({
     id: u.id,
     nombre: u.nombre,
@@ -90,6 +106,7 @@ export default async function ClientesPage() {
     entidad_nombre: u.entidades?.nombre ?? null,
     contrato_id: u.contrato_id,
     contrato_nombre: u.contratos?.nombre ?? null,
+    contratos_list: userContratosMap.get(u.id) ?? (u.contratos?.nombre ? [u.contratos.nombre] : []),
     area: u.area ?? null,
     activo: u.activo ?? true,
     created_at: u.created_at,
