@@ -312,6 +312,14 @@ export async function fetchAccesoEmpleadosAction(entidadId: string): Promise<{ d
 
   const admin = createAdminClient();
 
+  const DEPARTAMENTOS_ACCESO_TOTAL = [
+    "Dirección General",
+    "Dirección de Administración",
+    "Coordinación de Sistemas",
+    "Gerencia de Auditoría",
+    "Gerencia de Proyectos",
+  ];
+
   type EmpleadoRow = { id: string; nombres: string; apellido_paterno: string; apellido_materno: string | null; departamento: string; email_institucional: string | null };
 
   const [rAcceso, rEmpleados] = await Promise.all([
@@ -323,6 +331,7 @@ export async function fetchAccesoEmpleadosAction(entidadId: string): Promise<{ d
       .from("empleados")
       .select("id, nombres, apellido_paterno, apellido_materno, departamento, email_institucional")
       .eq("estado", "activo")
+      .not("departamento", "in", `(${DEPARTAMENTOS_ACCESO_TOTAL.map(d => `"${d}"`).join(",")})`)
       .order("apellido_paterno") as unknown as Promise<{ data: EmpleadoRow[] | null; error: unknown }>,
   ]);
 
