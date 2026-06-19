@@ -7,7 +7,7 @@ import type { ArchivoContratoItem } from "@/app/actions/archivos";
 import type { Comentario } from "@/app/actions/comentarios";
 import { toggleItemCompletoAction, importarReactivosContratoAction, extenderFechaItemAction, chequearImpactoImportAction, agregarItemContratoAction, editarItemAction, eliminarItemAction, reordenarItemAction, actualizarFechaContratoAction } from "@/app/actions/requerimientos";
 import { deleteArchivoAction } from "@/app/actions/archivos";
-import { getDownloadUrlAction } from "@/app/actions/storage";
+import { getDownloadUrlAction, getWasabiViewUrlAction } from "@/app/actions/storage";
 import { fetchComentariosItemAction, agregarComentarioAction } from "@/app/actions/comentarios";
 import UploadZone from "@/components/archivos/UploadZone";
 
@@ -245,9 +245,9 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
     router.refresh();
   };
 
-  const handlePreview = async (archivoId: string, key: string, filename: string) => {
+  const handlePreview = async (archivoId: string, key: string) => {
     setPreviewingId(archivoId);
-    const result = await getDownloadUrlAction(key, filename.split("/").pop() ?? filename);
+    const result = await getWasabiViewUrlAction(key);
     setPreviewingId(null);
     if (result.url) window.open(result.url, "_blank");
   };
@@ -528,7 +528,7 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
                                   {archivo.tipo.slice(0, 4)}
                                 </span>
                                 <button
-                                  onClick={() => handlePreview(archivo.id, archivo.ruta_storage, archivo.nombre)}
+                                  onClick={() => handlePreview(archivo.id, archivo.ruta_storage)}
                                   disabled={previewingId === archivo.id}
                                   title="Visualizar"
                                   style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", padding: 4, flexShrink: 0, opacity: previewingId === archivo.id ? 0.4 : 1 }}
