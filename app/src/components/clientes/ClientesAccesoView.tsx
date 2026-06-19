@@ -321,8 +321,11 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
       <style>{`
         .acceso-wrap { padding: 24px 32px; }
         .acceso-filters { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; align-items: center; }
-        .acceso-table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-        .acceso-table { width: 100%; border-collapse: collapse; min-width: 700px; }
+        .acceso-table-outer { border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 1px 3px rgba(15,17,23,0.08); background: var(--card); }
+        .acceso-table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 8px; }
+        .acceso-table { width: 100%; border-collapse: collapse; min-width: 860px; }
+        .acceso-table td, .acceso-table th { white-space: nowrap; }
+        .acceso-table .cell-wrap { white-space: normal; min-width: 140px; max-width: 220px; }
         .acceso-col-area, .acceso-col-alta { }
         /* Tarjetas móvil */
         .acceso-cards { display: none; flex-direction: column; gap: 10px; }
@@ -334,7 +337,7 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
         .acceso-card-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
         @media (max-width: 640px) {
           .acceso-wrap { padding: 16px; }
-          .acceso-table-scroll { display: none; }
+          .acceso-table-outer { display: none; }
           .acceso-cards { display: flex; }
           .acceso-header-row { flex-direction: column; align-items: flex-start !important; gap: 10px; }
           .acceso-pagination { flex-direction: column; align-items: flex-start !important; }
@@ -453,10 +456,8 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
         </div>
 
         {/* Tabla (oculta en móvil) */}
-        <div className="acceso-table-scroll" style={{
-          background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8,
-          overflow: "hidden", boxShadow: "0 1px 3px rgba(15,17,23,0.08)",
-        }}>
+        <div className="acceso-table-outer">
+          <div className="acceso-table-scroll">
           <table className="acceso-table">
             <thead>
               <tr style={{ background: "var(--surface)" }}>
@@ -520,12 +521,12 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
                         </div>
                       </div>
                     </td>
-                    <td style={{ padding: "14px 20px" }}>
+                    <td className="cell-wrap" style={{ padding: "14px 20px" }}>
                       {u.entidad_nombre
                         ? <span style={{ fontSize: 13, color: "var(--ink)" }}>{u.entidad_nombre}</span>
                         : <span style={{ fontSize: 12, color: "var(--muted)", fontFamily: "'DM Mono', monospace" }}>—</span>}
                     </td>
-                    <td style={{ padding: "12px 20px" }}>
+                    <td className="cell-wrap" style={{ padding: "12px 20px" }}>
                       {u.contratos_list.length > 0 ? (
                         <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
                           {u.contratos_list.map((c, i) => (
@@ -598,6 +599,7 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
               })}
             </tbody>
           </table>
+          </div>
         </div>
 
         {/* Tarjetas móvil */}
