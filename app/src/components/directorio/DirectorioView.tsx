@@ -202,7 +202,7 @@ export default function DirectorioView({ oficinas, entidades, empresas: initialE
         {/* Tabs */}
         <div style={{ display: "flex", gap: 4, marginBottom: 24, borderBottom: "1px solid var(--border)" }}>
           {((soloEmpresas ? ["empresas"] : ["oficina", "empresas"]) as TabActual[]).map(t => {
-            const labels: Record<string, string> = { oficina: "🏢 Oficinas DICA", empresas: "🏛 Empresas" };
+            const labels: Record<string, string> = { oficina: "🏢 Oficinas DICA", empresas: "🏛 Entidades" };
             const counts: Record<string, number> = { oficina: oficinas.length, empresas: empresas.length };
             return (
               <button key={t} onClick={() => setTab(t)} style={{
