@@ -532,7 +532,7 @@ export default function ClienteDetalleView({ cliente: initial, rol, puedeGestion
                       background: "var(--surface)",
                     }}>
                       <div style={{ display: "flex", gap: 6 }}>
-                        {isAdmin && (
+                        {puedeVerAcceso && (
                           <button
                             onClick={() => abrirEditar(c)}
                             style={{
@@ -545,7 +545,7 @@ export default function ClienteDetalleView({ cliente: initial, rol, puedeGestion
                             Editar
                           </button>
                         )}
-                        {isSuperadmin && (
+                        {puedeVerAcceso && (
                           <button
                             onClick={() => handleEliminar(c)}
                             disabled={eliminando === c.id}
