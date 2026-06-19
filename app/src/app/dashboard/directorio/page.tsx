@@ -10,6 +10,15 @@ interface PerfilRow { rol: string }
 interface EntidadRow { id: string; nombre: string; activo: boolean; created_at: string }
 interface ContratoRow { entidad_id: string; estado: string }
 interface StatsRow { entidad_id: string; archivo_count: number; usuario_count: number }
+interface EmpleadoRow { id: string; departamento: string }
+
+const DEPARTAMENTOS_ACCESO_TOTAL = [
+  "Dirección General",
+  "Dirección de Administración",
+  "Coordinación de Sistemas",
+  "Gerencia de Auditoría",
+  "Gerencia de Proyectos",
+];
 
 export default async function DirectorioPage() {
   const supabase = createClient();
@@ -26,6 +35,27 @@ export default async function DirectorioPage() {
 
   // Use admin client to bypass RLS on entidades/contratos for non-admin roles
   const admin = createAdminClient();
+
+  // Determinar si el empleado tiene acceso restringido por departamento
+  const isPrivileged = ["admin", "superadmin", "rrhh"].includes(perfil.rol);
+  let entidadesPermitidas: Set<string> | null = null; // null = ver todo
+
+  if (!isPrivileged) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: emp } = await (admin.from("empleados") as any)
+      .select("id, departamento")
+      .eq("usuario_id", user.id)
+      .single() as { data: EmpleadoRow | null; error: unknown };
+
+    if (!emp || !DEPARTAMENTOS_ACCESO_TOTAL.includes(emp.departamento)) {
+      // Departamento restringido: solo entidades con acceso explícito
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: accesos } = await (admin.from("entidad_acceso_empleados") as any)
+        .select("entidad_id")
+        .eq("empleado_id", emp?.id ?? "") as { data: Array<{ entidad_id: string }> | null; error: unknown };
+      entidadesPermitidas = new Set((accesos ?? []).map(a => a.entidad_id));
+    }
+  }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [rOficinas, rEntidades, rContratos, rStats] = await Promise.all([
@@ -61,16 +91,18 @@ export default async function DirectorioPage() {
     });
   }
 
-  const empresas: EmpresaDirectorioItem[] = (rEntidades.data ?? []).map(e => ({
-    id: e.id,
-    nombre: e.nombre,
-    activo: e.activo,
-    created_at: e.created_at,
-    totalContratos: contratosMap.get(e.id)?.total ?? 0,
-    contratosVigentes: contratosMap.get(e.id)?.vigentes ?? 0,
-    totalArchivos: statsMap.get(e.id)?.archivos ?? 0,
-    totalUsuarios: statsMap.get(e.id)?.usuarios ?? 0,
-  }));
+  const empresas: EmpresaDirectorioItem[] = (rEntidades.data ?? [])
+    .filter(e => entidadesPermitidas === null || entidadesPermitidas.has(e.id))
+    .map(e => ({
+      id: e.id,
+      nombre: e.nombre,
+      activo: e.activo,
+      created_at: e.created_at,
+      totalContratos: contratosMap.get(e.id)?.total ?? 0,
+      contratosVigentes: contratosMap.get(e.id)?.vigentes ?? 0,
+      totalArchivos: statsMap.get(e.id)?.archivos ?? 0,
+      totalUsuarios: statsMap.get(e.id)?.usuarios ?? 0,
+    }));
 
   return (
     <DirectorioView

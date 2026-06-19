@@ -5,9 +5,9 @@ import { fetchClienteConContratosAction } from "@/app/actions/contratos";
 import ClienteDetalleView from "@/components/clientes/ClienteDetalleView";
 
 interface PerfilRow { rol: string }
-interface EmpleadoDeptoRow { departamento: string }
+interface EmpleadoAccesoRow { id: string; departamento: string }
 
-const DEPARTAMENTOS_GESTION_ACCESO = [
+const DEPARTAMENTOS_PRIVILEGIADOS = [
   "Dirección General",
   "Dirección de Administración",
   "Coordinación de Sistemas",
@@ -28,19 +28,34 @@ export default async function EmpresaDirectorioPage({ params }: { params: { id: 
 
   if (!perfil || perfil.rol === "cliente") redirect("/dashboard");
 
-  const isAdmin = perfil.rol === "admin" || perfil.rol === "superadmin";
+  const isAdmin = perfil.rol === "admin" || perfil.rol === "superadmin" || perfil.rol === "rrhh";
 
-  // Para no-admins, verificar si su departamento tiene permiso de gestionar acceso
   let puedeGestionarAcceso = isAdmin;
+
   if (!isAdmin) {
     const admin = createAdminClient();
-    const { data: empDepto } = await (admin.from("empleados") as any)
-      .select("departamento")
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: emp } = await (admin.from("empleados") as any)
+      .select("id, departamento")
       .eq("usuario_id", user.id)
-      .single() as { data: EmpleadoDeptoRow | null; error: unknown };
-    if (empDepto && DEPARTAMENTOS_GESTION_ACCESO.includes(empDepto.departamento)) {
-      puedeGestionarAcceso = true;
+      .single() as { data: EmpleadoAccesoRow | null; error: unknown };
+
+    const esPrivilegiado = emp && DEPARTAMENTOS_PRIVILEGIADOS.includes(emp.departamento);
+
+    if (!esPrivilegiado) {
+      // Verificar que tenga acceso explícito a esta entidad
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: acceso } = await (admin.from("entidad_acceso_empleados") as any)
+        .select("empleado_id")
+        .eq("entidad_id", params.id)
+        .eq("empleado_id", emp?.id ?? "")
+        .maybeSingle() as { data: { empleado_id: string } | null; error: unknown };
+
+      if (!acceso) redirect("/dashboard/directorio");
     }
+
+    if (esPrivilegiado) puedeGestionarAcceso = true;
   }
 
   const result = await fetchClienteConContratosAction(params.id);
