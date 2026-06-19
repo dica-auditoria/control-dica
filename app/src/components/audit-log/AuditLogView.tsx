@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
 export interface AuditLogItem {
   id: string;
@@ -24,7 +24,7 @@ type Filtro =
   | "CONTRATO_CREAR" | "CONTRATO_ACTUALIZAR" | "CONTRATO_ELIMINAR";
 
 const FILTROS: { key: Filtro; label: string }[] = [
-  { key: "TODAS",               label: "Todas" },
+  { key: "TODAS",               label: "Todas las acciones" },
   { key: "LOGIN",               label: "Login" },
   { key: "LOGOUT",              label: "Logout" },
   { key: "UPLOAD",              label: "Upload" },
@@ -87,12 +87,55 @@ function maskIp(ip: string | null): string {
   return ip.split(":").slice(0, 2).join(":") + ":…";
 }
 
-export default function AuditLogView({ entradas, total }: { entradas: AuditLogItem[]; total: number }) {
-  const [filtro, setFiltro] = useState<Filtro>("TODAS");
+// "2026-06-18T05:42:21Z" → "2026-06-18"
+function toDateStr(isoStr: string): string {
+  return isoStr.slice(0, 10);
+}
 
-  const lista = filtro === "TODAS"
-    ? entradas
-    : entradas.filter(e => e.accion === filtro);
+const iStyle: React.CSSProperties = {
+  padding: "7px 12px",
+  border: "1.5px solid var(--border-strong)",
+  borderRadius: 4,
+  fontSize: 12,
+  fontFamily: "'DM Sans', sans-serif",
+  background: "var(--card)",
+  color: "var(--ink)",
+  outline: "none",
+};
+
+export default function AuditLogView({ entradas, total }: { entradas: AuditLogItem[]; total: number }) {
+  const [busqueda, setBusqueda] = useState("");
+  const [filtroAccion, setFiltroAccion] = useState<Filtro>("TODAS");
+  const [filtroEntidad, setFiltroEntidad] = useState("");
+  const [filtroFecha, setFiltroFecha] = useState("");
+
+  // Opciones únicas de entidad derivadas de los datos
+  const optsEntidades = useMemo(
+    () => Array.from(new Set(entradas.map(e => e.entidad_nombre).filter(Boolean))).sort() as string[],
+    [entradas]
+  );
+
+  const lista = useMemo(() => {
+    const q = busqueda.toLowerCase().trim();
+    return entradas.filter(e => {
+      if (filtroAccion !== "TODAS" && e.accion !== filtroAccion) return false;
+      if (filtroEntidad && e.entidad_nombre !== filtroEntidad) return false;
+      if (filtroFecha && toDateStr(e.created_at) !== filtroFecha) return false;
+      if (q) {
+        const haystack = [
+          e.usuario_nombre ?? "",
+          e.entidad_nombre ?? "",
+          e.accion,
+          recursoLabel(e),
+        ].join(" ").toLowerCase();
+        if (!haystack.includes(q)) return false;
+      }
+      return true;
+    });
+  }, [entradas, busqueda, filtroAccion, filtroEntidad, filtroFecha]);
+
+  const hayFiltros = busqueda || filtroAccion !== "TODAS" || filtroEntidad || filtroFecha;
+  const limpiar = () => { setBusqueda(""); setFiltroAccion("TODAS"); setFiltroEntidad(""); setFiltroFecha(""); };
 
   return (
     <>
@@ -101,35 +144,82 @@ export default function AuditLogView({ entradas, total }: { entradas: AuditLogIt
         padding: "20px 32px",
         borderBottom: "1px solid var(--border)",
         background: "var(--card)",
-        display: "flex", alignItems: "center", justifyContent: "space-between",
       }}>
-        <div>
-          <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: "var(--ink)" }}>
-            Audit Log
-          </div>
-          <div style={{ fontSize: 12, color: "var(--muted)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>
-            Registro inmutable — solo lectura · mostrando los últimos {total} eventos
-          </div>
+        <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 22, color: "var(--ink)" }}>
+          Audit Log
+        </div>
+        <div style={{ fontSize: 12, color: "var(--muted)", fontFamily: "'DM Mono', monospace", marginTop: 2 }}>
+          Registro inmutable — solo lectura · mostrando los últimos {total} eventos
+        </div>
+      </div>
+
+      {/* Barra de filtros */}
+      <div style={{
+        padding: "14px 32px",
+        borderBottom: "1px solid var(--border)",
+        background: "var(--surface)",
+        display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center",
+      }}>
+        {/* Buscador */}
+        <div style={{ position: "relative", flex: "1 1 200px", minWidth: 180 }}>
+          <svg style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }}
+            width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="2" strokeLinecap="round">
+            <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          <input
+            type="text"
+            placeholder="Buscar usuario, recurso, entidad…"
+            value={busqueda}
+            onChange={e => setBusqueda(e.target.value)}
+            style={{ ...iStyle, paddingLeft: 32, width: "100%", boxSizing: "border-box" }}
+          />
         </div>
 
-        {/* Filtro */}
+        {/* Fecha */}
+        <input
+          type="date"
+          value={filtroFecha}
+          onChange={e => setFiltroFecha(e.target.value)}
+          style={{ ...iStyle, flex: "0 0 auto", cursor: "pointer", fontFamily: "'DM Mono', monospace" }}
+        />
+
+        {/* Entidad */}
         <select
-          value={filtro}
-          onChange={e => setFiltro(e.target.value as Filtro)}
-          style={{
-            padding: "7px 12px", border: "1px solid var(--border-strong)", borderRadius: 6,
-            fontSize: 12, fontFamily: "'DM Mono', monospace", background: "var(--surface)",
-            color: "var(--ink)", cursor: "pointer", minWidth: 200,
-          }}
+          value={filtroEntidad}
+          onChange={e => setFiltroEntidad(e.target.value)}
+          style={{ ...iStyle, flex: "1 1 160px", minWidth: 160, cursor: "pointer" }}
         >
-          {FILTROS.map(f => (
-            <option key={f.key} value={f.key}>{f.label}</option>
-          ))}
+          <option value="">Todas las entidades</option>
+          {optsEntidades.map(n => <option key={n} value={n}>{n}</option>)}
         </select>
+
+        {/* Acción */}
+        <select
+          value={filtroAccion}
+          onChange={e => setFiltroAccion(e.target.value as Filtro)}
+          style={{ ...iStyle, flex: "1 1 160px", minWidth: 160, cursor: "pointer", fontFamily: "'DM Mono', monospace" }}
+        >
+          {FILTROS.map(f => <option key={f.key} value={f.key}>{f.label}</option>)}
+        </select>
+
+        {/* Limpiar */}
+        {hayFiltros && (
+          <button
+            onClick={limpiar}
+            style={{
+              padding: "7px 14px", background: "var(--card)",
+              border: "1.5px solid rgba(200,71,42,0.3)", borderRadius: 4,
+              fontSize: 12, cursor: "pointer", color: "var(--accent)",
+              fontFamily: "'DM Sans', sans-serif", whiteSpace: "nowrap",
+            }}
+          >
+            Limpiar
+          </button>
+        )}
       </div>
 
       {/* Tabla */}
-      <div style={{ padding: "28px 32px" }}>
+      <div style={{ padding: "24px 32px" }}>
         <div style={{
           background: "var(--card)",
           border: "1px solid var(--border)",
@@ -174,7 +264,7 @@ export default function AuditLogView({ entradas, total }: { entradas: AuditLogIt
                     color: "var(--muted)", fontSize: 13,
                     fontFamily: "'DM Mono', monospace",
                   }}>
-                    Sin eventos para este filtro
+                    Sin eventos para los filtros aplicados
                   </td>
                 </tr>
               ) : lista.map(e => {
@@ -218,7 +308,6 @@ export default function AuditLogView({ entradas, total }: { entradas: AuditLogIt
                       }} title={recursoLabel(e)}>
                         {recursoLabel(e)}
                       </span>
-                      {/* Detalle extra según acción */}
                       {e.accion === "REQUEST_DELETE" && e.detalle_json?.motivo != null && (
                         <span style={{
                           display: "block", fontSize: 10,
@@ -255,8 +344,8 @@ export default function AuditLogView({ entradas, total }: { entradas: AuditLogIt
               fontSize: 11, fontFamily: "'DM Mono', monospace",
               color: "var(--muted)", textAlign: "right",
             }}>
-              {lista.length} {lista.length === 1 ? "evento" : "eventos"}
-              {filtro !== "TODAS" && ` · filtro: ${filtro}`}
+              {lista.length} de {entradas.length} evento{entradas.length !== 1 ? "s" : ""}
+              {hayFiltros && ` · con filtros aplicados`}
             </div>
           )}
         </div>
