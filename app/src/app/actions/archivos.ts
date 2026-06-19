@@ -129,7 +129,8 @@ export async function fetchArchivosContratoAction(contratoId: string, destino?: 
   if (!perfil || !["admin", "superadmin", "rrhh", "empleado"].includes(perfil.rol))
     return { error: "No autorizado", data: null };
 
-  // RPC bypasses PostgREST max_rows (1000-row default limit)
+  // RPC returns jsonb (single value) — bypasses PostgREST max_rows entirely.
+  // A setof-returning function would still be capped at max_rows; jsonb is not.
   const adminClient = createAdminClient();
   interface RpcRow {
     id: string; nombre: string; ruta_storage: string; tipo: string; estado: string;
@@ -137,13 +138,14 @@ export async function fetchArchivosContratoAction(contratoId: string, destino?: 
     requerimiento_item_id: string | null; subido_por_nombre: string | null;
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (adminClient.rpc("get_archivos_contrato", { p_contrato_id: contratoId }) as any) as {
-    data: RpcRow[] | null; error: unknown;
+  const { data: rawData, error } = await (adminClient.rpc("get_archivos_contrato", { p_contrato_id: contratoId }) as any) as {
+    data: unknown; error: unknown;
   };
 
   if (error) return { error: "Error al cargar archivos", data: null };
 
-  const rows = destino ? (data ?? []).filter(a => a.destino === destino) : (data ?? []);
+  const allRows = (Array.isArray(rawData) ? rawData : []) as RpcRow[];
+  const rows = destino ? allRows.filter(a => a.destino === destino) : allRows;
 
   const items: ArchivoContratoItem[] = rows.map(a => ({
     id: a.id,
