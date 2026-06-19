@@ -129,22 +129,23 @@ export async function fetchArchivosContratoAction(contratoId: string, destino?: 
   if (!perfil || !["admin", "superadmin", "rrhh", "empleado"].includes(perfil.rol))
     return { error: "No autorizado", data: null };
 
-  // Use admin client so RLS doesn't block reads for non-admin roles
+  // RPC bypasses PostgREST max_rows (1000-row default limit)
   const adminClient = createAdminClient();
+  interface RpcRow {
+    id: string; nombre: string; ruta_storage: string; tipo: string; estado: string;
+    size_bytes: number; hash_sha256: string; created_at: string; destino: string;
+    requerimiento_item_id: string | null; subido_por_nombre: string | null;
+  }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let q = (adminClient.from("archivos") as any)
-    .select("id, nombre, ruta_storage, tipo, estado, size_bytes, hash_sha256, created_at, destino, requerimiento_item_id, usuarios(nombre)")
-    .eq("contrato_id", contratoId)
-    .neq("estado", "eliminado");
-  if (destino) q = q.eq("destino", destino);
-  const { data, error } = await q.order("created_at", { ascending: false }) as {
-    data: Array<{ id: string; nombre: string; ruta_storage: string; tipo: string; estado: string; size_bytes: number; hash_sha256: string; created_at: string; destino: string; requerimiento_item_id: string | null; usuarios: { nombre: string } | null }> | null;
-    error: unknown;
+  const { data, error } = await (adminClient.rpc("get_archivos_contrato", { p_contrato_id: contratoId }) as any) as {
+    data: RpcRow[] | null; error: unknown;
   };
 
   if (error) return { error: "Error al cargar archivos", data: null };
 
-  const items: ArchivoContratoItem[] = (data ?? []).map(a => ({
+  const rows = destino ? (data ?? []).filter(a => a.destino === destino) : (data ?? []);
+
+  const items: ArchivoContratoItem[] = rows.map(a => ({
     id: a.id,
     nombre: a.nombre,
     ruta_storage: a.ruta_storage,
@@ -153,7 +154,7 @@ export async function fetchArchivosContratoAction(contratoId: string, destino?: 
     size_bytes: a.size_bytes,
     hash_sha256: a.hash_sha256,
     created_at: a.created_at,
-    subido_por_nombre: a.usuarios?.nombre ?? null,
+    subido_por_nombre: a.subido_por_nombre ?? null,
     destino: (a.destino ?? "cliente") as "cliente" | "empleado",
     requerimiento_item_id: a.requerimiento_item_id ?? null,
   }));
