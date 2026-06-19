@@ -340,7 +340,7 @@ export async function fetchAccesoEmpleadosAction(entidadId: string): Promise<{ d
   const deptIds = new Set((rPorDept.data ?? []).map(e => e.id));
 
   // Paso 2: empleados con acceso que NO son de los departamentos permitidos
-  const idsExtra = [...conAcceso].filter(id => !deptIds.has(id));
+  const idsExtra = Array.from(conAcceso).filter(id => !deptIds.has(id));
   let extraEmpleados: EmpleadoRow[] = [];
   if (idsExtra.length > 0) {
     const rExtra = await admin
