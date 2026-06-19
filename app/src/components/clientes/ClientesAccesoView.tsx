@@ -318,7 +318,33 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
 
   return (
     <>
-      <div style={{ padding: "24px 32px" }}>
+      <style>{`
+        .acceso-wrap { padding: 24px 32px; }
+        .acceso-filters { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; align-items: center; }
+        .acceso-table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .acceso-table { width: 100%; border-collapse: collapse; min-width: 700px; }
+        .acceso-col-area, .acceso-col-alta { }
+        /* Tarjetas móvil */
+        .acceso-cards { display: none; flex-direction: column; gap: 10px; }
+        .acceso-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; }
+        .acceso-card-top { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .acceso-card-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; font-size: 12px; }
+        .acceso-card-label { color: var(--muted); font-family: 'DM Mono', monospace; font-size: 10px; text-transform: uppercase; margin-bottom: 1px; }
+        .acceso-card-val { color: var(--ink); font-size: 12px; }
+        .acceso-card-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+        @media (max-width: 640px) {
+          .acceso-wrap { padding: 16px; }
+          .acceso-table-scroll { display: none; }
+          .acceso-cards { display: flex; }
+          .acceso-header-row { flex-direction: column; align-items: flex-start !important; gap: 10px; }
+          .acceso-pagination { flex-direction: column; align-items: flex-start !important; }
+        }
+        @media (min-width: 641px) and (max-width: 1024px) {
+          .acceso-wrap { padding: 20px 20px; }
+          .acceso-col-alta { display: none; }
+        }
+      `}</style>
+      <div className="acceso-wrap">
 
         {/* Barra selección múltiple */}
         {selectedIds.size > 0 && (
@@ -349,7 +375,7 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
         )}
 
         {/* Header sección */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+        <div className="acceso-header-row" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
           <div>
             <div style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)" }}>Accesos de clientes</div>
             <div style={{ fontSize: 12, fontFamily: "'DM Mono', monospace", color: "var(--muted)", marginTop: 2 }}>
@@ -374,7 +400,7 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
         </div>
 
         {/* Buscador y filtros */}
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 16, alignItems: "center" }}>
+        <div className="acceso-filters">
           {/* Buscador */}
           <div style={{ position: "relative", flex: "1 1 200px", minWidth: 180 }}>
             <svg style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }}
@@ -426,12 +452,12 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
           )}
         </div>
 
-        {/* Tabla */}
-        <div style={{
+        {/* Tabla (oculta en móvil) */}
+        <div className="acceso-table-scroll" style={{
           background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8,
           overflow: "hidden", boxShadow: "0 1px 3px rgba(15,17,23,0.08)",
         }}>
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <table className="acceso-table">
             <thead>
               <tr style={{ background: "var(--surface)" }}>
                 {puedeGestionar && (
@@ -449,7 +475,7 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
                 <Th>Contrato</Th>
                 <Th>Área</Th>
                 <Th>Estado</Th>
-                <Th>Alta</Th>
+                <Th className="acceso-col-alta">Alta</Th>
                 <Th></Th>
               </tr>
             </thead>
@@ -527,7 +553,7 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
                         {u.activo ? "Activo" : "Inactivo"}
                       </span>
                     </td>
-                    <td style={{ padding: "14px 20px", fontSize: 12, fontFamily: "'DM Mono', monospace", color: "var(--muted)" }}>
+                    <td className="acceso-col-alta" style={{ padding: "14px 20px", fontSize: 12, fontFamily: "'DM Mono', monospace", color: "var(--muted)" }}>
                       {new Date(u.created_at).toLocaleDateString("es-MX")}
                     </td>
                     {puedeGestionar && (
@@ -574,8 +600,73 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
           </table>
         </div>
 
+        {/* Tarjetas móvil */}
+        <div className="acceso-cards">
+          {usuariosPagina.length === 0 ? (
+            <div style={{ padding: "32px 0", textAlign: "center", color: "var(--muted)", fontSize: 13, fontFamily: "'DM Mono', monospace" }}>
+              {usuarios.length === 0 ? "Sin accesos configurados" : "Sin resultados para los filtros aplicados"}
+            </div>
+          ) : usuariosPagina.map(u => {
+            const initials = u.nombre.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
+            return (
+              <div key={u.id} className="acceso-card">
+                <div className="acceso-card-top">
+                  {puedeGestionar && (
+                    <input type="checkbox" checked={selectedIds.has(u.id)} onChange={() => toggleSelect(u.id)}
+                      style={{ cursor: "pointer", accentColor: "#1B4F8A", flexShrink: 0 }} />
+                  )}
+                  <div style={{ width: 36, height: 36, borderRadius: "50%", background: "var(--ink)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, color: "var(--gold)", flexShrink: 0 }}>
+                    {initials}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{u.nombre}</div>
+                    <div style={{ fontSize: 11, color: "var(--muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{u.email}</div>
+                  </div>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "3px 8px", borderRadius: 100, fontSize: 11, fontWeight: 600, fontFamily: "'DM Mono', monospace", background: u.activo ? "var(--green-light)" : "var(--surface-2)", color: u.activo ? "var(--green)" : "var(--muted)", flexShrink: 0 }}>
+                    <span style={{ width: 5, height: 5, borderRadius: "50%", background: u.activo ? "var(--green)" : "var(--muted)" }} />
+                    {u.activo ? "Activo" : "Inactivo"}
+                  </span>
+                </div>
+                <div className="acceso-card-fields">
+                  <div>
+                    <div className="acceso-card-label">Empresa</div>
+                    <div className="acceso-card-val">{u.entidad_nombre ?? "—"}</div>
+                  </div>
+                  <div>
+                    <div className="acceso-card-label">Alta</div>
+                    <div className="acceso-card-val">{new Date(u.created_at).toLocaleDateString("es-MX")}</div>
+                  </div>
+                  <div style={{ gridColumn: "1 / -1" }}>
+                    <div className="acceso-card-label">Contrato</div>
+                    <div className="acceso-card-val">{u.contratos_list.length > 0 ? u.contratos_list.join(", ") : "Sin contrato"}</div>
+                  </div>
+                  {u.area && (
+                    <div>
+                      <div className="acceso-card-label">Área</div>
+                      <div className="acceso-card-val">{u.area}</div>
+                    </div>
+                  )}
+                </div>
+                {puedeGestionar && (
+                  <div className="acceso-card-actions">
+                    <button onClick={() => abrirEditar(u)} style={{ ...btnSmall }}>Editar</button>
+                    <button onClick={() => handleToggle(u)} disabled={toggling === u.id} style={{ ...btnSmall, color: u.activo ? "var(--amber)" : "var(--green)", borderColor: u.activo ? "rgba(181,86,14,0.25)" : "rgba(45,106,79,0.25)", opacity: toggling === u.id ? 0.5 : 1 }}>
+                      {toggling === u.id ? "…" : u.activo ? "Desactivar" : "Activar"}
+                    </button>
+                    {puedeEliminar && (
+                      <button onClick={() => handleEliminar(u)} disabled={eliminando === u.id} style={{ ...btnSmall, color: "var(--accent)", borderColor: "rgba(200,71,42,0.25)", opacity: eliminando === u.id ? 0.5 : 1 }}>
+                        {eliminando === u.id ? "…" : "Eliminar"}
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
         {/* Paginación */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12, marginTop: 16 }}>
+        <div className="acceso-pagination" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12, marginTop: 16 }}>
           {/* Selector de filas por página */}
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <span style={{ fontSize: 12, color: "var(--muted)", fontFamily: "'DM Mono', monospace" }}>Mostrar</span>
@@ -1183,9 +1274,9 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-function Th({ children }: { children?: React.ReactNode }) {
+function Th({ children, className }: { children?: React.ReactNode; className?: string }) {
   return (
-    <th style={{
+    <th className={className} style={{
       padding: "10px 20px", textAlign: "left",
       fontSize: 10, fontFamily: "'DM Mono', monospace",
       letterSpacing: "0.08em", textTransform: "uppercase",
