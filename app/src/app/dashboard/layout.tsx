@@ -29,9 +29,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
     const empleadoIdMeta = user.user_metadata?.empleado_id as string | undefined;
     const empQuery = empleadoIdMeta
       ? empAdmin.select("id, departamento, empleado_privacidad(id)").eq("id", empleadoIdMeta)
-      : user.email
-        ? empAdmin.select("id, departamento, empleado_privacidad(id)").eq("email_institucional", user.email)
-        : null;
+      : empAdmin.select("id, departamento, empleado_privacidad(id)")
+          .or(`usuario_id.eq.${user.id}${user.email ? `,email_institucional.eq.${user.email}` : ""}`)
+          .limit(1);
 
     if (empQuery) {
       const { data: emp } = await empQuery.maybeSingle() as { data: { id: string; departamento: string | null; empleado_privacidad: { id: string }[] } | null };
