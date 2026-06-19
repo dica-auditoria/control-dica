@@ -727,6 +727,7 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
           <div style={{
             background: "var(--card)", borderRadius: 10,
             width: "100%", maxWidth: 480,
+            maxHeight: "90vh", display: "flex", flexDirection: "column",
             boxShadow: "0 12px 40px rgba(15,17,23,0.2)",
           }}>
             {/* Header */}
@@ -734,6 +735,7 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
               padding: "20px 24px 16px",
               borderBottom: "1px solid var(--border)",
               display: "flex", alignItems: "center", justifyContent: "space-between",
+              flexShrink: 0,
             }}>
               <div>
                 <div style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)" }}>Nuevo acceso de cliente</div>
@@ -746,8 +748,8 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
               </button>
             </div>
 
-            <form onSubmit={handleSubmit}>
-              <div style={{ padding: "20px 24px", display: "flex", flexDirection: "column", gap: 14 }}>
+            <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
+              <div style={{ padding: "20px 24px", display: "flex", flexDirection: "column", gap: 14, overflowY: "auto", flex: 1 }}>
 
                 {/* Nombre */}
                 <Field label="Nombre del responsable a cargo *">
@@ -965,7 +967,7 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
 
               <div style={{
                 padding: "14px 24px", borderTop: "1px solid var(--border)",
-                display: "flex", gap: 10, justifyContent: "flex-end",
+                display: "flex", gap: 10, justifyContent: "flex-end", flexShrink: 0,
               }}>
                 <button type="button" onClick={() => setModalOpen(false)} style={btnOutline} disabled={submitting}>
                   Cancelar
@@ -985,8 +987,8 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
           style={{ position: "fixed", inset: 0, background: "var(--overlay)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50, padding: 24 }}
           onClick={e => { if (e.target === e.currentTarget && !bulkSubmitting) setBulkModal(false); }}
         >
-          <div style={{ background: "var(--card)", borderRadius: 10, width: "100%", maxWidth: 440, boxShadow: "0 12px 40px rgba(15,17,23,0.2)" }}>
-            <div style={{ padding: "20px 24px 16px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ background: "var(--card)", borderRadius: 10, width: "100%", maxWidth: 440, maxHeight: "90vh", display: "flex", flexDirection: "column", boxShadow: "0 12px 40px rgba(15,17,23,0.2)" }}>
+            <div style={{ padding: "20px 24px 16px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
               <div>
                 <div style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)" }}>Asignar contratos en bloque</div>
                 <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 2 }}>
@@ -999,8 +1001,8 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
               </button>
             </div>
 
-            <form onSubmit={handleBulkSubmit}>
-              <div style={{ padding: "20px 24px", display: "flex", flexDirection: "column", gap: 16 }}>
+            <form onSubmit={handleBulkSubmit} style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
+              <div style={{ padding: "20px 24px", display: "flex", flexDirection: "column", gap: 16, overflowY: "auto", flex: 1 }}>
 
                 <Field label="Empresa *">
                   <select value={bulkEmpresaId} onChange={e => handleBulkEmpresaChange(e.target.value)} required style={iStyle}>
@@ -1055,7 +1057,7 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
                 )}
               </div>
 
-              <div style={{ padding: "14px 24px", borderTop: "1px solid var(--border)", display: "flex", gap: 10, justifyContent: "flex-end" }}>
+              <div style={{ padding: "14px 24px", borderTop: "1px solid var(--border)", display: "flex", gap: 10, justifyContent: "flex-end", flexShrink: 0 }}>
                 <button type="button" onClick={() => setBulkModal(false)} style={btnOutline} disabled={bulkSubmitting}>
                   Cancelar
                 </button>
@@ -1078,8 +1080,8 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
           style={{ position: "fixed", inset: 0, background: "var(--overlay)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50, padding: 24 }}
           onClick={e => { if (e.target === e.currentTarget) setEditModal(null); }}
         >
-          <div style={{ background: "var(--card)", borderRadius: 10, width: "100%", maxWidth: 440, boxShadow: "0 12px 40px rgba(15,17,23,0.2)" }}>
-            <div style={{ padding: "20px 24px 16px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ background: "var(--card)", borderRadius: 10, width: "100%", maxWidth: 440, maxHeight: "90vh", display: "flex", flexDirection: "column", boxShadow: "0 12px 40px rgba(15,17,23,0.2)" }}>
+            <div style={{ padding: "20px 24px 16px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
               <div>
                 <div style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)" }}>Editar acceso</div>
                 <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 2 }}>{editModal.email}</div>
@@ -1089,8 +1091,8 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
               </button>
             </div>
 
-            <form onSubmit={handleEditar}>
-              <div style={{ padding: "20px 24px", display: "flex", flexDirection: "column", gap: 14 }}>
+            <form onSubmit={handleEditar} style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
+              <div style={{ padding: "20px 24px", display: "flex", flexDirection: "column", gap: 14, overflowY: "auto", flex: 1 }}>
 
                 <Field label="Nombre del responsable a cargo">
                   <input
@@ -1204,7 +1206,7 @@ export default function ClientesAccesoView({ usuarios: inicial, entidades, rol }
                 )}
               </div>
 
-              <div style={{ padding: "14px 24px", borderTop: "1px solid var(--border)", display: "flex", gap: 10, justifyContent: "flex-end" }}>
+              <div style={{ padding: "14px 24px", borderTop: "1px solid var(--border)", display: "flex", gap: 10, justifyContent: "flex-end", flexShrink: 0 }}>
                 <button type="button" onClick={() => setEditModal(null)} style={btnOutline} disabled={editSubmitting}>
                   Cancelar
                 </button>
