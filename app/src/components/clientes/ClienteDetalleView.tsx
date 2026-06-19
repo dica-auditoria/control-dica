@@ -25,6 +25,7 @@ interface Props {
     totalUsuarios: number;
   };
   rol: string;
+  puedeGestionarAcceso?: boolean;
   backHref?: string;
   backLabel?: string;
 }
@@ -89,7 +90,7 @@ function calcEstadoVisual(c: Contrato): { label: string; bg: string; color: stri
   return { label: "Vigente", bg: "#d1fae5", color: "#065f46" };
 }
 
-export default function ClienteDetalleView({ cliente: initial, rol, backHref = "/dashboard/clientes", backLabel = "Clientes" }: Props) {
+export default function ClienteDetalleView({ cliente: initial, rol, puedeGestionarAcceso = false, backHref = "/dashboard/clientes", backLabel = "Clientes" }: Props) {
   const [cliente, setCliente] = useState(initial);
   const [modal, setModal]     = useState<ModalMode>(null);
   const [editando, setEditando]   = useState<Contrato | null>(null);
@@ -108,6 +109,7 @@ export default function ClienteDetalleView({ cliente: initial, rol, backHref = "
   const router = useRouter();
   const isAdmin    = rol === "admin" || rol === "superadmin";
   const isSuperadmin = rol === "superadmin";
+  const puedeVerAcceso = isAdmin || puedeGestionarAcceso;
 
   // Load employees when modal opens
   const cargarEmpleados = useCallback(async () => {
@@ -370,8 +372,8 @@ export default function ClienteDetalleView({ cliente: initial, rol, backHref = "
             value={cliente.totalUsuarios}
             accent="var(--accent)"
             meta="Clientes + empleados"
-            onClick={isAdmin ? () => setModal("usuarios") : undefined}
-            clickLabel={isAdmin ? "Gestionar" : undefined}
+            onClick={puedeVerAcceso ? () => setModal("usuarios") : undefined}
+            clickLabel={puedeVerAcceso ? "Gestionar" : undefined}
           />
         </div>
 
