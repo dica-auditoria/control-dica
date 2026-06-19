@@ -167,6 +167,7 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
   const [eliminandoId, setEliminandoId]               = useState<string | null>(null);
   const [reorderingId, setReorderingId]               = useState<string | null>(null);
   const [downloadingId, setDownloadingId]             = useState<string | null>(null);
+  const [previewingId, setPreviewingId]               = useState<string | null>(null);
   const [deletingId, setDeletingId]                   = useState<string | null>(null);
   const [notaExtension, setNotaExtension]             = useState<Record<string, string>>({});
   const [comentariosPorItem, setComentariosPorItem]   = useState<Record<string, Comentario[]>>({});
@@ -242,6 +243,13 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
     await reordenarItemAction(itemId, direction);
     setReorderingId(null);
     router.refresh();
+  };
+
+  const handlePreview = async (archivoId: string, key: string, filename: string) => {
+    setPreviewingId(archivoId);
+    const result = await getDownloadUrlAction(key, filename.split("/").pop() ?? filename);
+    setPreviewingId(null);
+    if (result.url) window.open(result.url, "_blank");
   };
 
   const handleDownload = async (archivoId: string, key: string, filename: string) => {
@@ -519,6 +527,14 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
                                 <span style={{ fontSize: 9, fontFamily: "'DM Mono', monospace", fontWeight: 700, padding: "2px 5px", borderRadius: 3, background: "var(--surface-2)", color: "var(--muted-2)", textTransform: "uppercase", flexShrink: 0 }}>
                                   {archivo.tipo.slice(0, 4)}
                                 </span>
+                                <button
+                                  onClick={() => handlePreview(archivo.id, archivo.ruta_storage, archivo.nombre)}
+                                  disabled={previewingId === archivo.id}
+                                  title="Visualizar"
+                                  style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", padding: 4, flexShrink: 0, opacity: previewingId === archivo.id ? 0.4 : 1 }}
+                                >
+                                  <EyeIcon />
+                                </button>
                                 <button
                                   onClick={() => handleDownload(archivo.id, archivo.ruta_storage, archivo.nombre)}
                                   disabled={downloadingId === archivo.id}
@@ -1233,6 +1249,7 @@ function PlusIcon()     { return <svg width="12" height="12" viewBox="0 0 24 24"
 function EditIcon()     { return <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>; }
 function SearchIcon()   { return <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>; }
 function DownloadIcon() { return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>; }
+function EyeIcon()      { return <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>; }
 function UploadIconSm() { return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></svg>; }
 function TrashIcon()    { return <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14H6L5 6" /><path d="M10 11v6M14 11v6" /><path d="M9 6V4h6v2" /></svg>; }
 function SendIcon()     { return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>; }
