@@ -312,18 +312,9 @@ export async function fetchAccesoEmpleadosAction(entidadId: string): Promise<{ d
 
   const admin = createAdminClient();
 
-  const DEPARTAMENTOS_CON_ACCESO = [
-    "Dirección General",
-    "Dirección de Administración",
-    "Coordinación de Sistemas",
-    "Gerencia de Auditoría",
-    "Gerencia de Proyectos",
-  ];
-
   type EmpleadoRow = { id: string; nombres: string; apellido_paterno: string; apellido_materno: string | null; departamento: string; email_institucional: string | null };
 
-  // Paso 1: obtener IDs con acceso + empleados de departamentos permitidos en paralelo
-  const [rAcceso, rPorDept] = await Promise.all([
+  const [rAcceso, rEmpleados] = await Promise.all([
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (admin.from("entidad_acceso_empleados") as any)
       .select("empleado_id")
@@ -332,29 +323,12 @@ export async function fetchAccesoEmpleadosAction(entidadId: string): Promise<{ d
       .from("empleados")
       .select("id, nombres, apellido_paterno, apellido_materno, departamento, email_institucional")
       .eq("estado", "activo")
-      .in("departamento", DEPARTAMENTOS_CON_ACCESO)
       .order("apellido_paterno") as unknown as Promise<{ data: EmpleadoRow[] | null; error: unknown }>,
   ]);
 
   const conAcceso = new Set((rAcceso.data ?? []).map(r => r.empleado_id));
-  const deptIds = new Set((rPorDept.data ?? []).map(e => e.id));
 
-  // Paso 2: empleados con acceso que NO son de los departamentos permitidos
-  const idsExtra = Array.from(conAcceso).filter(id => !deptIds.has(id));
-  let extraEmpleados: EmpleadoRow[] = [];
-  if (idsExtra.length > 0) {
-    const rExtra = await admin
-      .from("empleados")
-      .select("id, nombres, apellido_paterno, apellido_materno, departamento, email_institucional")
-      .in("id", idsExtra)
-      .order("apellido_paterno") as unknown as { data: EmpleadoRow[] | null; error: unknown };
-    extraEmpleados = rExtra.data ?? [];
-  }
-
-  const todos: EmpleadoRow[] = [...(rPorDept.data ?? []), ...extraEmpleados];
-  todos.sort((a, b) => a.apellido_paterno.localeCompare(b.apellido_paterno));
-
-  const result: EmpleadoAcceso[] = todos.map(e => ({
+  const result: EmpleadoAcceso[] = (rEmpleados.data ?? []).map(e => ({
     ...e,
     tiene_acceso: conAcceso.has(e.id),
   }));
