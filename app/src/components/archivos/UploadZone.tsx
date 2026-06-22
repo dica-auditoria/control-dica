@@ -95,13 +95,8 @@ export default function UploadZone({ entidadId, contratoId, destino = "cliente",
   const setStatus = (uid: string, patch: Partial<FileEntry>) =>
     setEntries(prev => prev.map(e => e.uid === uid ? { ...e, ...patch } : e));
 
-  const handleUpload = async () => {
-    const pendientes = entries.filter(e => e.status === "pendiente");
-    if (!pendientes.length) return;
-    setUploading(true);
-
-    for (const entry of pendientes) {
-      // Hash
+  const procesarEntradas = async (cola: FileEntry[]) => {
+    for (const entry of cola) {
       setStatus(entry.uid, { status: "hashing" });
       let sha: string;
       try {
@@ -111,7 +106,6 @@ export default function UploadZone({ entidadId, contratoId, destino = "cliente",
         continue;
       }
 
-      // Storage — con progreso para archivos grandes
       setStatus(entry.uid, { status: "subiendo", hash: sha, progreso: 0 });
       const { ruta, error: storageErr } = await uploadFileToStorage(
         entry.file, entidadId, contratoId, carpetaPrefix,
@@ -122,7 +116,6 @@ export default function UploadZone({ entidadId, contratoId, destino = "cliente",
         continue;
       }
 
-      // Metadatos
       setStatus(entry.uid, { status: "guardando" });
       const tipo = entry.file.name.split(".").pop()?.toLowerCase() ?? "bin";
       const relativePath = entry.file.webkitRelativePath || entry.file.name;
@@ -147,7 +140,27 @@ export default function UploadZone({ entidadId, contratoId, destino = "cliente",
         if (result.archivoId) onSuccess?.(result.archivoId);
       }
     }
+  };
 
+  const handleUpload = async () => {
+    const cola = entries.filter(e => e.status === "pendiente");
+    if (!cola.length) return;
+    setUploading(true);
+    await procesarEntradas(cola);
+    setUploading(false);
+    setDone(true);
+    onDone?.();
+  };
+
+  const handleReintentar = async () => {
+    const fallidos = entries.filter(e => e.status === "error");
+    if (!fallidos.length || uploading) return;
+    setEntries(prev => prev.map(e =>
+      e.status === "error" ? { ...e, status: "pendiente" as FileStatus, error: undefined, hash: undefined, progreso: undefined } : e
+    ));
+    setDone(false);
+    setUploading(true);
+    await procesarEntradas(fallidos);
     setUploading(false);
     setDone(true);
     onDone?.();
@@ -365,9 +378,28 @@ export default function UploadZone({ entidadId, contratoId, destino = "cliente",
       )}
 
       {done && (
-        <button type="button" onClick={reset} style={{ ...btnSecondary, alignSelf: "flex-start" }}>
-          Subir más archivos
-        </button>
+        <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+          <button type="button" onClick={reset} style={{ ...btnSecondary, alignSelf: "flex-start" }}>
+            Subir más archivos
+          </button>
+          {errores > 0 && (
+            <button
+              type="button"
+              onClick={handleReintentar}
+              disabled={uploading}
+              style={{
+                display: "flex", alignItems: "center", gap: 6,
+                padding: "8px 16px",
+                background: "rgba(200,71,42,0.08)", color: "var(--accent)",
+                border: "1px solid rgba(200,71,42,0.25)", borderRadius: 4,
+                fontSize: 13, fontWeight: 600, cursor: uploading ? "not-allowed" : "pointer",
+                fontFamily: "'DM Sans', sans-serif",
+              }}
+            >
+              ↺ Reintentar {errores} fallido{errores !== 1 ? "s" : ""}
+            </button>
+          )}
+        </div>
       )}
     </div>
   );
