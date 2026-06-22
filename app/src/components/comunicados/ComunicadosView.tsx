@@ -49,9 +49,11 @@ export default function ComunicadosView({ comunicados: inicial, esAdmin }: { com
   };
 
   const handleArchivar = (id: string) => {
+    if (!confirm("¿Eliminar este comunicado?")) return;
     startTransition(async () => {
       const r = await desactivarComunicadoAction(id);
-      if (!r.error) setLista(prev => prev.filter(c => c.id !== id));
+      if (r.error) { alert(r.error); return; }
+      setLista(prev => prev.filter(c => c.id !== id));
     });
   };
 

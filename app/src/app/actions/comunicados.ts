@@ -80,6 +80,7 @@ export async function fetchComunicadosAction() {
   const { data, error } = await (admin as any)
     .from("comunicados")
     .select("*")
+    .eq("activo", true)
     .order("created_at", { ascending: false }) as { data: Comunicado[] | null; error: unknown };
   if (error) return { data: null, error: "Error al cargar comunicados" };
 
@@ -168,11 +169,12 @@ export async function subirImagenComunicadoAction(id: string, formData: FormData
 }
 
 export async function desactivarComunicadoAction(id: string) {
-  const { supabase, ok, user } = await verificarAdmin();
+  const { ok, user } = await verificarAdmin();
   if (!ok) return { error: "Sin permisos" };
 
+  const admin = createAdminClient();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { error } = await (supabase.from("comunicados") as any)
+  const { error } = await (admin.from("comunicados") as any)
     .update({ activo: false })
     .eq("id", id);
   if (error) return { error: "Error al archivar" };
