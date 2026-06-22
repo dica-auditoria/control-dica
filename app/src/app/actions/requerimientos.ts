@@ -723,7 +723,24 @@ export async function reordenarItemAction(itemId: string, direction: "up" | "dow
     .select("id, orden, numero")
     .eq("requerimiento_id", item.requerimiento_id) as { data: Array<{ id: string; orden: number | null; numero: string | null }> | null; error: unknown };
 
-  const all = (allRaw ?? []).sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0));
+  let all = (allRaw ?? []).sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0));
+
+  // If any two items share the same orden value (e.g. duplicate numeros from import),
+  // spread them to unique sequential values so getBlock ranges are never empty.
+  const ordenSet = new Set<number>();
+  const hasDuplicateOrden = all.some(i => {
+    const o = i.orden ?? 0;
+    if (ordenSet.has(o)) return true;
+    ordenSet.add(o);
+    return false;
+  });
+  if (hasDuplicateOrden) {
+    const spread = all.map((i, idx) => ({ ...i, orden: (idx + 1) * 10 }));
+    await Promise.all(
+      spread.map(u => (admin.from("requerimiento_items") as any).update({ orden: u.orden }).eq("id", u.id))
+    );
+    all = spread;
+  }
 
   // Siblings: same depth + same parent prefix
   const siblings = all.filter(i => {
