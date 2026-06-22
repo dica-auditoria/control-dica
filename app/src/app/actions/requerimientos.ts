@@ -705,27 +705,73 @@ export async function reordenarItemAction(itemId: string, direction: "up" | "dow
   if (!["admin", "superadmin", "rrhh", "empleado"].includes(perfil.rol)) return { error: "No autorizado" };
 
   const admin = createAdminClient();
+
+  // Fetch item with numero to determine level and parent
   const { data: item } = await (admin.from("requerimiento_items") as any)
-    .select("requerimiento_id, orden").eq("id", itemId).single() as { data: { requerimiento_id: string; orden: number | null } | null; error: unknown };
+    .select("requerimiento_id, orden, numero")
+    .eq("id", itemId)
+    .single() as { data: { requerimiento_id: string; orden: number | null; numero: string | null } | null; error: unknown };
   if (!item) return { error: "Reactivo no encontrado" };
 
-  const currentOrden = item.orden ?? 0;
+  const numero    = item.numero ?? "";
+  const numParts  = numero.split(".");
+  const depth     = numParts.length;
+  const parentKey = depth > 1 ? numParts.slice(0, -1).join(".") : null;
 
-  const { data: neighbor } = await (admin.from("requerimiento_items") as any)
-    .select("id, orden")
-    .eq("requerimiento_id", item.requerimiento_id)
-    [direction === "up" ? "lt" : "gt"]("orden", currentOrden)
-    .order("orden", { ascending: direction !== "up" })
-    .limit(1)
-    .single() as { data: { id: string; orden: number | null } | null; error: unknown };
+  // Fetch all items in the requerimiento (need numero to filter siblings)
+  const { data: allRaw } = await (admin.from("requerimiento_items") as any)
+    .select("id, orden, numero")
+    .eq("requerimiento_id", item.requerimiento_id) as { data: Array<{ id: string; orden: number | null; numero: string | null }> | null; error: unknown };
 
-  if (!neighbor) return { success: true }; // ya está en el extremo
+  const all = (allRaw ?? []).sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0));
 
-  const neighborOrden = neighbor.orden ?? 0;
-  await Promise.all([
-    (admin.from("requerimiento_items") as any).update({ orden: neighborOrden }).eq("id", itemId),
-    (admin.from("requerimiento_items") as any).update({ orden: currentOrden }).eq("id", neighbor.id),
-  ]);
+  // Siblings: same depth + same parent prefix
+  const siblings = all.filter(i => {
+    const iParts = (i.numero ?? "").split(".");
+    if (iParts.length !== depth) return false;
+    if (parentKey) return iParts.slice(0, -1).join(".") === parentKey;
+    return true;
+  });
+
+  const selfIdx     = siblings.findIndex(s => s.id === itemId);
+  if (selfIdx === -1) return { success: true };
+  const neighborIdx = direction === "up" ? selfIdx - 1 : selfIdx + 1;
+  if (neighborIdx < 0 || neighborIdx >= siblings.length) return { success: true };
+
+  const neighbor        = siblings[neighborIdx];
+  const neighborNumero  = neighbor.numero ?? "";
+
+  // Build subtrees (item + all descendants whose numero starts with rootNumero + ".")
+  const subtreeOf = (rootId: string, rootNumero: string) =>
+    all.filter(i => i.id === rootId || (i.numero ?? "").startsWith(rootNumero + "."))
+       .sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0));
+
+  const groupA = subtreeOf(itemId, numero);
+  const groupB = subtreeOf(neighbor.id, neighborNumero);
+
+  // Pool all ordenes from both groups (sorted) and redistribute:
+  // whichever group was "first" (lower ordenes) moves to the end, and vice versa.
+  const allOrdens = [...groupA, ...groupB]
+    .map(i => i.orden ?? 0)
+    .sort((a, b) => a - b);
+
+  const aIsFirst  = (groupA[0]?.orden ?? 0) < (groupB[0]?.orden ?? 0);
+  const firstGrp  = aIsFirst ? groupA : groupB;
+  const secondGrp = aIsFirst ? groupB : groupA;
+  const nSecond   = secondGrp.length;
+
+  // Second group (was after) now gets the lower ordenes; first group gets the upper ones
+  const ordensForFirst  = allOrdens.slice(nSecond);
+  const ordensForSecond = allOrdens.slice(0, nSecond);
+
+  const updates = [
+    ...firstGrp.map((i, idx) => ({ id: i.id, orden: ordensForFirst[idx] })),
+    ...secondGrp.map((i, idx) => ({ id: i.id, orden: ordensForSecond[idx] })),
+  ];
+
+  await Promise.all(
+    updates.map(u => (admin.from("requerimiento_items") as any).update({ orden: u.orden }).eq("id", u.id))
+  );
 
   const { data: req } = await (admin.from("requerimientos") as any)
     .select("entidad_id, contrato_id").eq("id", item.requerimiento_id).single() as { data: { entidad_id: string; contrato_id: string | null } | null; error: unknown };
