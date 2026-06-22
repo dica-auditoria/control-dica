@@ -738,16 +738,18 @@ export async function reordenarItemAction(itemId: string, direction: "up" | "dow
   const neighborIdx = direction === "up" ? selfIdx - 1 : selfIdx + 1;
   if (neighborIdx < 0 || neighborIdx >= siblings.length) return { success: true };
 
-  const neighbor        = siblings[neighborIdx];
-  const neighborNumero  = neighbor.numero ?? "";
+  const neighbor = siblings[neighborIdx];
 
-  // Build subtrees (item + all descendants whose numero starts with rootNumero + ".")
-  const subtreeOf = (rootId: string, rootNumero: string) =>
-    all.filter(i => i.id === rootId || (i.numero ?? "").startsWith(rootNumero + "."))
-       .sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0));
+  // Build each item's "block" using orden boundaries between siblings.
+  // This handles duplicate/null numeros without subtree prefix conflicts.
+  const getBlock = (sibIdx: number) => {
+    const start = siblings[sibIdx].orden ?? 0;
+    const end   = sibIdx + 1 < siblings.length ? (siblings[sibIdx + 1].orden ?? Infinity) : Infinity;
+    return all.filter(i => (i.orden ?? 0) >= start && (i.orden ?? 0) < end);
+  };
 
-  const groupA = subtreeOf(itemId, numero);
-  const groupB = subtreeOf(neighbor.id, neighborNumero);
+  const groupA = getBlock(selfIdx);
+  const groupB = getBlock(neighborIdx);
 
   // Pool all ordenes from both groups (sorted) and redistribute:
   // whichever group was "first" (lower ordenes) moves to the end, and vice versa.
