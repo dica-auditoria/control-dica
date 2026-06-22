@@ -16,7 +16,7 @@ interface FileEntry {
   progreso?: number; // 0-100 durante la subida
 }
 
-const TIPOS_PERMITIDOS = ["pdf", "xlsx", "xls", "zip", "docx", "doc", "csv", "png", "jpg", "jpeg"];
+const TIPOS_PERMITIDOS = ["pdf", "xlsx", "xls", "zip", "docx", "doc", "csv", "png", "jpg", "jpeg", "xml"];
 const MAX_SIZE_BYTES = 50 * 1024 * 1024 * 1024; // 50 GB
 
 interface UploadZoneProps {
@@ -188,7 +188,7 @@ export default function UploadZone({ entidadId, contratoId, destino = "cliente",
                 Arrastra archivos o una carpeta aquí
               </div>
               <div style={{ fontSize: 12, color: "var(--muted)", marginBottom: 14 }}>
-                PDF, Excel, ZIP, Word, CSV, PNG — máx. 50 GB por archivo
+                PDF, Excel, ZIP, Word, CSV, PNG, XML — máx. 50 GB por archivo
               </div>
             </>
           )}
