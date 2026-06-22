@@ -229,10 +229,7 @@ export default function EmpleadoAltaForm({ supervisores, ubicaciones }: Props) {
           </select>
         </FormField>
         <FormField label="Zona / Ubicación">
-          <select style={selectStyle} value={form.zona_ubicacion} onChange={e => setForm(f => ({ ...f, zona_ubicacion: e.target.value }))}>
-            <option value="">Sin asignar</option>
-            {ubicaciones.map(u => <option key={u.id} value={u.nombre}>{u.nombre}</option>)}
-          </select>
+          <input style={selectStyle} type="text" value={form.zona_ubicacion} onChange={e => setForm(f => ({ ...f, zona_ubicacion: e.target.value }))} placeholder="Ej. Oficina CDMX, Remoto…" />
         </FormField>
       </div>
 

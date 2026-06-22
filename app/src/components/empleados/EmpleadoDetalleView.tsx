@@ -445,10 +445,7 @@ export default function EmpleadoDetalleView({ empleado: inicial, supervisores = 
                     </select>
                   </MF>
                   <MF label="Zona / Ubicación">
-                    <select style={iSt} value={editForm.zona_ubicacion} onChange={e => ef("zona_ubicacion", e.target.value)}>
-                      <option value="">Sin asignar</option>
-                      {ubicaciones.map(u => <option key={u.id} value={u.nombre}>{u.nombre}</option>)}
-                    </select>
+                    <input style={iSt} type="text" value={editForm.zona_ubicacion} onChange={e => ef("zona_ubicacion", e.target.value)} placeholder="Ej. Oficina CDMX, Remoto…" />
                   </MF>
                 </div>
               </div>
