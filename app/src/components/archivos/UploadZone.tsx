@@ -51,6 +51,8 @@ export default function UploadZone({ entidadId, contratoId, destino = "cliente",
     const ext = f.name.split(".").pop()?.toLowerCase() ?? "";
     if (!TIPOS_PERMITIDOS.includes(ext))
       return `Tipo no permitido (.${ext})`;
+    if (f.size === 0)
+      return "Archivo vacío — puede estar en la nube (OneDrive) sin descargarse";
     if (f.size > MAX_SIZE_BYTES)
       return `Supera 50 GB (${(f.size / 1024 / 1024 / 1024).toFixed(2)} GB)`;
     return null;
@@ -105,7 +107,7 @@ export default function UploadZone({ entidadId, contratoId, destino = "cliente",
       try {
         sha = await calcularSHA256(entry.file);
       } catch {
-        setStatus(entry.uid, { status: "error", error: "Error al calcular hash" });
+        setStatus(entry.uid, { status: "error", error: entry.file.size === 0 ? "Archivo vacío o no disponible localmente" : "No se pudo leer el archivo" });
         continue;
       }
 
