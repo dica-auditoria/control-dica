@@ -160,6 +160,9 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
   const porcentaje     = totalItems > 0 ? Math.round((completados / totalItems) * 100) : 0;
 
   const [expandedItem, setExpandedItem]               = useState<string | null>(null);
+  const [selectedArchivos, setSelectedArchivos]       = useState<Set<string>>(new Set());
+  const [zipLoading, setZipLoading]                   = useState(false);
+  const [deletingBulk, setDeletingBulk]               = useState(false);
   const [showImport, setShowImport]                   = useState(false);
   const [showActualizarFecha, setShowActualizarFecha] = useState(false);
   const [showAddItem, setShowAddItem]                 = useState(false);
@@ -199,6 +202,7 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
   const handleExpand = async (itemId: string) => {
     const nuevo = expandedItem === itemId ? null : itemId;
     setExpandedItem(nuevo);
+    setSelectedArchivos(new Set());
     if (nuevo && comentariosPorItem[nuevo] === undefined) {
       setLoadingComents(nuevo);
       const result = await fetchComentariosItemAction(nuevo);
@@ -262,6 +266,44 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
       a.download = filename.split("/").pop() ?? filename;
       a.click();
     }
+  };
+
+  const toggleSelectArchivo = (id: string) => {
+    setSelectedArchivos(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const handleDownloadZip = async (archivosSelec: ArchivoContratoItem[], nombreItem: string) => {
+    if (!archivosSelec.length) return;
+    setZipLoading(true);
+    const JSZip = (await import("jszip")).default;
+    const zip = new JSZip();
+    await Promise.all(archivosSelec.map(async (archivo) => {
+      const result = await getDownloadUrlAction(archivo.ruta_storage, archivo.nombre.split("/").pop() ?? archivo.nombre);
+      if (!result.url) return;
+      const res = await fetch(result.url);
+      const blob = await res.blob();
+      zip.file(archivo.nombre.split("/").pop() ?? archivo.nombre, blob);
+    }));
+    const content = await zip.generateAsync({ type: "blob" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(content);
+    a.download = `${nombreItem.replace(/[^a-z0-9áéíóúüñ ]/gi, "_").slice(0, 50)}.zip`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    setZipLoading(false);
+  };
+
+  const handleDeleteBulk = async (ids: string[]) => {
+    if (!confirm(`¿Eliminar ${ids.length} archivo${ids.length !== 1 ? "s" : ""} seleccionado${ids.length !== 1 ? "s" : ""}?`)) return;
+    setDeletingBulk(true);
+    await Promise.all(ids.map(id => deleteArchivoAction(id)));
+    setSelectedArchivos(new Set());
+    setDeletingBulk(false);
+    router.refresh();
   };
 
   const handleEnviarComentario = async (itemId: string) => {
@@ -509,12 +551,58 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
                       {/* Archivos subidos */}
                       {itemArchivos.length > 0 && (
                         <div style={{ marginBottom: 16 }}>
-                          <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--muted)", marginBottom: 8 }}>
-                            Documentos subidos
+                          {/* Header: label + select-all + bulk actions */}
+                          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                            <input
+                              type="checkbox"
+                              checked={itemArchivos.length > 0 && itemArchivos.every(a => selectedArchivos.has(a.id))}
+                              ref={el => { if (el) el.indeterminate = itemArchivos.some(a => selectedArchivos.has(a.id)) && !itemArchivos.every(a => selectedArchivos.has(a.id)); }}
+                              onChange={() => {
+                                const allIds = itemArchivos.map(a => a.id);
+                                const allSelected = allIds.every(id => selectedArchivos.has(id));
+                                setSelectedArchivos(allSelected ? new Set() : new Set(allIds));
+                              }}
+                              style={{ width: 13, height: 13, cursor: "pointer", accentColor: "var(--accent)", flexShrink: 0 }}
+                            />
+                            <span style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--muted)", flex: 1 }}>
+                              Documentos subidos
+                            </span>
+                            {selectedArchivos.size > 0 && (() => {
+                              const seleccionados = itemArchivos.filter(a => selectedArchivos.has(a.id));
+                              return seleccionados.length > 0 ? (
+                                <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                  <span style={{ fontSize: 11, color: "var(--muted)", fontFamily: "'DM Mono', monospace" }}>{seleccionados.length} sel.</span>
+                                  <button
+                                    onClick={() => handleDownloadZip(seleccionados, item.nombre)}
+                                    disabled={zipLoading}
+                                    title="Descargar seleccionados como ZIP"
+                                    style={{ display: "flex", alignItems: "center", gap: 4, padding: "3px 8px", background: "var(--surface)", border: "1px solid var(--border-strong)", borderRadius: 4, fontSize: 11, cursor: zipLoading ? "not-allowed" : "pointer", color: "var(--ink)", opacity: zipLoading ? 0.5 : 1 }}
+                                  >
+                                    <DownloadIcon /> ZIP
+                                  </button>
+                                  {esAdmin && (
+                                    <button
+                                      onClick={() => handleDeleteBulk(seleccionados.map(a => a.id))}
+                                      disabled={deletingBulk}
+                                      title="Eliminar seleccionados"
+                                      style={{ display: "flex", alignItems: "center", gap: 4, padding: "3px 8px", background: "rgba(200,71,42,0.06)", border: "1px solid rgba(200,71,42,0.2)", borderRadius: 4, fontSize: 11, cursor: deletingBulk ? "not-allowed" : "pointer", color: "var(--accent)", opacity: deletingBulk ? 0.5 : 1 }}
+                                    >
+                                      <TrashIcon /> Eliminar
+                                    </button>
+                                  )}
+                                </span>
+                              ) : null;
+                            })()}
                           </div>
                           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                             {itemArchivos.map(archivo => (
-                              <div key={archivo.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 12px", background: "var(--card)", border: "1px solid var(--border)", borderRadius: 6 }}>
+                              <div key={archivo.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 12px", background: selectedArchivos.has(archivo.id) ? "rgba(37,99,168,0.05)" : "var(--card)", border: `1px solid ${selectedArchivos.has(archivo.id) ? "rgba(37,99,168,0.25)" : "var(--border)"}`, borderRadius: 6 }}>
+                                <input
+                                  type="checkbox"
+                                  checked={selectedArchivos.has(archivo.id)}
+                                  onChange={() => toggleSelectArchivo(archivo.id)}
+                                  style={{ width: 13, height: 13, cursor: "pointer", accentColor: "var(--accent)", flexShrink: 0 }}
+                                />
                                 <FileTypeIcon tipo={archivo.tipo} />
                                 <div style={{ flex: 1, minWidth: 0 }}>
                                   <div style={{ fontSize: 13, color: "var(--ink)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
