@@ -163,7 +163,7 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
   const [showImport, setShowImport]                   = useState(false);
   const [showActualizarFecha, setShowActualizarFecha] = useState(false);
   const [showAddItem, setShowAddItem]                 = useState(false);
-  const [editingItem, setEditingItem]                 = useState<{ id: string; nombre: string; rubro: string | null; descripcion: string | null; numero: string | null } | null>(null);
+  const [editingItem, setEditingItem]                 = useState<{ id: string; nombre: string; area: string | null; rubro: string | null; descripcion: string | null; numero: string | null } | null>(null);
   const [eliminandoId, setEliminandoId]               = useState<string | null>(null);
   const [reorderingId, setReorderingId]               = useState<string | null>(null);
   const [downloadingId, setDownloadingId]             = useState<string | null>(null);
@@ -453,7 +453,7 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
                         ↓
                       </button>
                       <button
-                        onClick={() => setEditingItem({ id: item.id, nombre: item.nombre, rubro: item.rubro, descripcion: item.descripcion, numero: item.numero ?? null })}
+                        onClick={() => setEditingItem({ id: item.id, nombre: item.nombre, area: item.area ?? null, rubro: item.rubro, descripcion: item.descripcion, numero: item.numero ?? null })}
                         title="Editar reactivo"
                         style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", padding: 4, display: "flex", borderRadius: 4 }}
                       >
@@ -772,6 +772,7 @@ function AgregarReactivoModal({ contratoId, entidadId, onClose, onAdded }: {
   contratoId: string; entidadId: string; onClose: () => void; onAdded: () => void;
 }) {
   const [nombre, setNombre]           = useState("");
+  const [area, setArea]               = useState("");
   const [rubro, setRubro]             = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [saving, setSaving]           = useState(false);
@@ -780,7 +781,7 @@ function AgregarReactivoModal({ contratoId, entidadId, onClose, onAdded }: {
   const handleGuardar = async () => {
     if (!nombre.trim()) return;
     setSaving(true); setError(null);
-    const result = await agregarItemContratoAction(contratoId, entidadId, { nombre, rubro, descripcion });
+    const result = await agregarItemContratoAction(contratoId, entidadId, { nombre, area, rubro, descripcion });
     if (result.error) { setError(result.error); setSaving(false); return; }
     onAdded();
   };
@@ -802,6 +803,13 @@ function AgregarReactivoModal({ contratoId, entidadId, onClose, onAdded }: {
               Nombre del reactivo <span style={{ color: "var(--accent)" }}>*</span>
             </label>
             <input autoFocus type="text" value={nombre} onChange={e => setNombre(e.target.value)} onKeyDown={e => { if (e.key === "Enter") handleGuardar(); }} placeholder="Ej. Balance general 2024" style={inputSt} />
+          </div>
+
+          <div>
+            <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "var(--ink)", marginBottom: 6, fontFamily: "'DM Sans', sans-serif" }}>
+              Área <span style={{ color: "var(--muted)", fontWeight: 400 }}>(opcional)</span>
+            </label>
+            <input type="text" value={area} onChange={e => setArea(e.target.value)} onKeyDown={e => { if (e.key === "Enter") handleGuardar(); }} placeholder="Ej. Tesorería, Contraloría…" style={inputSt} />
           </div>
 
           <div>
@@ -839,12 +847,13 @@ function AgregarReactivoModal({ contratoId, entidadId, onClose, onAdded }: {
 // ── Editar Item Modal ─────────────────────────────────────────────────────────
 
 function EditarItemModal({ item, onClose, onSaved }: {
-  item: { id: string; nombre: string; rubro: string | null; descripcion: string | null; numero: string | null };
+  item: { id: string; nombre: string; area: string | null; rubro: string | null; descripcion: string | null; numero: string | null };
   onClose: () => void;
   onSaved: () => void;
 }) {
   const [nombre, setNombre]           = useState(item.nombre);
   const [numero, setNumero]           = useState(item.numero ?? "");
+  const [area, setArea]               = useState(item.area ?? "");
   const [rubro, setRubro]             = useState(item.rubro ?? "");
   const [descripcion, setDescripcion] = useState(item.descripcion ?? "");
   const [saving, setSaving]           = useState(false);
@@ -853,7 +862,7 @@ function EditarItemModal({ item, onClose, onSaved }: {
   const handleGuardar = async () => {
     if (!nombre.trim()) return;
     setSaving(true); setError(null);
-    const result = await editarItemAction(item.id, { nombre, rubro, descripcion, numero });
+    const result = await editarItemAction(item.id, { nombre, area, rubro, descripcion, numero });
     if (result.error) { setError(result.error); setSaving(false); return; }
     onSaved();
   };
@@ -882,6 +891,13 @@ function EditarItemModal({ item, onClose, onSaved }: {
               </label>
               <input autoFocus type="text" value={nombre} onChange={e => setNombre(e.target.value)} onKeyDown={e => { if (e.key === "Enter") handleGuardar(); }} style={inputSt} />
             </div>
+          </div>
+
+          <div>
+            <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "var(--ink)", marginBottom: 6, fontFamily: "'DM Sans', sans-serif" }}>
+              Área <span style={{ color: "var(--muted)", fontWeight: 400 }}>(opcional)</span>
+            </label>
+            <input type="text" value={area} onChange={e => setArea(e.target.value)} onKeyDown={e => { if (e.key === "Enter") handleGuardar(); }} placeholder="Ej. Tesorería, Contraloría…" style={inputSt} />
           </div>
 
           <div>

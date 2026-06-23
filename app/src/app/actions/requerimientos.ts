@@ -351,7 +351,7 @@ export async function eliminarRequerimientoAction(requerimientoId: string) {
 export async function agregarItemContratoAction(
   contratoId: string,
   entidadId: string,
-  item: { nombre: string; rubro?: string; descripcion?: string }
+  item: { nombre: string; area?: string; rubro?: string; descripcion?: string }
 ) {
   const { user, perfil, error: authErr } = await getUser();
   if (authErr || !user || !perfil) return { error: authErr };
@@ -390,6 +390,7 @@ export async function agregarItemContratoAction(
     .insert({
       requerimiento_id: req.id,
       nombre: item.nombre.trim(),
+      area: item.area?.trim() || null,
       rubro: item.rubro?.trim() || null,
       descripcion: item.descripcion?.trim() || null,
       orden,
@@ -408,7 +409,7 @@ export async function agregarItemContratoAction(
 
 // ── EDITAR ITEM ───────────────────────────────────────────────────────────────
 
-export async function editarItemAction(itemId: string, datos: { nombre: string; rubro?: string; descripcion?: string; numero?: string }) {
+export async function editarItemAction(itemId: string, datos: { nombre: string; area?: string; rubro?: string; descripcion?: string; numero?: string }) {
   const { perfil, error: authErr } = await getUser();
   if (authErr || !perfil) return { error: authErr };
   if (!["admin", "superadmin", "rrhh", "empleado"].includes(perfil.rol)) return { error: "No autorizado" };
@@ -419,7 +420,7 @@ export async function editarItemAction(itemId: string, datos: { nombre: string; 
   if (!item) return { error: "Reactivo no encontrado" };
 
   await (admin.from("requerimiento_items") as any)
-    .update({ nombre: datos.nombre.trim(), rubro: datos.rubro?.trim() || null, descripcion: datos.descripcion?.trim() || null, ...(datos.numero !== undefined ? { numero: datos.numero.trim() || null } : {}) })
+    .update({ nombre: datos.nombre.trim(), area: datos.area?.trim() || null, rubro: datos.rubro?.trim() || null, descripcion: datos.descripcion?.trim() || null, ...(datos.numero !== undefined ? { numero: datos.numero.trim() || null } : {}) })
     .eq("id", itemId);
 
   const { data: req } = await (admin.from("requerimientos") as any)
