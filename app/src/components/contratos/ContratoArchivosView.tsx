@@ -22,10 +22,11 @@ interface Props {
   archivosEmpleado: ArchivoContratoItem[];
   requerimientos: Requerimiento[];
   rol: string;
+  usuarioActualId?: string;
 }
 
 export default function ContratoArchivosView({
-  contrato, entidadNombre, entidadId, archivosCliente, archivosEmpleado, requerimientos, rol,
+  contrato, entidadNombre, entidadId, archivosCliente, archivosEmpleado, requerimientos, rol, usuarioActualId,
 }: Props) {
   const router = useRouter();
   const [tab, setTab] = useState<TabDestino>("cliente");
@@ -203,6 +204,7 @@ export default function ContratoArchivosView({
                 contratoId={contrato.id}
                 isSuperAdmin={rol === "superadmin"}
                 rol={rol}
+                usuarioActualId={usuarioActualId}
               />
             </div>
           )}

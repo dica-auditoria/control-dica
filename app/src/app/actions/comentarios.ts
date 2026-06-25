@@ -69,3 +69,34 @@ export async function agregarComentarioAction(
   if (error || !data) return { error: "Error al guardar comentario", data: null };
   return { data, error: null };
 }
+
+export async function editarComentarioAction(
+  comentarioId: string,
+  nuevoMensaje: string
+): Promise<{ data: Comentario | null; error: string | null }> {
+  const { user, rol } = await getUser();
+  if (!user) return { error: "No autenticado", data: null };
+
+  const textoLimpio = nuevoMensaje.trim();
+  if (!textoLimpio) return { error: "El mensaje no puede estar vacío", data: null };
+
+  const admin = createAdminClient();
+
+  // Verificar que el comentario existe y que el usuario es dueño o admin
+  const { data: existing } = await (admin.from("requerimiento_item_comentarios") as any)
+    .select("usuario_id").eq("id", comentarioId).single() as { data: { usuario_id: string } | null; error: unknown };
+
+  if (!existing) return { error: "Comentario no encontrado", data: null };
+  if (existing.usuario_id !== user.id && !["admin", "superadmin"].includes(rol ?? "")) {
+    return { error: "No autorizado", data: null };
+  }
+
+  const { data, error } = await (admin.from("requerimiento_item_comentarios") as any)
+    .update({ mensaje: textoLimpio })
+    .eq("id", comentarioId)
+    .select("id, item_id, usuario_id, usuario_nombre, mensaje, created_at")
+    .single() as { data: Comentario | null; error: unknown };
+
+  if (error || !data) return { error: "Error al editar comentario", data: null };
+  return { data, error: null };
+}

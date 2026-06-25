@@ -55,6 +55,7 @@ export default async function ContratoArchivosPage({
       archivosEmpleado={rEmpleado.data ?? []}
       requerimientos={rReqs.data ?? []}
       rol={perfil.rol}
+      usuarioActualId={user.id}
     />
   );
 }

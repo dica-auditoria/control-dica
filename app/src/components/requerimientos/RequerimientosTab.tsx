@@ -8,7 +8,7 @@ import type { Comentario } from "@/app/actions/comentarios";
 import { toggleItemCompletoAction, importarReactivosContratoAction, extenderFechaItemAction, chequearImpactoImportAction, agregarItemContratoAction, editarItemAction, eliminarItemAction, reordenarItemAction, actualizarFechaContratoAction } from "@/app/actions/requerimientos";
 import { deleteArchivoAction } from "@/app/actions/archivos";
 import { getDownloadUrlAction, getWasabiViewUrlAction } from "@/app/actions/storage";
-import { fetchComentariosItemAction, agregarComentarioAction } from "@/app/actions/comentarios";
+import { fetchComentariosItemAction, agregarComentarioAction, editarComentarioAction } from "@/app/actions/comentarios";
 import UploadZone from "@/components/archivos/UploadZone";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -143,9 +143,10 @@ interface Props {
   contratoId: string;
   isSuperAdmin?: boolean;
   rol: string;
+  usuarioActualId?: string;
 }
 
-export default function RequerimientosTab({ requerimientos, archivos, entidadId, contratoId, rol }: Props) {
+export default function RequerimientosTab({ requerimientos, archivos, entidadId, contratoId, rol, usuarioActualId }: Props) {
   const router    = useRouter();
   const esCliente = rol === "cliente";
   const esAdmin   = ["admin", "superadmin"].includes(rol);
@@ -319,6 +320,17 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
       setInputComentario(prev => ({ ...prev, [itemId]: "" }));
     }
     setEnviando(null);
+  };
+
+  const handleEditarComentario = async (itemId: string, comentarioId: string, nuevoMensaje: string) => {
+    const result = await editarComentarioAction(comentarioId, nuevoMensaje);
+    if (result.data) {
+      setComentariosPorItem(prev => ({
+        ...prev,
+        [itemId]: (prev[itemId] ?? []).map(c => c.id === comentarioId ? result.data! : c),
+      }));
+    }
+    return result;
   };
 
   return (
@@ -738,6 +750,9 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
                       <ComentariosList
                         comentarios={comentarios}
                         cargando={cargando}
+                        usuarioActualId={usuarioActualId}
+                        esAdmin={esAdmin}
+                        onEditado={(cId, msg) => handleEditarComentario(item.id, cId, msg)}
                       />
 
                       {/* Input nuevo comentario */}
@@ -813,12 +828,41 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
 
 // ── Comentarios list ──────────────────────────────────────────────────────────
 
-function ComentariosList({ comentarios, cargando }: { comentarios: Comentario[]; cargando: boolean }) {
-  const bottomRef = useRef<HTMLDivElement>(null);
+function ComentariosList({ comentarios, cargando, usuarioActualId, esAdmin, onEditado }: {
+  comentarios: Comentario[];
+  cargando: boolean;
+  usuarioActualId?: string;
+  esAdmin?: boolean;
+  onEditado?: (comentarioId: string, nuevoMensaje: string) => Promise<{ data: Comentario | null; error: string | null }>;
+}) {
+  const bottomRef  = useRef<HTMLDivElement>(null);
+  const [editingId, setEditingId]   = useState<string | null>(null);
+  const [editText, setEditText]     = useState("");
+  const [savingId, setSavingId]     = useState<string | null>(null);
+  const [editError, setEditError]   = useState<string | null>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [comentarios.length]);
+
+  const startEdit = (c: Comentario) => {
+    setEditingId(c.id);
+    setEditText(c.mensaje);
+    setEditError(null);
+  };
+
+  const cancelEdit = () => { setEditingId(null); setEditText(""); setEditError(null); };
+
+  const saveEdit = async (comentarioId: string) => {
+    if (!editText.trim() || !onEditado) return;
+    setSavingId(comentarioId);
+    setEditError(null);
+    const result = await onEditado(comentarioId, editText);
+    setSavingId(null);
+    if (result.error) { setEditError(result.error); return; }
+    setEditingId(null);
+    setEditText("");
+  };
 
   return (
     <div style={{ flex: 1, overflowY: "auto", padding: "10px 12px", display: "flex", flexDirection: "column", gap: 10 }}>
@@ -831,23 +875,60 @@ function ComentariosList({ comentarios, cargando }: { comentarios: Comentario[];
           Sin notas aún
         </div>
       ) : (
-        comentarios.map(c => (
-          <div key={c.id} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
-            {/* Avatar */}
-            <div style={{ width: 28, height: 28, borderRadius: "50%", background: "var(--ink)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, flexShrink: 0 }}>
-              {iniciales(c.usuario_nombre)}
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 3 }}>
-                <span style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)" }}>{c.usuario_nombre}</span>
-                <span style={{ fontSize: 10, color: "var(--muted)", fontFamily: "'DM Mono', monospace" }}>{tiempoRelativo(c.created_at)}</span>
+        comentarios.map(c => {
+          const puedoEditar = !!(usuarioActualId && (c.usuario_id === usuarioActualId || esAdmin));
+          const isEditing   = editingId === c.id;
+          return (
+            <div key={c.id} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+              {/* Avatar */}
+              <div style={{ width: 28, height: 28, borderRadius: "50%", background: "var(--ink)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, flexShrink: 0 }}>
+                {iniciales(c.usuario_nombre)}
               </div>
-              <div style={{ fontSize: 12, color: "var(--muted-2)", lineHeight: 1.5, background: "var(--surface)", padding: "6px 10px", borderRadius: "0 8px 8px 8px", border: "1px solid var(--border)" }}>
-                {c.mensaje}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 3 }}>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)" }}>{c.usuario_nombre}</span>
+                  <span style={{ fontSize: 10, color: "var(--muted)", fontFamily: "'DM Mono', monospace" }}>{tiempoRelativo(c.created_at)}</span>
+                  {puedoEditar && !isEditing && (
+                    <button onClick={() => startEdit(c)} title="Editar nota"
+                      style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", padding: "0 2px", fontSize: 11, lineHeight: 1, opacity: 0.6 }}>
+                      ✎
+                    </button>
+                  )}
+                </div>
+                {isEditing ? (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                    <textarea
+                      autoFocus
+                      value={editText}
+                      onChange={e => setEditText(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); saveEdit(c.id); }
+                        if (e.key === "Escape") cancelEdit();
+                      }}
+                      rows={2}
+                      style={{ width: "100%", padding: "6px 10px", border: "1px solid var(--accent)", borderRadius: "0 8px 8px 8px", fontSize: 12, fontFamily: "'DM Sans', sans-serif", color: "var(--ink)", background: "var(--surface)", outline: "none", resize: "vertical", boxSizing: "border-box" }}
+                    />
+                    {editError && <span style={{ fontSize: 11, color: "var(--accent)" }}>{editError}</span>}
+                    <div style={{ display: "flex", gap: 5 }}>
+                      <button onClick={() => saveEdit(c.id)} disabled={!editText.trim() || savingId === c.id}
+                        style={{ padding: "3px 10px", background: "var(--ink)", color: "white", border: "none", borderRadius: 4, fontSize: 11, cursor: "pointer", opacity: (!editText.trim() || savingId === c.id) ? 0.5 : 1 }}>
+                        {savingId === c.id ? "…" : "Guardar"}
+                      </button>
+                      <button onClick={cancelEdit}
+                        style={{ padding: "3px 8px", background: "none", border: "1px solid var(--border)", borderRadius: 4, fontSize: 11, cursor: "pointer", color: "var(--muted)" }}>
+                        Cancelar
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ fontSize: 12, color: "var(--muted-2)", lineHeight: 1.5, background: "var(--surface)", padding: "6px 10px", borderRadius: "0 8px 8px 8px", border: "1px solid var(--border)" }}>
+                    {c.mensaje}
+                  </div>
+                )}
               </div>
             </div>
-          </div>
-        ))
+          );
+        })
       )}
       <div ref={bottomRef} />
     </div>
