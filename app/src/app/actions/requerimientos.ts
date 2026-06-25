@@ -241,17 +241,19 @@ export async function marcarParcialItemAction(itemId: string, parcial: boolean) 
   const admin = createAdminClient();
 
   if (parcial) {
-    await (admin.from("requerimiento_items") as any)
+    const { error } = await (admin.from("requerimiento_items") as any)
       .update({ completado: false, estado: "parcial" })
       .eq("id", itemId);
+    if (error) return { error: error.message ?? "Error al marcar parcial" };
   } else {
     const { count } = await (admin.from("archivos") as any)
       .select("id", { count: "exact", head: true })
       .eq("requerimiento_item_id", itemId)
       .neq("estado", "eliminado") as { count: number | null };
-    await (admin.from("requerimiento_items") as any)
+    const { error } = await (admin.from("requerimiento_items") as any)
       .update({ completado: false, estado: count ? "en_revision" : "pendiente" })
       .eq("id", itemId);
+    if (error) return { error: error.message ?? "Error al desmarcar parcial" };
   }
 
   return { success: true };

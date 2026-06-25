@@ -218,7 +218,11 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
   };
 
   const handleToggleParcial = async (itemId: string, parcial: boolean) => {
-    await marcarParcialItemAction(itemId, parcial);
+    const result = await marcarParcialItemAction(itemId, parcial);
+    if (result?.error) {
+      alert(`Error: ${result.error}`);
+      return;
+    }
     router.refresh();
   };
 
