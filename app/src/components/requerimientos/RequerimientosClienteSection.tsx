@@ -54,6 +54,7 @@ function iniciales(nombre: string) {
 const ITEM_ESTADO: Record<ItemEstado, { bg: string; color: string; label: string }> = {
   pendiente:   { bg: "rgba(107,114,128,0.1)",   color: "#6B7280",  label: "Pendiente"   },
   en_revision: { bg: "rgba(251,191,36,0.15)",   color: "#92400E",  label: "En revisión" },
+  parcial:     { bg: "rgba(251,146,60,0.12)",   color: "#C2410C",  label: "Parcial"     },
   completado:  { bg: "rgba(45,166,95,0.1)",     color: "#1B7A3E",  label: "Entregado"   },
 };
 

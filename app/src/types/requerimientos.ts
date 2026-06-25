@@ -1,6 +1,6 @@
 export type RequerimientoEstado = "pendiente" | "en_revision" | "completado" | "vencido";
 
-export type ItemEstado = "pendiente" | "en_revision" | "completado";
+export type ItemEstado = "pendiente" | "en_revision" | "parcial" | "completado";
 
 export interface RequerimientoItem {
   id: string;

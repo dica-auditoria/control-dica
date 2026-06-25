@@ -231,6 +231,32 @@ export async function toggleItemCompletoAction(itemId: string, completado: boole
   return { success: true };
 }
 
+// ── MARCAR PARCIAL ───────────────────────────────────────────────────────────
+
+export async function marcarParcialItemAction(itemId: string, parcial: boolean) {
+  const { perfil, error: authErr } = await getUser();
+  if (authErr || !perfil) return { error: authErr };
+  if (!["admin", "superadmin", "rrhh", "empleado"].includes(perfil.rol)) return { error: "No autorizado" };
+
+  const admin = createAdminClient();
+
+  if (parcial) {
+    await (admin.from("requerimiento_items") as any)
+      .update({ completado: false, estado: "parcial" })
+      .eq("id", itemId);
+  } else {
+    const { count } = await (admin.from("archivos") as any)
+      .select("id", { count: "exact", head: true })
+      .eq("requerimiento_item_id", itemId)
+      .neq("estado", "eliminado") as { count: number | null };
+    await (admin.from("requerimiento_items") as any)
+      .update({ completado: false, estado: count ? "en_revision" : "pendiente" })
+      .eq("id", itemId);
+  }
+
+  return { success: true };
+}
+
 // ── MARCAR EN REVISIÓN (cliente confirma que subió todo) ──────────────────────
 
 export async function confirmarSubidaAction(requerimientoId: string) {

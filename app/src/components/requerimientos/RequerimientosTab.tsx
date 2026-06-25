@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import type { Requerimiento, RequerimientoItem } from "@/types/requerimientos";
 import type { ArchivoContratoItem } from "@/app/actions/archivos";
 import type { Comentario } from "@/app/actions/comentarios";
-import { toggleItemCompletoAction, importarReactivosContratoAction, extenderFechaItemAction, chequearImpactoImportAction, agregarItemContratoAction, editarItemAction, eliminarItemAction, reordenarItemAction, actualizarFechaContratoAction } from "@/app/actions/requerimientos";
+import { toggleItemCompletoAction, marcarParcialItemAction, importarReactivosContratoAction, extenderFechaItemAction, chequearImpactoImportAction, agregarItemContratoAction, editarItemAction, eliminarItemAction, reordenarItemAction, actualizarFechaContratoAction } from "@/app/actions/requerimientos";
 import { deleteArchivoAction } from "@/app/actions/archivos";
 import { getDownloadUrlAction, getWasabiViewUrlAction } from "@/app/actions/storage";
 import { fetchComentariosItemAction, agregarComentarioAction, editarComentarioAction } from "@/app/actions/comentarios";
@@ -214,6 +214,11 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
 
   const handleToggle = async (itemId: string, completado: boolean) => {
     await toggleItemCompletoAction(itemId, completado);
+    router.refresh();
+  };
+
+  const handleToggleParcial = async (itemId: string, parcial: boolean) => {
+    await marcarParcialItemAction(itemId, parcial);
     router.refresh();
   };
 
@@ -448,7 +453,7 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
                 {/* Fila principal */}
                 <div
                   onClick={() => handleExpand(item.id)}
-                  style={{ display: "flex", alignItems: "center", padding: "0 14px", cursor: "pointer", background: isExpanded ? "rgba(15,17,23,0.025)" : item.estado === "completado" ? "rgba(45,166,95,0.025)" : item.estado === "en_revision" ? "rgba(251,191,36,0.04)" : "transparent", minHeight: 46 }}
+                  style={{ display: "flex", alignItems: "center", padding: "0 14px", cursor: "pointer", background: isExpanded ? "rgba(15,17,23,0.025)" : item.estado === "completado" ? "rgba(45,166,95,0.025)" : item.estado === "parcial" ? "rgba(251,146,60,0.05)" : item.estado === "en_revision" ? "rgba(251,191,36,0.04)" : "transparent", minHeight: 46 }}
                 >
                   <span style={{ color: "var(--muted)", marginRight: 10, flexShrink: 0, transition: "transform 0.15s", transform: isExpanded ? "rotate(90deg)" : "none", display: "flex" }}>
                     <ChevronIcon />
@@ -531,15 +536,29 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
                         {item.estado === "en_revision" && (
                           <span style={badgeStyle("#92400E", "rgba(251,191,36,0.15)")}>En revisión</span>
                         )}
-                        <input
-                          type="checkbox"
-                          checked={item.estado === "completado"}
-                          onChange={e => handleToggle(item.id, e.target.checked)}
-                          style={{ width: 15, height: 15, accentColor: "var(--accent)", cursor: "pointer" }}
-                        />
+                        <label style={{ display: "flex", alignItems: "center", gap: 4, cursor: "pointer", fontSize: 11, color: item.estado === "parcial" ? "#C2410C" : "var(--muted)", fontFamily: "'DM Mono', monospace", userSelect: "none" }}>
+                          <input
+                            type="checkbox"
+                            checked={item.estado === "parcial"}
+                            onChange={e => handleToggleParcial(item.id, e.target.checked)}
+                            style={{ width: 14, height: 14, accentColor: "#C2410C", cursor: "pointer" }}
+                          />
+                          Parcial
+                        </label>
+                        <label style={{ display: "flex", alignItems: "center", gap: 4, cursor: "pointer", fontSize: 11, color: item.estado === "completado" ? "#1B7A3E" : "var(--muted)", fontFamily: "'DM Mono', monospace", userSelect: "none" }}>
+                          <input
+                            type="checkbox"
+                            checked={item.estado === "completado"}
+                            onChange={e => handleToggle(item.id, e.target.checked)}
+                            style={{ width: 14, height: 14, accentColor: "var(--accent)", cursor: "pointer" }}
+                          />
+                          Listo
+                        </label>
                       </>
                     ) : item.estado === "completado"
                       ? <span style={badgeStyle("#1B7A3E", "rgba(45,166,95,0.1)")}>Entregado</span>
+                      : item.estado === "parcial"
+                      ? <span style={badgeStyle("#C2410C", "rgba(251,146,60,0.12)")}>Parcial</span>
                       : item.estado === "en_revision"
                       ? <span style={badgeStyle("#92400E", "rgba(251,191,36,0.15)")}>En revisión</span>
                       : <span style={badgeStyle("#6B7280", "rgba(107,114,128,0.1)")}>Pendiente</span>
