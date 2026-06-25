@@ -160,7 +160,7 @@ export default function ContratoArchivosView({
 
     // ── Row 9: column headers ──────────────────────────────────────────────
     ["No.", "Información requerida", "Tipo de\narchivo", "Auditor", "Área", "Vencimiento",
-     "Status al primer\ncorte", "Comentarios"].forEach((h, c) => C(9, c, h, s.colH));
+     "Status al primer\ncorte", "Notas del Reactivo", "Comentarios"].forEach((h, c) => C(9, c, h, s.colH));
 
     // ── Rows 10+: data grouped by rubro ───────────────────────────────────
     const groups: { rubro: string; items: typeof sorted }[] = [];
@@ -180,7 +180,7 @@ export default function ContratoArchivosView({
         // No merge — each cell styled individually (matches original)
         C(row, 0, "",                          s.sec);
         C(row, 1, group.rubro.toUpperCase(),   s.sec);
-        for (let c = 2; c <= 7; c++) C(row, c, "", s.sec);
+        for (let c = 2; c <= 8; c++) C(row, c, "", s.sec);
         rowHeights[row] = 18;
         row++;
       }
@@ -195,15 +195,16 @@ export default function ContratoArchivosView({
         } else {
           C(row, 5, "", s.dataC);
         }
-        C(row, 6, mapEstado(it.estado), s.dataC);
+        C(row, 6, mapEstado(it.estado),  s.dataC);
         C(row, 7, getComentarios(it.id), s.data);
+        C(row, 8, "",                    s.data); // Comentarios (manual)
         rowHeights[row] = Math.max(20, Math.ceil(it.nombre.length / 50) * 14);
         row++;
       }
     }
 
-    ws["!ref"] = XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: row - 1, c: 7 } });
-    ws["!cols"] = [{ wch: 9.83 }, { wch: 58.33 }, { wch: 9.83 }, { wch: 9.83 }, { wch: 18.5 }, { wch: 19.17 }, { wch: 9.83 }, { wch: 23.67 }];
+    ws["!ref"] = XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: row - 1, c: 8 } });
+    ws["!cols"] = [{ wch: 9.83 }, { wch: 58.33 }, { wch: 9.83 }, { wch: 9.83 }, { wch: 18.5 }, { wch: 19.17 }, { wch: 9.83 }, { wch: 30 }, { wch: 23.67 }];
     ws["!rows"] = Array.from({ length: row }, (_, i) => rowHeights[i] ? { hpt: rowHeights[i] } : {});
 
     const wb = XLSX.utils.book_new();
