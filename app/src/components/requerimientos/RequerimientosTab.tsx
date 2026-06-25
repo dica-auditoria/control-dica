@@ -144,9 +144,11 @@ interface Props {
   isSuperAdmin?: boolean;
   rol: string;
   usuarioActualId?: string;
+  entidadNombre?: string;
+  contratoNombre?: string;
 }
 
-export default function RequerimientosTab({ requerimientos, archivos, entidadId, contratoId, rol, usuarioActualId }: Props) {
+export default function RequerimientosTab({ requerimientos, archivos, entidadId, contratoId, rol, usuarioActualId, entidadNombre, contratoNombre }: Props) {
   const router    = useRouter();
   const esCliente = rol === "cliente";
   const esAdmin   = ["admin", "superadmin"].includes(rol);
@@ -182,6 +184,8 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
   const [ordenFiltro, setOrdenFiltro]                 = useState<"numero" | "reciente">("numero");
   const [editFechas, setEditFechas]                   = useState<Record<string, string>>({});
   const [esExtension, setEsExtension]                 = useState<Record<string, boolean>>({});
+  const [showReporteMenu, setShowReporteMenu]         = useState(false);
+  const [exportingReport, setExportingReport]         = useState(false);
 
   const busquedaNorm = busqueda.toLowerCase().trim();
 
@@ -338,6 +342,130 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
     return result;
   };
 
+  const estadoLabel = (estado: string) => {
+    if (estado === "completado") return "Completado";
+    if (estado === "parcial")    return "Parcial";
+    if (estado === "en_revision") return "En revisión";
+    return "Pendiente";
+  };
+
+  const handleExportarExcel = async () => {
+    setExportingReport(true);
+    setShowReporteMenu(false);
+    const XLSX = (await import("xlsx")).default;
+    const sorted = [...todosLosItems].sort((a, b) => (a.orden ?? 9999) - (b.orden ?? 9999));
+    const titulo = contratoNombre ?? contratoId;
+    const cliente = entidadNombre ?? entidadId;
+
+    const metaRows = [
+      [`Cliente: ${cliente}`, "", "", "", "", "", "", ""],
+      [`Contrato: ${titulo}`, "", "", "", "", "", "", ""],
+      [`Fecha de reporte: ${new Date().toLocaleDateString("es-MX")}`, "", "", "", "", "", "", ""],
+      [],
+      ["No.", "Área", "Rubro", "Reactivo", "Descripción", "Estado", "Archivos", "Fecha límite"],
+    ];
+    const dataRows = sorted.map(it => {
+      const count = archivos.filter(a => a.requerimiento_item_id === it.id).length;
+      return [
+        it.numero ?? "",
+        it.area ?? "",
+        it.rubro ?? "",
+        it.nombre,
+        it.descripcion ?? "",
+        estadoLabel(it.estado),
+        count,
+        it.fecha_limite ? isoADMY(it.fecha_limite) : "",
+      ];
+    });
+
+    const ws = XLSX.utils.aoa_to_sheet([...metaRows, ...dataRows]);
+    ws["!cols"] = [{ wch: 8 }, { wch: 18 }, { wch: 22 }, { wch: 60 }, { wch: 50 }, { wch: 14 }, { wch: 10 }, { wch: 14 }];
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Reporte");
+    XLSX.writeFile(wb, `${cliente}_${titulo}_reporte.xlsx`.replace(/[^a-zA-Z0-9_.\-áéíóúüñÁÉÍÓÚÜÑ]/g, "_"));
+    setExportingReport(false);
+  };
+
+  const handleExportarPDF = () => {
+    setShowReporteMenu(false);
+    const sorted = [...todosLosItems].sort((a, b) => (a.orden ?? 9999) - (b.orden ?? 9999));
+    const titulo = contratoNombre ?? contratoId;
+    const cliente = entidadNombre ?? entidadId;
+
+    const completados = sorted.filter(i => i.estado === "completado").length;
+    const parciales   = sorted.filter(i => i.estado === "parcial").length;
+    const enRevision  = sorted.filter(i => i.estado === "en_revision").length;
+    const pendientes  = sorted.filter(i => i.estado === "pendiente").length;
+    const pct         = sorted.length > 0 ? Math.round((completados / sorted.length) * 100) : 0;
+
+    const colorEstado = (e: string) => {
+      if (e === "completado") return "#166534";
+      if (e === "parcial")    return "#C2410C";
+      if (e === "en_revision") return "#92400E";
+      return "#6B7280";
+    };
+
+    const rows = sorted.map(it => {
+      const count = archivos.filter(a => a.requerimiento_item_id === it.id).length;
+      return `<tr>
+        <td style="color:#555;font-family:monospace">${it.numero ?? ""}</td>
+        <td>${(it.area ?? "").replace(/</g, "&lt;")}</td>
+        <td>${(it.rubro ?? "").replace(/</g, "&lt;")}</td>
+        <td>${it.nombre.replace(/</g, "&lt;")}</td>
+        <td style="color:${colorEstado(it.estado)};font-weight:600">${estadoLabel(it.estado)}</td>
+        <td style="text-align:center">${count}</td>
+        <td style="color:#555;font-family:monospace">${it.fecha_limite ? isoADMY(it.fecha_limite) : "—"}</td>
+      </tr>`;
+    }).join("");
+
+    const html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Reporte — ${cliente}</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; font-size: 11px; color: #111; padding: 24px; }
+  .header { border-bottom: 2px solid #1B4F8A; padding-bottom: 12px; margin-bottom: 16px; }
+  .header h1 { font-size: 17px; color: #1B4F8A; margin-bottom: 2px; }
+  .header h2 { font-size: 13px; color: #444; font-weight: 400; }
+  .header .meta { font-size: 10px; color: #888; margin-top: 6px; }
+  .summary { display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
+  .stat { background: #f5f5f5; border-radius: 4px; padding: 8px 14px; }
+  .stat .val { font-size: 20px; font-weight: 700; }
+  .stat .lbl { font-size: 9px; color: #777; text-transform: uppercase; letter-spacing: .05em; margin-top: 1px; }
+  table { width: 100%; border-collapse: collapse; font-size: 10px; }
+  th { background: #1B4F8A; color: white; padding: 6px 8px; text-align: left; font-size: 9px; text-transform: uppercase; letter-spacing: .04em; }
+  td { padding: 5px 8px; border-bottom: 1px solid #eee; vertical-align: top; }
+  tr:nth-child(even) td { background: #f9fafb; }
+  @media print { body { padding: 16px; } }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>${cliente.replace(/</g, "&lt;")}</h1>
+  <h2>${titulo.replace(/</g, "&lt;")}</h2>
+  <div class="meta">Reporte generado el ${new Date().toLocaleDateString("es-MX", { day: "2-digit", month: "long", year: "numeric" })}</div>
+</div>
+<div class="summary">
+  <div class="stat"><div class="val" style="color:#166534">${completados}</div><div class="lbl">Completados</div></div>
+  <div class="stat"><div class="val" style="color:#C2410C">${parciales}</div><div class="lbl">Parciales</div></div>
+  <div class="stat"><div class="val" style="color:#92400E">${enRevision}</div><div class="lbl">En revisión</div></div>
+  <div class="stat"><div class="val" style="color:#6B7280">${pendientes}</div><div class="lbl">Pendientes</div></div>
+  <div class="stat"><div class="val" style="color:#1B4F8A">${pct}%</div><div class="lbl">Avance</div></div>
+  <div class="stat"><div class="val">${sorted.length}</div><div class="lbl">Total</div></div>
+</div>
+<table>
+<thead><tr><th>No.</th><th>Área</th><th>Rubro</th><th>Reactivo</th><th>Estado</th><th>Archivos</th><th>Plazo</th></tr></thead>
+<tbody>${rows}</tbody>
+</table>
+</body></html>`;
+
+    const w = window.open("", "_blank");
+    if (w) { w.document.write(html); w.document.close(); setTimeout(() => w.print(), 400); }
+  };
+
   return (
     <>
       {/* Toolbar */}
@@ -390,6 +518,32 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
           <button onClick={() => exportarCSV(todosLosItems, contratoId)} style={btnSm("var(--card)", "var(--ink)", "1px solid var(--border-strong)")}>
             <DownloadIcon /> Exportar CSV
           </button>
+        )}
+        {totalItems > 0 && (
+          <div style={{ position: "relative" }}>
+            <button
+              onClick={() => setShowReporteMenu(v => !v)}
+              disabled={exportingReport}
+              style={{ ...btnSm("#1B4F8A", "white", "none"), gap: 5, opacity: exportingReport ? 0.6 : 1 }}
+            >
+              <DownloadIcon /> {exportingReport ? "Generando…" : "Reporte"} <span style={{ fontSize: 9, marginLeft: 1 }}>▾</span>
+            </button>
+            {showReporteMenu && (
+              <>
+                <div style={{ position: "fixed", inset: 0, zIndex: 999 }} onClick={() => setShowReporteMenu(false)} />
+                <div style={{ position: "absolute", top: "calc(100% + 4px)", right: 0, zIndex: 1000, background: "var(--card)", border: "1px solid var(--border-strong)", borderRadius: 6, boxShadow: "0 8px 24px rgba(15,17,23,0.15)", minWidth: 160, overflow: "hidden" }}>
+                  <button onClick={handleExportarExcel}
+                    style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "10px 14px", background: "none", border: "none", cursor: "pointer", fontSize: 13, color: "var(--ink)", textAlign: "left", fontFamily: "'DM Sans', sans-serif" }}>
+                    <span style={{ fontSize: 15 }}>📊</span> Excel (.xlsx)
+                  </button>
+                  <button onClick={handleExportarPDF}
+                    style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "10px 14px", background: "none", border: "none", borderTop: "1px solid var(--border)", cursor: "pointer", fontSize: 13, color: "var(--ink)", textAlign: "left", fontFamily: "'DM Sans', sans-serif" }}>
+                    <span style={{ fontSize: 15 }}>📄</span> PDF / Imprimir
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         )}
         {!esCliente && (
           <>
