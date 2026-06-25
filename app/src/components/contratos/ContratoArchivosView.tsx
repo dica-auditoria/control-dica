@@ -78,22 +78,110 @@ export default function ContratoArchivosView({
     setShowReporteMenu(false);
     const XLSX = xlsxRef.current ?? await import("xlsx");
     const sorted = [...todosLosItems].sort((a, b) => (a.orden ?? 9999) - (b.orden ?? 9999));
-    const metaRows = [
-      [`Cliente: ${entidadNombre}`, "", "", "", "", "", "", ""],
-      [`Contrato: ${contrato.nombre}`, "", "", "", "", "", "", ""],
-      [`Fecha de reporte: ${new Date().toLocaleDateString("es-MX")}`, "", "", "", "", "", "", ""],
-      [],
-      ["No.", "Área", "Rubro", "Reactivo", "Descripción", "Estado", "Archivos", "Fecha límite"],
-    ];
-    const dataRows = sorted.map(it => {
-      const count = archivosCliente.filter(a => a.requerimiento_item_id === it.id).length;
-      return [it.numero ?? "", it.area ?? "", it.rubro ?? "", it.nombre, it.descripcion ?? "", estadoLabel(it.estado), count, it.fecha_limite ? isoADMY(it.fecha_limite) : ""];
-    });
-    const ws = XLSX.utils.aoa_to_sheet([...metaRows, ...dataRows]);
-    ws["!cols"] = [{ wch: 8 }, { wch: 18 }, { wch: 22 }, { wch: 60 }, { wch: 50 }, { wch: 14 }, { wch: 10 }, { wch: 14 }];
+
+    // ── Stats ──────────────────────────────────────────────────────────────
+    const entregados = sorted.filter(i => i.estado === "completado").length;
+    const parciales  = sorted.filter(i => i.estado === "parcial").length;
+    const pendientes = sorted.filter(i => i.estado === "pendiente" || i.estado === "en_revision").length;
+    const total = sorted.length;
+    const pct = (n: number) => total > 0 ? `${Math.round(n / total * 100)}%` : "0%";
+
+    // ── Style helpers ──────────────────────────────────────────────────────
+    const NAVY = "1B3A6B";
+    const bd = { top: { style: "thin", color: { rgb: "CCCCCC" } }, bottom: { style: "thin", color: { rgb: "CCCCCC" } }, left: { style: "thin", color: { rgb: "CCCCCC" } }, right: { style: "thin", color: { rgb: "CCCCCC" } } };
+    const s = {
+      meta:      { font: { bold: true, sz: 11, name: "Calibri" } },
+      colHead:   { font: { bold: true, sz: 10, color: { rgb: "FFFFFF" }, name: "Calibri" }, fill: { patternType: "solid" as const, fgColor: { rgb: NAVY } }, alignment: { horizontal: "center" as const, vertical: "center" as const, wrapText: true }, border: bd },
+      sumHead:   { font: { bold: true, sz: 10, color: { rgb: "FFFFFF" }, name: "Calibri" }, fill: { patternType: "solid" as const, fgColor: { rgb: NAVY } }, alignment: { horizontal: "center" as const }, border: bd },
+      green:     { font: { bold: true, sz: 10, name: "Calibri" }, fill: { patternType: "solid" as const, fgColor: { rgb: "70AD47" } }, border: bd },
+      orange:    { font: { bold: true, sz: 10, name: "Calibri" }, fill: { patternType: "solid" as const, fgColor: { rgb: "F4B942" } }, border: bd },
+      red:       { font: { bold: true, sz: 10, name: "Calibri" }, fill: { patternType: "solid" as const, fgColor: { rgb: "FF4444" } }, border: bd },
+      yellow:    { font: { bold: true, sz: 10, name: "Calibri" }, fill: { patternType: "solid" as const, fgColor: { rgb: "FFFF00" } }, border: bd },
+      num:       { font: { sz: 10, name: "Calibri" }, alignment: { horizontal: "center" as const }, border: bd },
+      numBold:   { font: { bold: true, sz: 10, name: "Calibri" }, alignment: { horizontal: "center" as const }, border: bd },
+      section:   { font: { bold: true, sz: 10, color: { rgb: "FFFFFF" }, name: "Calibri" }, fill: { patternType: "solid" as const, fgColor: { rgb: NAVY } }, alignment: { vertical: "center" as const } },
+      data:      { font: { sz: 10, name: "Calibri" }, alignment: { wrapText: true, vertical: "top" as const }, border: { bottom: { style: "thin" as const, color: { rgb: "EEEEEE" } } } },
+      dataC:     { font: { sz: 10, name: "Calibri" }, alignment: { horizontal: "center" as const, vertical: "top" as const, wrapText: true }, border: { bottom: { style: "thin" as const, color: { rgb: "EEEEEE" } } } },
+      label:     { font: { bold: true, sz: 10, name: "Calibri" } },
+      labelRight:{ font: { bold: true, sz: 10, name: "Calibri" }, alignment: { horizontal: "right" as const } },
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ws: Record<string, any> = {};
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const merges: any[] = [];
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const C = (r: number, c: number, v: unknown, st: any = {}) => {
+      ws[XLSX.utils.encode_cell({ r, c })] = { v, t: typeof v === "number" ? "n" : "s", s: st };
+    };
+    const M = (r1: number, c1: number, r2: number, c2: number) => merges.push({ s: { r: r1, c: c1 }, e: { r: r2, c: c2 } });
+
+    // ── Rows 0-2: Company / contrato info ──────────────────────────────────
+    C(0, 0, entidadNombre, s.meta); M(0, 0, 0, 3);
+    C(1, 0, contrato.nombre, s.meta); M(1, 0, 1, 3);
+    C(2, 0, "Seguimiento a los requerimientos de información", s.meta); M(2, 0, 2, 3);
+
+    // ── Summary table (rows 0-5, cols 4-6) ────────────────────────────────
+    C(0, 4, "Status", s.sumHead); C(0, 5, "Total", s.sumHead); C(0, 6, "%", s.sumHead);
+    C(1, 4, "Entregado", s.green);  C(1, 5, entregados, s.num); C(1, 6, pct(entregados), s.num);
+    C(2, 4, "Parcial",   s.orange); C(2, 5, parciales,  s.num); C(2, 6, pct(parciales), s.num);
+    C(3, 4, "Pendiente", s.red);    C(3, 5, pendientes, s.num); C(3, 6, pct(pendientes), s.num);
+    C(4, 4, "N/A",       s.yellow); C(4, 5, 0,          s.num); C(4, 6, "0%", s.num);
+    C(5, 5, total, s.numBold); C(5, 6, pct(entregados + parciales), s.numBold);
+
+    // ── Row 4: date received ───────────────────────────────────────────────
+    const fechaContrato = contrato.fecha_inicio ? isoADMY(contrato.fecha_inicio) : "";
+    C(4, 0, "Fecha en la que se recibió requerimiento:", s.label); M(4, 0, 4, 2);
+    C(4, 3, fechaContrato, s.labelRight);
+
+    // ── Row 6: column headers ──────────────────────────────────────────────
+    ["No.", "Información requerida", "Tipo de\narchivo", "Auditor", "Área", "Vencimiento", "Status al primer\ncorte", "Comentarios"]
+      .forEach((h, c) => C(6, c, h, s.colHead));
+
+    // ── Rows 7+: data grouped by rubro ────────────────────────────────────
+    const groups: { rubro: string; items: typeof sorted }[] = [];
+    for (const it of sorted) {
+      const rubro = it.rubro ?? "";
+      const existing = groups.find(g => g.rubro === rubro);
+      if (existing) existing.items.push(it);
+      else groups.push({ rubro, items: [it] });
+    }
+    const mapEstado = (e: string) => e === "completado" ? "Entregado" : e === "parcial" ? "Parcial" : "Pendiente";
+
+    let row = 7;
+    const rowHeights: Record<number, number> = { 6: 40 };
+
+    for (const group of groups) {
+      if (group.rubro) {
+        for (let c = 0; c <= 7; c++) C(row, c, c === 0 ? group.rubro.toUpperCase() : "", s.section);
+        M(row, 0, row, 7);
+        rowHeights[row] = 18;
+        row++;
+      }
+      for (const it of group.items) {
+        C(row, 0, it.numero ?? "", s.dataC);
+        C(row, 1, it.nombre, s.data);
+        C(row, 2, "", s.dataC);
+        C(row, 3, "", s.dataC);
+        C(row, 4, it.area ?? "", s.data);
+        C(row, 5, it.fecha_limite ? isoADMY(it.fecha_limite) : "", s.dataC);
+        C(row, 6, mapEstado(it.estado), s.dataC);
+        C(row, 7, "", s.data);
+        const lines = Math.max(1, Math.ceil(it.nombre.length / 50));
+        rowHeights[row] = Math.max(20, lines * 14);
+        row++;
+      }
+    }
+
+    ws["!ref"] = XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: row - 1, c: 7 } });
+    ws["!merges"] = merges;
+    ws["!cols"] = [{ wch: 7 }, { wch: 52 }, { wch: 11 }, { wch: 12 }, { wch: 20 }, { wch: 18 }, { wch: 12 }, { wch: 22 }];
+    ws["!rows"] = Array.from({ length: row }, (_, i) => rowHeights[i] ? { hpt: rowHeights[i] } : {});
+
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Reporte");
-    XLSX.writeFile(wb, `${entidadNombre}_${contrato.nombre}_reporte.xlsx`.replace(/[^a-zA-Z0-9_.\-áéíóúüñÁÉÍÓÚÜÑ]/g, "_"));
+    XLSX.utils.book_append_sheet(wb, ws, "Requerimientos");
+    XLSX.writeFile(wb, `${entidadNombre}_${contrato.nombre}_reporte.xlsx`.replace(/[^a-zA-Z0-9_.\-áéíóúüñÁÉÍÓÚÜÑ]/g, "_"), { cellStyles: true });
     setExportingReport(false);
   };
 
