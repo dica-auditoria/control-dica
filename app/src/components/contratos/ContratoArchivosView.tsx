@@ -65,10 +65,11 @@ export default function ContratoArchivosView({
   const [uploadOpen, setUploadOpen] = useState(false);
   const [showReporteMenu, setShowReporteMenu] = useState(false);
   const [exportingReport, setExportingReport] = useState(false);
-  const xlsxRef = useRef<typeof import("xlsx") | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const xlsxRef = useRef<any>(null);
 
   useEffect(() => {
-    import("xlsx").then(mod => { xlsxRef.current = mod; });
+    import("xlsx-js-style").then(mod => { xlsxRef.current = mod.default ?? mod; });
   }, []);
 
   const todosLosItems = requerimientos.flatMap(r => r.items);
@@ -77,7 +78,9 @@ export default function ContratoArchivosView({
     setExportingReport(true);
     setShowReporteMenu(false);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const XLSX = (xlsxRef.current ?? await import("xlsx")) as any;
+    const mod = xlsxRef.current ?? await import("xlsx-js-style");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const XLSX = (mod.default ?? mod) as any;
     const sorted = [...todosLosItems].sort((a, b) => (a.orden ?? 9999) - (b.orden ?? 9999));
 
     // ── Stats ──────────────────────────────────────────────────────────────
@@ -193,8 +196,7 @@ export default function ContratoArchivosView({
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Hoja1");
     XLSX.writeFile(wb,
-      `${entidadNombre}_${contrato.nombre}_reporte.xlsx`.replace(/[^a-zA-Z0-9_.\-áéíóúüñÁÉÍÓÚÜÑ]/g, "_"),
-      { cellStyles: true }
+      `${entidadNombre}_${contrato.nombre}_reporte.xlsx`.replace(/[^a-zA-Z0-9_.\-áéíóúüñÁÉÍÓÚÜÑ]/g, "_")
     );
     setExportingReport(false);
   };
