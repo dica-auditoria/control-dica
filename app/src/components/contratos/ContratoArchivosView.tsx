@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import UploadZone from "@/components/archivos/UploadZone";
@@ -65,13 +65,18 @@ export default function ContratoArchivosView({
   const [uploadOpen, setUploadOpen] = useState(false);
   const [showReporteMenu, setShowReporteMenu] = useState(false);
   const [exportingReport, setExportingReport] = useState(false);
+  const xlsxRef = useRef<typeof import("xlsx") | null>(null);
+
+  useEffect(() => {
+    import("xlsx").then(mod => { xlsxRef.current = mod; });
+  }, []);
 
   const todosLosItems = requerimientos.flatMap(r => r.items);
 
   const handleExportarExcel = async () => {
     setExportingReport(true);
     setShowReporteMenu(false);
-    const XLSX = (await import("xlsx")).default;
+    const XLSX = xlsxRef.current ?? await import("xlsx");
     const sorted = [...todosLosItems].sort((a, b) => (a.orden ?? 9999) - (b.orden ?? 9999));
     const metaRows = [
       [`Cliente: ${entidadNombre}`, "", "", "", "", "", "", ""],
