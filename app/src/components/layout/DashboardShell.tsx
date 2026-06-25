@@ -17,10 +17,11 @@ interface Props {
   usuario: Usuario;
   solicitudesPendientes: number;
   requerimientosPendientes: number;
+  ticketsPendientes?: number;
   children: React.ReactNode;
 }
 
-export default function DashboardShell({ usuario, solicitudesPendientes, requerimientosPendientes, children }: Props) {
+export default function DashboardShell({ usuario, solicitudesPendientes, requerimientosPendientes, ticketsPendientes = 0, children }: Props) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
@@ -47,6 +48,7 @@ export default function DashboardShell({ usuario, solicitudesPendientes, requeri
           usuario={usuario}
           solicitudesPendientes={solicitudesPendientes}
           requerimientosPendientes={requerimientosPendientes}
+          ticketsPendientes={ticketsPendientes}
           isMobileOpen={sidebarOpen}
           onMobileClose={() => setSidebarOpen(false)}
         />

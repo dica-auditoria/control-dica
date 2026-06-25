@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import DashboardShell from "@/components/layout/DashboardShell";
+import { contarTicketsAbiertosAction } from "@/app/actions/tickets";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = createClient();
@@ -47,6 +48,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   // Badge: solicitudes pendientes para admin/superadmin
   let solicitudesPendientes = 0;
   let requerimientosPendientes = 0;
+  let ticketsPendientes = 0;
 
   if (perfil.rol === "admin" || perfil.rol === "superadmin") {
     const { count } = await supabase
@@ -54,6 +56,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       .select("*", { count: "exact", head: true })
       .eq("estado", "pendiente");
     solicitudesPendientes = count ?? 0;
+    ticketsPendientes = await contarTicketsAbiertosAction();
   }
 
   if (perfil.rol === "cliente" && perfil.entidad_id) {
@@ -70,6 +73,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       usuario={perfil}
       solicitudesPendientes={solicitudesPendientes}
       requerimientosPendientes={requerimientosPendientes}
+      ticketsPendientes={ticketsPendientes}
     >
       {children}
     </DashboardShell>

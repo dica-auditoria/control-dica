@@ -40,6 +40,7 @@ interface SidebarProps {
   usuario: Usuario;
   solicitudesPendientes?: number;
   requerimientosPendientes?: number;
+  ticketsPendientes?: number;
   isMobileOpen?: boolean;
   onMobileClose?: () => void;
 }
@@ -59,6 +60,7 @@ const NAV_ADMIN = [
   { href: "/dashboard/mi-credencial", label: "Mi Credencial", icon: "card" },
   { href: "/dashboard/cumpleanos", label: "Cumpleaños", icon: "cake" },
   { href: "/dashboard/inventario", label: "Inventario", icon: "box" },
+  { href: "/dashboard/tickets", label: "Tickets", icon: "ticket" },
   { href: "/dashboard/usuarios", label: "Acceso", icon: "users" },
   { href: "/dashboard/solicitudes", label: "Solicitudes", icon: "alert" },
   { href: "/dashboard/pendientes", label: "Pendientes", icon: "pending" },
@@ -75,6 +77,7 @@ const NAV_EMPLEADO = [
   { href: "/dashboard/mi-credencial", label: "Mi Credencial", icon: "card" },
   { href: "/dashboard/mi-expediente", label: "Mi Expediente", icon: "user" },
   { href: "/dashboard/empleados", label: "Mi Equipo", icon: "users" },
+  { href: "/dashboard/tickets", label: "Tickets", icon: "ticket" },
   { href: "/dashboard/otros", label: "Otros", icon: "calendar" },
 ];
 
@@ -89,14 +92,16 @@ const NAV_RRHH = [
   { href: "/dashboard/mi-credencial", label: "Mi Credencial", icon: "card" },
   { href: "/dashboard/cumpleanos", label: "Cumpleaños", icon: "cake" },
   { href: "/dashboard/directorio", label: "Directorio", icon: "map" },
+  { href: "/dashboard/tickets", label: "Tickets", icon: "ticket" },
   { href: "/dashboard/pendientes", label: "Pendientes", icon: "pending" },
 ];
 
 const NAV_CLIENTE = [
   { href: "/dashboard", label: "Mi Portal", icon: "files" },
+  { href: "/dashboard/tickets", label: "Tickets", icon: "ticket" },
 ];
 
-export default function Sidebar({ usuario, solicitudesPendientes = 0, requerimientosPendientes = 0, isMobileOpen = false, onMobileClose }: SidebarProps) {
+export default function Sidebar({ usuario, solicitudesPendientes = 0, requerimientosPendientes = 0, ticketsPendientes = 0, isMobileOpen = false, onMobileClose }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const supabase = createClient();
@@ -173,6 +178,7 @@ export default function Sidebar({ usuario, solicitudesPendientes = 0, requerimie
               const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href + "/"));
               const badge =
                 item.href === "/dashboard/solicitudes" && solicitudesPendientes > 0 ? solicitudesPendientes
+                : item.href === "/dashboard/tickets" && ticketsPendientes > 0 ? ticketsPendientes
                 : item.href === "/dashboard" && usuario.rol === "cliente" && requerimientosPendientes > 0 ? requerimientosPendientes
                 : null;
               return (
@@ -274,6 +280,7 @@ function NavIcon({ name, active }: { name: string; active: boolean }) {
     case "alert":     return <svg {...s} viewBox="0 0 24 24"><circle {...p} cx="12" cy="12" r="10"/><line {...p} x1="12" y1="8" x2="12" y2="12"/><line {...p} x1="12" y1="16" x2="12.01" y2="16"/></svg>;
     case "pending":   return <svg {...s} viewBox="0 0 24 24"><circle {...p} cx="12" cy="12" r="10"/><polyline {...p} points="12 6 12 12 16 14"/></svg>;
     case "log":       return <svg {...s} viewBox="0 0 24 24"><path {...p} d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline {...p} points="14 2 14 8 20 8"/><line {...p} x1="16" y1="13" x2="8" y2="13"/><line {...p} x1="12" y1="17" x2="8" y2="17"/><polyline {...p} points="10 9 9 9 8 9"/></svg>;
+    case "ticket":    return <svg {...s} viewBox="0 0 24 24"><path {...p} d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/><line {...p} x1="9" y1="12" x2="15" y2="12"/></svg>;
     default:          return <svg {...s} viewBox="0 0 24 24"><circle {...p} cx="12" cy="12" r="4"/></svg>;
   }
 }
