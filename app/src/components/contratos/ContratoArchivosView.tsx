@@ -100,6 +100,7 @@ export default function ContratoArchivosView({
     const entregados = sorted.filter(i => i.estado === "completado").length;
     const parciales  = sorted.filter(i => i.estado === "parcial").length;
     const pendientes = sorted.filter(i => i.estado === "pendiente" || i.estado === "en_revision").length;
+    const naCount    = sorted.filter(i => i.estado === "na").length;
     const total = sorted.length;
     const pct = (n: number) => total > 0 ? `${Math.round(n / total * 100)}%` : "0%";
 
@@ -146,7 +147,7 @@ export default function ContratoArchivosView({
     C(1, 4, "Entregado", s.green);   C(1, 5, entregados,   s.num);     C(1, 6, pct(entregados),  s.num);
     C(2, 4, "Parcial",   s.orange);  C(2, 5, parciales,    s.num);     C(2, 6, pct(parciales),   s.num);
     C(3, 4, "Pendiente", s.red);     C(3, 5, pendientes,   s.num);     C(3, 6, pct(pendientes),  s.num);
-    C(4, 4, "N/A",       s.yellow);  C(4, 5, 0,            s.num);     C(4, 6, "0%",             s.num);
+    C(4, 4, "N/A",       s.yellow);  C(4, 5, naCount,      s.num);     C(4, 6, pct(naCount),     s.num);
     C(5, 5, total, s.numB); C(5, 6, pct(entregados + parciales), s.numB);
 
     // ── Row 7: date received ───────────────────────────────────────────────
@@ -170,7 +171,7 @@ export default function ContratoArchivosView({
       if (existing) existing.items.push(it);
       else groups.push({ rubro, items: [it] });
     }
-    const mapEstado = (e: string) => e === "completado" ? "Entregado" : e === "parcial" ? "Parcial" : "Pendiente";
+    const mapEstado = (e: string) => e === "completado" ? "Entregado" : e === "parcial" ? "Parcial" : e === "na" ? "N/A" : "Pendiente";
 
     let row = 10;
     const rowHeights: Record<number, number> = { 9: 40 };

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import type { Requerimiento, RequerimientoItem } from "@/types/requerimientos";
 import type { ArchivoContratoItem } from "@/app/actions/archivos";
 import type { Comentario } from "@/app/actions/comentarios";
-import { toggleItemCompletoAction, marcarParcialItemAction, importarReactivosContratoAction, extenderFechaItemAction, chequearImpactoImportAction, agregarItemContratoAction, editarItemAction, eliminarItemAction, reordenarItemAction, actualizarFechaContratoAction } from "@/app/actions/requerimientos";
+import { toggleItemCompletoAction, marcarParcialItemAction, marcarNaItemAction, importarReactivosContratoAction, extenderFechaItemAction, chequearImpactoImportAction, agregarItemContratoAction, editarItemAction, eliminarItemAction, reordenarItemAction, actualizarFechaContratoAction } from "@/app/actions/requerimientos";
 import { deleteArchivoAction } from "@/app/actions/archivos";
 import { getDownloadUrlAction, getWasabiViewUrlAction } from "@/app/actions/storage";
 import { fetchComentariosItemAction, agregarComentarioAction, editarComentarioAction } from "@/app/actions/comentarios";
@@ -219,10 +219,13 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
 
   const handleToggleParcial = async (itemId: string, parcial: boolean) => {
     const result = await marcarParcialItemAction(itemId, parcial);
-    if (result?.error) {
-      alert(`Error: ${result.error}`);
-      return;
-    }
+    if (result?.error) { alert(`Error: ${result.error}`); return; }
+    router.refresh();
+  };
+
+  const handleToggleNa = async (itemId: string, na: boolean) => {
+    const result = await marcarNaItemAction(itemId, na);
+    if (result?.error) { alert(`Error: ${result.error}`); return; }
     router.refresh();
   };
 
@@ -452,7 +455,7 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
                 {/* Fila principal */}
                 <div
                   onClick={() => handleExpand(item.id)}
-                  style={{ display: "flex", alignItems: "center", padding: "0 14px", cursor: "pointer", background: isExpanded ? "rgba(15,17,23,0.025)" : item.estado === "completado" ? "rgba(45,166,95,0.025)" : item.estado === "parcial" ? "rgba(251,146,60,0.05)" : item.estado === "en_revision" ? "rgba(251,191,36,0.04)" : "transparent", minHeight: 46 }}
+                  style={{ display: "flex", alignItems: "center", padding: "0 14px", cursor: "pointer", background: isExpanded ? "rgba(15,17,23,0.025)" : item.estado === "completado" ? "rgba(45,166,95,0.025)" : item.estado === "parcial" ? "rgba(251,146,60,0.05)" : item.estado === "na" ? "rgba(71,85,105,0.04)" : item.estado === "en_revision" ? "rgba(251,191,36,0.04)" : "transparent", minHeight: 46 }}
                 >
                   <span style={{ color: "var(--muted)", marginRight: 10, flexShrink: 0, transition: "transform 0.15s", transform: isExpanded ? "rotate(90deg)" : "none", display: "flex" }}>
                     <ChevronIcon />
@@ -544,6 +547,15 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
                           />
                           Parcial
                         </label>
+                        <label style={{ display: "flex", alignItems: "center", gap: 4, cursor: "pointer", fontSize: 11, color: item.estado === "na" ? "#475569" : "var(--muted)", fontFamily: "'DM Mono', monospace", userSelect: "none" }}>
+                          <input
+                            type="checkbox"
+                            checked={item.estado === "na"}
+                            onChange={e => handleToggleNa(item.id, e.target.checked)}
+                            style={{ width: 14, height: 14, accentColor: "#475569", cursor: "pointer" }}
+                          />
+                          N/A
+                        </label>
                         <label style={{ display: "flex", alignItems: "center", gap: 4, cursor: "pointer", fontSize: 11, color: item.estado === "completado" ? "#1B7A3E" : "var(--muted)", fontFamily: "'DM Mono', monospace", userSelect: "none" }}>
                           <input
                             type="checkbox"
@@ -558,6 +570,8 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
                       ? <span style={badgeStyle("#1B7A3E", "rgba(45,166,95,0.1)")}>Entregado</span>
                       : item.estado === "parcial"
                       ? <span style={badgeStyle("#C2410C", "rgba(251,146,60,0.12)")}>Parcial</span>
+                      : item.estado === "na"
+                      ? <span style={badgeStyle("#475569", "rgba(71,85,105,0.1)")}>N/A</span>
                       : item.estado === "en_revision"
                       ? <span style={badgeStyle("#92400E", "rgba(251,191,36,0.15)")}>En revisión</span>
                       : <span style={badgeStyle("#6B7280", "rgba(107,114,128,0.1)")}>Pendiente</span>

@@ -259,6 +259,34 @@ export async function marcarParcialItemAction(itemId: string, parcial: boolean) 
   return { success: true };
 }
 
+// ── MARCAR N/A (no aplica) ────────────────────────────────────────────────────
+
+export async function marcarNaItemAction(itemId: string, na: boolean) {
+  const { perfil, error: authErr } = await getUser();
+  if (authErr || !perfil) return { error: authErr };
+  if (!["admin", "superadmin", "rrhh", "empleado"].includes(perfil.rol)) return { error: "No autorizado" };
+
+  const admin = createAdminClient();
+
+  if (na) {
+    const { error } = await (admin.from("requerimiento_items") as any)
+      .update({ completado: false, estado: "na" })
+      .eq("id", itemId);
+    if (error) return { error: error.message ?? "Error al marcar N/A" };
+  } else {
+    const { count } = await (admin.from("archivos") as any)
+      .select("id", { count: "exact", head: true })
+      .eq("requerimiento_item_id", itemId)
+      .neq("estado", "eliminado") as { count: number | null };
+    const { error } = await (admin.from("requerimiento_items") as any)
+      .update({ completado: false, estado: count ? "en_revision" : "pendiente" })
+      .eq("id", itemId);
+    if (error) return { error: error.message ?? "Error al desmarcar N/A" };
+  }
+
+  return { success: true };
+}
+
 // ── MARCAR EN REVISIÓN (cliente confirma que subió todo) ──────────────────────
 
 export async function confirmarSubidaAction(requerimientoId: string) {
