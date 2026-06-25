@@ -11,6 +11,7 @@ import type { ClienteArchivo } from "@/components/archivos/ClienteArchivosTable"
 import type { ArchivoContratoItem } from "@/app/actions/archivos";
 import type { Contrato } from "@/types/contratos";
 import type { Requerimiento, RequerimientoItem } from "@/types/requerimientos";
+import { fetchComentariosItemsAction } from "@/app/actions/comentarios";
 
 // ── Export helpers ──────────────────────────────────────────────────────────
 
@@ -82,6 +83,18 @@ export default function ContratoArchivosView({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const XLSX = (mod.default ?? mod) as any;
     const sorted = [...todosLosItems].sort((a, b) => (a.orden ?? 9999) - (b.orden ?? 9999));
+
+    // Cargar todos los comentarios en una sola consulta
+    const itemIds = sorted.map(i => i.id);
+    const { data: comentariosPorItem } = await fetchComentariosItemsAction(itemIds);
+    const getComentarios = (itemId: string): string => {
+      const lista = comentariosPorItem?.[itemId] ?? [];
+      if (lista.length === 0) return "";
+      return lista.map(c => {
+        const fecha = new Date(c.created_at).toLocaleDateString("es-MX", { day: "2-digit", month: "2-digit", year: "numeric" });
+        return `${c.usuario_nombre} (${fecha}):\n${c.mensaje}`;
+      }).join("\n\n");
+    };
 
     // ── Stats ──────────────────────────────────────────────────────────────
     const entregados = sorted.filter(i => i.estado === "completado").length;
@@ -183,7 +196,7 @@ export default function ContratoArchivosView({
           C(row, 5, "", s.dataC);
         }
         C(row, 6, mapEstado(it.estado), s.dataC);
-        C(row, 7, "",                   s.data);
+        C(row, 7, getComentarios(it.id), s.data);
         rowHeights[row] = Math.max(20, Math.ceil(it.nombre.length / 50) * 14);
         row++;
       }

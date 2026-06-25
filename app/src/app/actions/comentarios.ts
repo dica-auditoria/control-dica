@@ -45,6 +45,29 @@ export async function fetchComentariosItemAction(
   return { data: data ?? [], error: null };
 }
 
+export async function fetchComentariosItemsAction(
+  itemIds: string[]
+): Promise<{ data: Record<string, Comentario[]> | null; error: string | null }> {
+  const { user } = await getUser();
+  if (!user) return { error: "No autenticado", data: null };
+  if (itemIds.length === 0) return { data: {}, error: null };
+
+  const admin = createAdminClient();
+  const { data, error } = await (admin.from("requerimiento_item_comentarios") as any)
+    .select("id, item_id, usuario_id, usuario_nombre, mensaje, created_at")
+    .in("item_id", itemIds)
+    .order("created_at", { ascending: true }) as { data: Comentario[] | null; error: unknown };
+
+  if (error) return { error: "Error al cargar comentarios", data: null };
+
+  const grouped: Record<string, Comentario[]> = {};
+  for (const c of data ?? []) {
+    if (!grouped[c.item_id]) grouped[c.item_id] = [];
+    grouped[c.item_id].push(c);
+  }
+  return { data: grouped, error: null };
+}
+
 export async function agregarComentarioAction(
   itemId: string,
   mensaje: string
