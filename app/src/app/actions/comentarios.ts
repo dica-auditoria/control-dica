@@ -93,6 +93,29 @@ export async function agregarComentarioAction(
   return { data, error: null };
 }
 
+export async function eliminarComentarioAction(
+  comentarioId: string
+): Promise<{ error: string | null }> {
+  const { user, rol } = await getUser();
+  if (!user) return { error: "No autenticado" };
+
+  const admin = createAdminClient();
+
+  const { data: existing } = await (admin.from("requerimiento_item_comentarios") as any)
+    .select("usuario_id").eq("id", comentarioId).single() as { data: { usuario_id: string } | null; error: unknown };
+
+  if (!existing) return { error: "Comentario no encontrado" };
+  if (existing.usuario_id !== user.id && !["admin", "superadmin"].includes(rol ?? "")) {
+    return { error: "No autorizado" };
+  }
+
+  const { error } = await (admin.from("requerimiento_item_comentarios") as any)
+    .delete().eq("id", comentarioId);
+
+  if (error) return { error: "Error al eliminar comentario" };
+  return { error: null };
+}
+
 export async function editarComentarioAction(
   comentarioId: string,
   nuevoMensaje: string

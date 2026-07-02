@@ -8,7 +8,7 @@ import type { Comentario } from "@/app/actions/comentarios";
 import { toggleItemCompletoAction, marcarParcialItemAction, marcarNaItemAction, importarReactivosContratoAction, extenderFechaItemAction, chequearImpactoImportAction, agregarItemContratoAction, editarItemAction, eliminarItemAction, reordenarItemAction, actualizarFechaContratoAction } from "@/app/actions/requerimientos";
 import { deleteArchivoAction } from "@/app/actions/archivos";
 import { getDownloadUrlAction, getWasabiViewUrlAction } from "@/app/actions/storage";
-import { fetchComentariosItemAction, agregarComentarioAction, editarComentarioAction } from "@/app/actions/comentarios";
+import { fetchComentariosItemAction, agregarComentarioAction, editarComentarioAction, eliminarComentarioAction } from "@/app/actions/comentarios";
 import UploadZone from "@/components/archivos/UploadZone";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -340,6 +340,17 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
       setComentariosPorItem(prev => ({
         ...prev,
         [itemId]: (prev[itemId] ?? []).map(c => c.id === comentarioId ? result.data! : c),
+      }));
+    }
+    return result;
+  };
+
+  const handleEliminarComentario = async (itemId: string, comentarioId: string) => {
+    const result = await eliminarComentarioAction(comentarioId);
+    if (!result.error) {
+      setComentariosPorItem(prev => ({
+        ...prev,
+        [itemId]: (prev[itemId] ?? []).filter(c => c.id !== comentarioId),
       }));
     }
     return result;
@@ -785,6 +796,7 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
                         usuarioActualId={usuarioActualId}
                         esAdmin={esAdmin}
                         onEditado={(cId, msg) => handleEditarComentario(item.id, cId, msg)}
+                        onEliminado={(cId) => handleEliminarComentario(item.id, cId)}
                       />
 
                       {/* Input nuevo comentario */}
@@ -860,18 +872,20 @@ export default function RequerimientosTab({ requerimientos, archivos, entidadId,
 
 // ── Comentarios list ──────────────────────────────────────────────────────────
 
-function ComentariosList({ comentarios, cargando, usuarioActualId, esAdmin, onEditado }: {
+function ComentariosList({ comentarios, cargando, usuarioActualId, esAdmin, onEditado, onEliminado }: {
   comentarios: Comentario[];
   cargando: boolean;
   usuarioActualId?: string;
   esAdmin?: boolean;
   onEditado?: (comentarioId: string, nuevoMensaje: string) => Promise<{ data: Comentario | null; error: string | null }>;
+  onEliminado?: (comentarioId: string) => Promise<{ error: string | null }>;
 }) {
   const bottomRef  = useRef<HTMLDivElement>(null);
-  const [editingId, setEditingId]   = useState<string | null>(null);
-  const [editText, setEditText]     = useState("");
-  const [savingId, setSavingId]     = useState<string | null>(null);
-  const [editError, setEditError]   = useState<string | null>(null);
+  const [editingId, setEditingId]     = useState<string | null>(null);
+  const [editText, setEditText]       = useState("");
+  const [savingId, setSavingId]       = useState<string | null>(null);
+  const [editError, setEditError]     = useState<string | null>(null);
+  const [deletingId, setDeletingId]   = useState<string | null>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -921,10 +935,26 @@ function ComentariosList({ comentarios, cargando, usuarioActualId, esAdmin, onEd
                   <span style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)" }}>{c.usuario_nombre}</span>
                   <span style={{ fontSize: 10, color: "var(--muted)", fontFamily: "'DM Mono', monospace" }}>{tiempoRelativo(c.created_at)}</span>
                   {puedoEditar && !isEditing && (
-                    <button onClick={() => startEdit(c)} title="Editar nota"
-                      style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", padding: "0 2px", fontSize: 11, lineHeight: 1, opacity: 0.6 }}>
-                      ✎
-                    </button>
+                    <>
+                      <button onClick={() => startEdit(c)} title="Editar nota"
+                        style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", padding: "0 2px", fontSize: 11, lineHeight: 1, opacity: 0.6 }}>
+                        ✎
+                      </button>
+                      <button
+                        onClick={async () => {
+                          if (!onEliminado) return;
+                          if (!confirm("¿Eliminar esta nota?")) return;
+                          setDeletingId(c.id);
+                          await onEliminado(c.id);
+                          setDeletingId(null);
+                        }}
+                        disabled={deletingId === c.id}
+                        title="Eliminar nota"
+                        style={{ background: "none", border: "none", cursor: "pointer", color: "var(--accent)", padding: "0 2px", fontSize: 12, lineHeight: 1, opacity: deletingId === c.id ? 0.4 : 0.6 }}
+                      >
+                        ×
+                      </button>
+                    </>
                   )}
                 </div>
                 {isEditing ? (
