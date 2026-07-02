@@ -143,7 +143,8 @@ export default function ConversorArchivos() {
     const page = pdfDoc.addPage([img.width, img.height]);
     page.drawImage(img, { x: 0, y: 0, width: img.width, height: img.height });
     const bytes = await pdfDoc.save();
-    const blob = new Blob([bytes], { type: "application/pdf" });
+    // pdf-lib returns Uint8Array<ArrayBufferLike>; cast needed for strict TS
+    const blob = new Blob([bytes.buffer as ArrayBuffer], { type: "application/pdf" });
     const url = URL.createObjectURL(blob);
     const baseName = archivo!.name.replace(/\.(png|jpe?g)$/i, "");
     return [{ nombre: `${baseName}.pdf`, url }];
