@@ -8,7 +8,8 @@ create or replace function public.get_directorio_stats()
 returns table (
   entidad_id uuid,
   archivo_count bigint,
-  usuario_count bigint
+  usuario_count bigint,
+  total_size_bytes bigint
 )
 language sql
 security definer
@@ -18,7 +19,8 @@ as $$
     e.id as entidad_id,
     count(distinct case when a.estado != 'eliminado' and a.tipo != 'carpeta' then a.id end) as archivo_count,
     count(distinct case when u.rol = 'cliente' then u.id end)
-      + count(distinct ea.empleado_id) as usuario_count
+      + count(distinct ea.empleado_id) as usuario_count,
+    coalesce(sum(case when a.estado != 'eliminado' and a.tipo != 'carpeta' then a.size_bytes else 0 end), 0) as total_size_bytes
   from entidades e
   left join archivos a on a.entidad_id = e.id
   left join usuarios u on u.entidad_id = e.id

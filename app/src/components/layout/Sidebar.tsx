@@ -65,6 +65,7 @@ const NAV_ADMIN = [
   { href: "/dashboard/solicitudes", label: "Solicitudes", icon: "alert" },
   { href: "/dashboard/pendientes", label: "Pendientes", icon: "pending" },
   { href: "/dashboard/audit-log", label: "Audit Log", icon: "log" },
+  { href: "/dashboard/herramientas", label: "Herramientas", icon: "tools" },
 ];
 
 const NAV_EMPLEADO = [
@@ -281,6 +282,7 @@ function NavIcon({ name, active }: { name: string; active: boolean }) {
     case "pending":   return <svg {...s} viewBox="0 0 24 24"><circle {...p} cx="12" cy="12" r="10"/><polyline {...p} points="12 6 12 12 16 14"/></svg>;
     case "log":       return <svg {...s} viewBox="0 0 24 24"><path {...p} d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline {...p} points="14 2 14 8 20 8"/><line {...p} x1="16" y1="13" x2="8" y2="13"/><line {...p} x1="12" y1="17" x2="8" y2="17"/><polyline {...p} points="10 9 9 9 8 9"/></svg>;
     case "ticket":    return <svg {...s} viewBox="0 0 24 24"><path {...p} d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/><line {...p} x1="9" y1="12" x2="15" y2="12"/></svg>;
+    case "tools":     return <svg {...s} viewBox="0 0 24 24"><path {...p} d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>;
     default:          return <svg {...s} viewBox="0 0 24 24"><circle {...p} cx="12" cy="12" r="4"/></svg>;
   }
 }

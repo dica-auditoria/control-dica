@@ -9,7 +9,7 @@ import type { EmpresaDirectorioItem } from "@/components/directorio/DirectorioVi
 interface PerfilRow { rol: string }
 interface EntidadRow { id: string; nombre: string; activo: boolean; created_at: string }
 interface ContratoRow { entidad_id: string; estado: string }
-interface StatsRow { entidad_id: string; archivo_count: number; usuario_count: number }
+interface StatsRow { entidad_id: string; archivo_count: number; usuario_count: number; total_size_bytes: number }
 interface EmpleadoRow { id: string; departamento: string }
 
 const DEPARTAMENTOS_ACCESO_TOTAL = [
@@ -83,11 +83,12 @@ export default async function DirectorioPage() {
     });
   }
 
-  const statsMap = new Map<string, { archivos: number; usuarios: number }>();
+  const statsMap = new Map<string, { archivos: number; usuarios: number; sizeBytes: number }>();
   for (const s of rStats.data ?? []) {
     statsMap.set(s.entidad_id, {
       archivos: Number(s.archivo_count),
       usuarios: Number(s.usuario_count),
+      sizeBytes: Number(s.total_size_bytes ?? 0),
     });
   }
 
@@ -102,6 +103,7 @@ export default async function DirectorioPage() {
       contratosVigentes: contratosMap.get(e.id)?.vigentes ?? 0,
       totalArchivos: statsMap.get(e.id)?.archivos ?? 0,
       totalUsuarios: statsMap.get(e.id)?.usuarios ?? 0,
+      totalSizeBytes: statsMap.get(e.id)?.sizeBytes ?? 0,
     }));
 
   return (

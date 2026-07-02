@@ -23,6 +23,15 @@ export interface EmpresaDirectorioItem {
   contratosVigentes: number;
   totalArchivos: number;
   totalUsuarios: number;
+  totalSizeBytes: number;
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes === 0) return "0 B";
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
 }
 
 interface Props {
@@ -96,7 +105,7 @@ export default function DirectorioView({ oficinas, entidades, empresas: initialE
     const result = await crearEntidadAction(nombreEmpresa);
     if (result.error) { setErrorEmpresa(result.error); setSubmittingEmpresa(false); return; }
     if (result.entidad) {
-      setEmpresas(prev => [...prev, { ...result.entidad!, totalContratos: 0, contratosVigentes: 0, totalArchivos: 0, totalUsuarios: 0 }]);
+      setEmpresas(prev => [...prev, { ...result.entidad!, totalContratos: 0, contratosVigentes: 0, totalArchivos: 0, totalUsuarios: 0, totalSizeBytes: 0 }]);
     }
     setNombreEmpresa("");
     setModalEmpresaOpen(false);
@@ -242,9 +251,12 @@ export default function DirectorioView({ oficinas, entidades, empresas: initialE
             </div>
           ) : (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 16 }}>
-              {empresas.map(emp => (
-                <EmpresaCard key={emp.id} empresa={emp} />
-              ))}
+              {(() => {
+                const totalStorage = empresas.reduce((sum, e) => sum + e.totalSizeBytes, 0);
+                return empresas.map(emp => (
+                  <EmpresaCard key={emp.id} empresa={emp} totalStorage={totalStorage} />
+                ));
+              })()}
             </div>
           )
         )}
@@ -450,7 +462,10 @@ export default function DirectorioView({ oficinas, entidades, empresas: initialE
 
 // -------- Empresa Card --------
 
-function EmpresaCard({ empresa }: { empresa: EmpresaDirectorioItem }) {
+function EmpresaCard({ empresa, totalStorage }: { empresa: EmpresaDirectorioItem; totalStorage: number }) {
+  const pct = totalStorage > 0 ? (empresa.totalSizeBytes / totalStorage) * 100 : 0;
+  const barColor = pct > 60 ? "var(--accent)" : pct > 30 ? "var(--amber)" : "var(--green)";
+
   return (
     <div style={{
       background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8,
@@ -497,6 +512,24 @@ function EmpresaCard({ empresa }: { empresa: EmpresaDirectorioItem }) {
         <div style={{ textAlign: "center" }}>
           <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: 24, color: "var(--ink)", lineHeight: 1 }}>{empresa.totalUsuarios}</div>
           <div style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", color: "var(--muted)", textTransform: "uppercase", marginTop: 2 }}>Usuarios</div>
+        </div>
+      </div>
+
+      {/* Storage bar */}
+      <div style={{ padding: "10px 16px", borderTop: "1px solid var(--border)" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+          <span style={{ fontSize: 10, fontFamily: "'DM Mono', monospace", color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+            Almacenamiento
+          </span>
+          <span style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: "var(--ink)", fontWeight: 600 }}>
+            {formatBytes(empresa.totalSizeBytes)}
+            {totalStorage > 0 && (
+              <span style={{ color: "var(--muted)", fontWeight: 400 }}> · {pct.toFixed(1)}%</span>
+            )}
+          </span>
+        </div>
+        <div style={{ height: 4, background: "var(--surface-2)", borderRadius: 999, overflow: "hidden" }}>
+          <div style={{ height: "100%", width: `${Math.min(100, pct)}%`, background: barColor, borderRadius: 999, transition: "width 0.3s" }} />
         </div>
       </div>
 
